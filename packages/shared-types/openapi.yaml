@@ -1,0 +1,93 @@
+openapi: 3.0.3
+info:
+  title: TKAPrep API
+  version: 0.1.0
+  description: |
+    REST API for the TKAPrep platform.
+
+    All authenticated endpoints require `Authorization: Bearer <access_token>`.
+
+    See `spec.md` in the repo root for the full product specification.
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+
+tags:
+  - name: System
+    description: Health and operational endpoints
+  - name: Auth
+    description: Authentication and account management
+  - name: Questions
+    description: Question bank (contributor)
+  - name: Tests
+    description: Tests and sessions
+  - name: Results
+    description: Test results and review
+  - name: Leaderboard
+    description: Ranking
+  - name: Admin
+    description: Super admin operations
+
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Returns service health status. Used by load balancers and uptime monitors.
+      operationId: getHealth
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required: [status, timestamp]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+          example: ok
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-05-11T10:00:00Z"
+        version:
+          type: string
+          example: "0.1.0"
+
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: Invalid input
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  issue:
+                    type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

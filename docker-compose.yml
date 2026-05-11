@@ -1,0 +1,53 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: tkaprep-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: tkaprep
+      POSTGRES_PASSWORD: tkaprep
+      POSTGRES_DB: tkaprep
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tkaprep"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: tkaprep-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgres://tkaprep:tkaprep@postgres:5432/tkaprep?sslmode=disable
+      JWT_SECRET: dev-secret-change-in-prod
+      JWT_ACCESS_TTL: 15m
+      JWT_REFRESH_TTL: 168h
+      PORT: "8080"
+      LOG_LEVEL: debug
+    ports:
+      - "8080:8080"
+
+  frontend:
+    build:
+      context: ./apps/frontend
+      dockerfile: Dockerfile
+    container_name: tkaprep-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080/api/v1
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:

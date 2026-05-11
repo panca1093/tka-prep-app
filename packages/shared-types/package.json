@@ -1,0 +1,13 @@
+{
+  "name": "@tkaprep/shared-types",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Generated TypeScript types from the OpenAPI spec",
+  "main": "generated/ts/index.ts",
+  "scripts": {
+    "generate:ts": "openapi-typescript openapi.yaml -o generated/ts/index.ts"
+  },
+  "devDependencies": {
+    "openapi-typescript": "^7.4.0"
+  }
+}

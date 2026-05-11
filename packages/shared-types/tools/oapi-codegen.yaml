@@ -1,0 +1,12 @@
+# Configuration for oapi-codegen
+# Generates Go types and chi server interfaces from openapi.yaml
+# Output: packages/shared-types/generated/go/api.gen.go
+# Run via: make generate-go
+
+package: api
+output: ../../packages/shared-types/generated/go/api.gen.go
+generate:
+  models: true
+  chi-server: true
+  strict-server: true
+  embedded-spec: true

@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+*.exe
+*.test
+*.out
+vendor/
+tmp/
+
+# Generated (commit only the spec, not the codegen output during early dev)
+packages/shared-types/generated/go/*.go
+packages/shared-types/generated/ts/*.ts
+
+# Logs
+*.log
+
+# Postgres data (when running outside docker)
+pgdata/
