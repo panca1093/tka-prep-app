@@ -17,6 +17,22 @@ services:
       timeout: 5s
       retries: 5
 
+  migrate:
+    image: migrate/migrate:v4.17.0
+    container_name: tkaprep-migrate
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/backend/migrations:/migrations
+    command:
+      [
+        "-path", "/migrations",
+        "-database", "postgres://tkaprep:tkaprep@postgres:5432/tkaprep?sslmode=disable",
+        "up"
+      ]
+    restart: on-failure
+
   backend:
     build:
       context: ./apps/backend
@@ -26,6 +42,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     environment:
       DATABASE_URL: postgres://tkaprep:tkaprep@postgres:5432/tkaprep?sslmode=disable
       JWT_SECRET: dev-secret-change-in-prod
@@ -33,13 +51,14 @@ services:
       JWT_REFRESH_TTL: 168h
       PORT: "8080"
       LOG_LEVEL: debug
+      FRONTEND_ORIGIN: http://localhost:5173
     ports:
       - "8080:8080"
 
   frontend:
     build:
-      context: ./apps/frontend
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: apps/frontend/Dockerfile
     container_name: tkaprep-frontend
     restart: unless-stopped
     depends_on:
