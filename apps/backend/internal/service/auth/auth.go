@@ -81,6 +81,11 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*domain.User,
 		return nil, TokenPair{}, fmt.Errorf("create user: %w", err)
 	}
 
+	// Pending contributors must wait for admin approval before they can log in.
+	if user.Status == domain.StatusPending {
+		return user, TokenPair{}, nil
+	}
+
 	pair, err := s.issueTokenPair(ctx, user)
 	if err != nil {
 		return nil, TokenPair{}, err
@@ -101,6 +106,9 @@ func (s *Service) Login(ctx context.Context, email, password string) (*domain.Us
 		return nil, TokenPair{}, apierr.ErrUnauthorized
 	}
 
+	if user.Status == domain.StatusPending {
+		return nil, TokenPair{}, apierr.ErrPending
+	}
 	if user.Status == domain.StatusSuspended {
 		return nil, TokenPair{}, apierr.ErrForbidden
 	}
@@ -136,6 +144,10 @@ func (s *Service) Refresh(ctx context.Context, rawToken string) (*domain.User, T
 	user, err := s.users.FindByID(ctx, storedToken.UserID)
 	if err != nil {
 		return nil, TokenPair{}, fmt.Errorf("find user for refresh: %w", err)
+	}
+
+	if user.Status == domain.StatusPending || user.Status == domain.StatusSuspended {
+		return nil, TokenPair{}, apierr.ErrUnauthorized
 	}
 
 	pair, err := s.issueTokenPair(ctx, user)

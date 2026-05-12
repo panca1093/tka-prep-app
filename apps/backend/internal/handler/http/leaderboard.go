@@ -34,6 +34,9 @@ func (s *APIServer) GetLeaderboardMe(ctx context.Context, req api.GetLeaderboard
 	if !ok {
 		return api.GetLeaderboardMe401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
+	if claims.Role != domain.RoleStudent {
+		return api.GetLeaderboardMe403JSONResponse(errBody("FORBIDDEN", "student only")), nil
+	}
 
 	scope := resolveScope((*string)(req.Params.Scope))
 	entry, err := s.leaderboardRepo.GetMyRank(ctx, claims.UserID, scope)

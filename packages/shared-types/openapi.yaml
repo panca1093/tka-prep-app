@@ -1392,7 +1392,7 @@ paths:
   /leaderboard/me:
     get:
       tags: [Leaderboard]
-      summary: Get the caller's personal rank on the leaderboard
+      summary: Get the caller's personal rank on the leaderboard (student only)
       operationId: getLeaderboardMe
       security:
         - bearerAuth: []
@@ -1413,6 +1413,12 @@ paths:
                 $ref: '#/components/schemas/LeaderboardEntryResponse'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Student only
           content:
             application/json:
               schema:

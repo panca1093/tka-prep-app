@@ -45,6 +45,8 @@ func (s *APIServer) PostAuthLogin(ctx context.Context, req api.PostAuthLoginRequ
 		switch {
 		case errors.Is(err, apierr.ErrUnauthorized):
 			return api.PostAuthLogin401JSONResponse(errBody("UNAUTHORIZED", "invalid credentials")), nil
+		case errors.Is(err, apierr.ErrPending):
+			return api.PostAuthLogin401JSONResponse(errBody("PENDING_APPROVAL", "account is pending admin approval")), nil
 		case errors.Is(err, apierr.ErrForbidden):
 			return api.PostAuthLogin401JSONResponse(errBody("SUSPENDED", "account suspended")), nil
 		}
