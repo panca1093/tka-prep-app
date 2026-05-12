@@ -1,0 +1,333 @@
+package http
+
+import (
+	"context"
+	"errors"
+
+	"github.com/yourorg/tkaprep/apps/backend/internal/api"
+	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
+	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
+	pkgjwt "github.com/yourorg/tkaprep/apps/backend/internal/pkg/jwt"
+	testsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/test"
+)
+
+func (s *APIServer) GetTests(ctx context.Context, req api.GetTestsRequestObject) (api.GetTestsResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.GetTests401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+
+	p := req.Params
+	f := testsvc.ListFilter{Page: 1, Limit: 20}
+	if p.Page != nil {
+		f.Page = *p.Page
+	}
+	if p.Limit != nil {
+		f.Limit = *p.Limit
+	}
+	if p.Category != nil {
+		cat := domain.TestCategory(*p.Category)
+		f.Category = &cat
+	}
+	if p.Difficulty != nil {
+		d := domain.Difficulty(*p.Difficulty)
+		f.Difficulty = &d
+	}
+	if p.Status != nil {
+		st := domain.TestStatus(*p.Status)
+		f.Status = &st
+	}
+	if p.ContributorId != nil {
+		f.ContributorID = p.ContributorId
+	}
+
+	// Students only see published tests; contributors see own draft+published; admin sees all.
+	if claims.Role == domain.RoleStudent {
+		published := domain.TestStatusPublished
+		f.Status = &published
+	} else if claims.Role == domain.RoleContributor && f.ContributorID == nil {
+		f.ContributorID = &claims.UserID
+	}
+
+	tests, total, err := s.testSvc.List(ctx, f)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := api.GetTests200JSONResponse{
+		Data:  make([]api.TestDetailResponse, 0, len(tests)),
+		Total: total,
+		Page:  f.Page,
+		Limit: f.Limit,
+	}
+	for _, t := range tests {
+		resp.Data = append(resp.Data, toTestDetailResponse(t))
+	}
+	return resp, nil
+}
+
+func (s *APIServer) PostTests(ctx context.Context, req api.PostTestsRequestObject) (api.PostTestsResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PostTests401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.PostTests403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	in := testsvc.CreateInput{
+		ContributorID:   claims.UserID,
+		Title:           req.Body.Title,
+		Description:     req.Body.Description,
+		Category:        domain.TestCategory(req.Body.Category),
+		DurationMinutes: req.Body.DurationMinutes,
+		Difficulty:      domain.Difficulty(req.Body.Difficulty),
+	}
+	if req.Body.ScoringConfig != nil {
+		in.ScoringConfig = &testsvc.ScoringConfigInput{
+			CorrectPoints: req.Body.ScoringConfig.CorrectPoints,
+			WrongPoints:   req.Body.ScoringConfig.WrongPoints,
+			BlankPoints:   req.Body.ScoringConfig.BlankPoints,
+		}
+	}
+
+	t, err := s.testSvc.Create(ctx, in)
+	if err != nil {
+		if errors.Is(err, apierr.ErrValidation) {
+			return api.PostTests422JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.PostTests201JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) GetTestsTestId(ctx context.Context, req api.GetTestsTestIdRequestObject) (api.GetTestsTestIdResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.GetTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+
+	t, err := s.testSvc.Get(ctx, req.TestId)
+	if err != nil {
+		if errors.Is(err, apierr.ErrNotFound) {
+			return api.GetTestsTestId404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		}
+		return nil, err
+	}
+
+	// Students can only see published tests.
+	if claims.Role == domain.RoleStudent && t.Status != domain.TestStatusPublished {
+		return api.GetTestsTestId404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+	}
+	// Contributors can only see their own drafts.
+	if claims.Role == domain.RoleContributor && t.Status == domain.TestStatusDraft && t.ContributorID != claims.UserID {
+		return api.GetTestsTestId403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+	}
+
+	return api.GetTestsTestId200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) PatchTestsTestId(ctx context.Context, req api.PatchTestsTestIdRequestObject) (api.PatchTestsTestIdResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PatchTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.PatchTestsTestId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	in := testsvc.UpdateInput{
+		Title:       req.Body.Title,
+		Description: req.Body.Description,
+	}
+	if req.Body.Category != nil {
+		cat := domain.TestCategory(*req.Body.Category)
+		in.Category = &cat
+	}
+	if req.Body.DurationMinutes != nil {
+		in.DurationMinutes = req.Body.DurationMinutes
+	}
+	if req.Body.Difficulty != nil {
+		d := domain.Difficulty(*req.Body.Difficulty)
+		in.Difficulty = &d
+	}
+
+	t, err := s.testSvc.Update(ctx, req.TestId, claims.UserID, claims.Role, in)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.PatchTestsTestId404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.PatchTestsTestId403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.PatchTestsTestId409JSONResponse(errBody("CONFLICT", err.Error())), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.PatchTestsTestId422JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.PatchTestsTestId200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) DeleteTestsTestId(ctx context.Context, req api.DeleteTestsTestIdRequestObject) (api.DeleteTestsTestIdResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.DeleteTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.DeleteTestsTestId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	if err := s.testSvc.Delete(ctx, req.TestId, claims.UserID, claims.Role); err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.DeleteTestsTestId404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.DeleteTestsTestId403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.DeleteTestsTestId409JSONResponse(errBody("CONFLICT", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.DeleteTestsTestId200JSONResponse{Message: "deleted"}, nil
+}
+
+func (s *APIServer) PostTestsTestIdPublish(ctx context.Context, req api.PostTestsTestIdPublishRequestObject) (api.PostTestsTestIdPublishResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PostTestsTestIdPublish401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.PostTestsTestIdPublish403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	t, err := s.testSvc.Publish(ctx, req.TestId, claims.UserID, claims.Role)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.PostTestsTestIdPublish404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.PostTestsTestIdPublish403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.PostTestsTestIdPublish409JSONResponse(errBody("CONFLICT", err.Error())), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.PostTestsTestIdPublish422JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.PostTestsTestIdPublish200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) PostTestsTestIdUnpublish(ctx context.Context, req api.PostTestsTestIdUnpublishRequestObject) (api.PostTestsTestIdUnpublishResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PostTestsTestIdUnpublish401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	// Only admin can unpublish.
+	if claims.Role != domain.RoleAdmin {
+		return api.PostTestsTestIdUnpublish403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	}
+
+	t, err := s.testSvc.Unpublish(ctx, req.TestId)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.PostTestsTestIdUnpublish404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.PostTestsTestIdUnpublish409JSONResponse(errBody("CONFLICT", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.PostTestsTestIdUnpublish200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) PutTestsTestIdQuestions(ctx context.Context, req api.PutTestsTestIdQuestionsRequestObject) (api.PutTestsTestIdQuestionsResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PutTestsTestIdQuestions401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.PutTestsTestIdQuestions403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	t, err := s.testSvc.SetQuestions(ctx, req.TestId, claims.UserID, claims.Role, req.Body.QuestionIds)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.PutTestsTestIdQuestions404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.PutTestsTestIdQuestions403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.PutTestsTestIdQuestions409JSONResponse(errBody("CONFLICT", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.PutTestsTestIdQuestions200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) PatchTestsTestIdScoring(ctx context.Context, req api.PatchTestsTestIdScoringRequestObject) (api.PatchTestsTestIdScoringResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PatchTestsTestIdScoring401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.PatchTestsTestIdScoring403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	t, err := s.testSvc.UpdateScoringConfig(ctx, req.TestId, claims.UserID, claims.Role, testsvc.ScoringConfigInput{
+		CorrectPoints: req.Body.CorrectPoints,
+		WrongPoints:   req.Body.WrongPoints,
+		BlankPoints:   req.Body.BlankPoints,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.PatchTestsTestIdScoring404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.PatchTestsTestIdScoring403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.PatchTestsTestIdScoring409JSONResponse(errBody("CONFLICT", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.PatchTestsTestIdScoring200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func toTestDetailResponse(t *domain.Test) api.TestDetailResponse {
+	qs := make([]api.TestQuestionResponse, len(t.Questions))
+	for i, q := range t.Questions {
+		qs[i] = api.TestQuestionResponse{
+			Id:         q.ID,
+			TestId:     q.TestID,
+			QuestionId: q.QuestionID,
+			OrderIndex: q.OrderIndex,
+		}
+	}
+
+	resp := api.TestDetailResponse{
+		Id:              t.ID,
+		ContributorId:   t.ContributorID,
+		Title:           t.Title,
+		Description:     t.Description,
+		Category:        api.TestDetailResponseCategory(t.Category),
+		DurationMinutes: t.DurationMinutes,
+		Difficulty:      api.TestDetailResponseDifficulty(t.Difficulty),
+		Status:          api.TestDetailResponseStatus(t.Status),
+		CreatedAt:       t.CreatedAt,
+		PublishedAt:     t.PublishedAt,
+		Questions:       qs,
+	}
+
+	if t.ScoringConfig != nil {
+		sc := api.ScoringConfigResponse{
+			Id:            t.ScoringConfig.ID,
+			TestId:        t.ScoringConfig.TestID,
+			CorrectPoints: t.ScoringConfig.CorrectPoints,
+			WrongPoints:   t.ScoringConfig.WrongPoints,
+			BlankPoints:   t.ScoringConfig.BlankPoints,
+		}
+		resp.ScoringConfig = &sc
+	}
+
+	return resp
+}

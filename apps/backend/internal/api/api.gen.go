@@ -48,6 +48,48 @@ func (e CreateQuestionRequestDifficulty) Valid() bool {
 	}
 }
 
+// Defines values for CreateTestRequestCategory.
+const (
+	CreateTestRequestCategorySmbt       CreateTestRequestCategory = "smbt"
+	CreateTestRequestCategoryTkaSaintek CreateTestRequestCategory = "tka_saintek"
+	CreateTestRequestCategoryTkaSoshum  CreateTestRequestCategory = "tka_soshum"
+)
+
+// Valid indicates whether the value is a known member of the CreateTestRequestCategory enum.
+func (e CreateTestRequestCategory) Valid() bool {
+	switch e {
+	case CreateTestRequestCategorySmbt:
+		return true
+	case CreateTestRequestCategoryTkaSaintek:
+		return true
+	case CreateTestRequestCategoryTkaSoshum:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for CreateTestRequestDifficulty.
+const (
+	CreateTestRequestDifficultyEasy   CreateTestRequestDifficulty = "easy"
+	CreateTestRequestDifficultyHard   CreateTestRequestDifficulty = "hard"
+	CreateTestRequestDifficultyMedium CreateTestRequestDifficulty = "medium"
+)
+
+// Valid indicates whether the value is a known member of the CreateTestRequestDifficulty enum.
+func (e CreateTestRequestDifficulty) Valid() bool {
+	switch e {
+	case CreateTestRequestDifficultyEasy:
+		return true
+	case CreateTestRequestDifficultyHard:
+		return true
+	case CreateTestRequestDifficultyMedium:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for HealthResponseStatus.
 const (
 	Degraded HealthResponseStatus = "degraded"
@@ -105,6 +147,129 @@ func (e RegisterRequestRole) Valid() bool {
 	}
 }
 
+// Defines values for ReviewItemResponseDifficulty.
+const (
+	ReviewItemResponseDifficultyEasy   ReviewItemResponseDifficulty = "easy"
+	ReviewItemResponseDifficultyHard   ReviewItemResponseDifficulty = "hard"
+	ReviewItemResponseDifficultyMedium ReviewItemResponseDifficulty = "medium"
+)
+
+// Valid indicates whether the value is a known member of the ReviewItemResponseDifficulty enum.
+func (e ReviewItemResponseDifficulty) Valid() bool {
+	switch e {
+	case ReviewItemResponseDifficultyEasy:
+		return true
+	case ReviewItemResponseDifficultyHard:
+		return true
+	case ReviewItemResponseDifficultyMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ReviewItemResponseStatus.
+const (
+	ReviewItemResponseStatusBlank   ReviewItemResponseStatus = "blank"
+	ReviewItemResponseStatusCorrect ReviewItemResponseStatus = "correct"
+	ReviewItemResponseStatusWrong   ReviewItemResponseStatus = "wrong"
+)
+
+// Valid indicates whether the value is a known member of the ReviewItemResponseStatus enum.
+func (e ReviewItemResponseStatus) Valid() bool {
+	switch e {
+	case ReviewItemResponseStatusBlank:
+		return true
+	case ReviewItemResponseStatusCorrect:
+		return true
+	case ReviewItemResponseStatusWrong:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for SessionResponseStatus.
+const (
+	Expired    SessionResponseStatus = "expired"
+	InProgress SessionResponseStatus = "in_progress"
+	Submitted  SessionResponseStatus = "submitted"
+)
+
+// Valid indicates whether the value is a known member of the SessionResponseStatus enum.
+func (e SessionResponseStatus) Valid() bool {
+	switch e {
+	case Expired:
+		return true
+	case InProgress:
+		return true
+	case Submitted:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TestDetailResponseCategory.
+const (
+	TestDetailResponseCategorySmbt       TestDetailResponseCategory = "smbt"
+	TestDetailResponseCategoryTkaSaintek TestDetailResponseCategory = "tka_saintek"
+	TestDetailResponseCategoryTkaSoshum  TestDetailResponseCategory = "tka_soshum"
+)
+
+// Valid indicates whether the value is a known member of the TestDetailResponseCategory enum.
+func (e TestDetailResponseCategory) Valid() bool {
+	switch e {
+	case TestDetailResponseCategorySmbt:
+		return true
+	case TestDetailResponseCategoryTkaSaintek:
+		return true
+	case TestDetailResponseCategoryTkaSoshum:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TestDetailResponseDifficulty.
+const (
+	TestDetailResponseDifficultyEasy   TestDetailResponseDifficulty = "easy"
+	TestDetailResponseDifficultyHard   TestDetailResponseDifficulty = "hard"
+	TestDetailResponseDifficultyMedium TestDetailResponseDifficulty = "medium"
+)
+
+// Valid indicates whether the value is a known member of the TestDetailResponseDifficulty enum.
+func (e TestDetailResponseDifficulty) Valid() bool {
+	switch e {
+	case TestDetailResponseDifficultyEasy:
+		return true
+	case TestDetailResponseDifficultyHard:
+		return true
+	case TestDetailResponseDifficultyMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TestDetailResponseStatus.
+const (
+	TestDetailResponseStatusDraft     TestDetailResponseStatus = "draft"
+	TestDetailResponseStatusPublished TestDetailResponseStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the TestDetailResponseStatus enum.
+func (e TestDetailResponseStatus) Valid() bool {
+	switch e {
+	case TestDetailResponseStatusDraft:
+		return true
+	case TestDetailResponseStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UpdateQuestionRequestDifficulty.
 const (
 	UpdateQuestionRequestDifficultyEasy   UpdateQuestionRequestDifficulty = "easy"
@@ -120,6 +285,48 @@ func (e UpdateQuestionRequestDifficulty) Valid() bool {
 	case UpdateQuestionRequestDifficultyHard:
 		return true
 	case UpdateQuestionRequestDifficultyMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UpdateTestRequestCategory.
+const (
+	UpdateTestRequestCategorySmbt       UpdateTestRequestCategory = "smbt"
+	UpdateTestRequestCategoryTkaSaintek UpdateTestRequestCategory = "tka_saintek"
+	UpdateTestRequestCategoryTkaSoshum  UpdateTestRequestCategory = "tka_soshum"
+)
+
+// Valid indicates whether the value is a known member of the UpdateTestRequestCategory enum.
+func (e UpdateTestRequestCategory) Valid() bool {
+	switch e {
+	case UpdateTestRequestCategorySmbt:
+		return true
+	case UpdateTestRequestCategoryTkaSaintek:
+		return true
+	case UpdateTestRequestCategoryTkaSoshum:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UpdateTestRequestDifficulty.
+const (
+	UpdateTestRequestDifficultyEasy   UpdateTestRequestDifficulty = "easy"
+	UpdateTestRequestDifficultyHard   UpdateTestRequestDifficulty = "hard"
+	UpdateTestRequestDifficultyMedium UpdateTestRequestDifficulty = "medium"
+)
+
+// Valid indicates whether the value is a known member of the UpdateTestRequestDifficulty enum.
+func (e UpdateTestRequestDifficulty) Valid() bool {
+	switch e {
+	case UpdateTestRequestDifficultyEasy:
+		return true
+	case UpdateTestRequestDifficultyHard:
+		return true
+	case UpdateTestRequestDifficultyMedium:
 		return true
 	default:
 		return false
@@ -192,6 +399,90 @@ func (e GetQuestionsParamsDifficulty) Valid() bool {
 	}
 }
 
+// Defines values for GetResultsResultIdReviewParamsStatus.
+const (
+	GetResultsResultIdReviewParamsStatusAll     GetResultsResultIdReviewParamsStatus = "all"
+	GetResultsResultIdReviewParamsStatusBlank   GetResultsResultIdReviewParamsStatus = "blank"
+	GetResultsResultIdReviewParamsStatusCorrect GetResultsResultIdReviewParamsStatus = "correct"
+	GetResultsResultIdReviewParamsStatusWrong   GetResultsResultIdReviewParamsStatus = "wrong"
+)
+
+// Valid indicates whether the value is a known member of the GetResultsResultIdReviewParamsStatus enum.
+func (e GetResultsResultIdReviewParamsStatus) Valid() bool {
+	switch e {
+	case GetResultsResultIdReviewParamsStatusAll:
+		return true
+	case GetResultsResultIdReviewParamsStatusBlank:
+		return true
+	case GetResultsResultIdReviewParamsStatusCorrect:
+		return true
+	case GetResultsResultIdReviewParamsStatusWrong:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetTestsParamsCategory.
+const (
+	GetTestsParamsCategorySmbt       GetTestsParamsCategory = "smbt"
+	GetTestsParamsCategoryTkaSaintek GetTestsParamsCategory = "tka_saintek"
+	GetTestsParamsCategoryTkaSoshum  GetTestsParamsCategory = "tka_soshum"
+)
+
+// Valid indicates whether the value is a known member of the GetTestsParamsCategory enum.
+func (e GetTestsParamsCategory) Valid() bool {
+	switch e {
+	case GetTestsParamsCategorySmbt:
+		return true
+	case GetTestsParamsCategoryTkaSaintek:
+		return true
+	case GetTestsParamsCategoryTkaSoshum:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetTestsParamsDifficulty.
+const (
+	Easy   GetTestsParamsDifficulty = "easy"
+	Hard   GetTestsParamsDifficulty = "hard"
+	Medium GetTestsParamsDifficulty = "medium"
+)
+
+// Valid indicates whether the value is a known member of the GetTestsParamsDifficulty enum.
+func (e GetTestsParamsDifficulty) Valid() bool {
+	switch e {
+	case Easy:
+		return true
+	case Hard:
+		return true
+	case Medium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetTestsParamsStatus.
+const (
+	GetTestsParamsStatusDraft     GetTestsParamsStatus = "draft"
+	GetTestsParamsStatusPublished GetTestsParamsStatus = "published"
+)
+
+// Valid indicates whether the value is a known member of the GetTestsParamsStatus enum.
+func (e GetTestsParamsStatus) Valid() bool {
+	switch e {
+	case GetTestsParamsStatusDraft:
+		return true
+	case GetTestsParamsStatusPublished:
+		return true
+	default:
+		return false
+	}
+}
+
 // AuthResponse defines model for AuthResponse.
 type AuthResponse struct {
 	AccessToken  string       `json:"access_token"`
@@ -211,6 +502,22 @@ type CreateQuestionRequest struct {
 // CreateQuestionRequestDifficulty defines model for CreateQuestionRequest.Difficulty.
 type CreateQuestionRequestDifficulty string
 
+// CreateTestRequest defines model for CreateTestRequest.
+type CreateTestRequest struct {
+	Category        CreateTestRequestCategory   `json:"category"`
+	Description     *string                     `json:"description,omitempty"`
+	Difficulty      CreateTestRequestDifficulty `json:"difficulty"`
+	DurationMinutes int                         `json:"duration_minutes"`
+	ScoringConfig   *UpdateScoringConfigRequest `json:"scoring_config,omitempty"`
+	Title           string                      `json:"title"`
+}
+
+// CreateTestRequestCategory defines model for CreateTestRequest.Category.
+type CreateTestRequestCategory string
+
+// CreateTestRequestDifficulty defines model for CreateTestRequest.Difficulty.
+type CreateTestRequestDifficulty string
+
 // CreateTopicRequest defines model for CreateTopicRequest.
 type CreateTopicRequest struct {
 	Description *string `json:"description,omitempty"`
@@ -227,6 +534,12 @@ type ErrorResponse struct {
 		} `json:"details,omitempty"`
 		Message string `json:"message"`
 	} `json:"error"`
+}
+
+// FlagRequest defines model for FlagRequest.
+type FlagRequest struct {
+	IsFlagged  bool               `json:"is_flagged"`
+	QuestionId openapi_types.UUID `json:"question_id"`
 }
 
 // HealthResponse defines model for HealthResponse.
@@ -310,6 +623,171 @@ type RegisterRequest struct {
 // RegisterRequestRole defines model for RegisterRequest.Role.
 type RegisterRequestRole string
 
+// ResultDetailResponse defines model for ResultDetailResponse.
+type ResultDetailResponse struct {
+	BlankCount   int                `json:"blank_count"`
+	CompletedAt  time.Time          `json:"completed_at"`
+	CorrectCount int                `json:"correct_count"`
+	Id           openapi_types.UUID `json:"id"`
+
+	// Percentage correct_count / total_questions * 100
+	Percentage     float64                  `json:"percentage"`
+	SessionId      openapi_types.UUID       `json:"session_id"`
+	StudentId      openapi_types.UUID       `json:"student_id"`
+	TestId         openapi_types.UUID       `json:"test_id"`
+	TopicBreakdown []TopicBreakdownResponse `json:"topic_breakdown"`
+	TotalScore     float64                  `json:"total_score"`
+	WrongCount     int                      `json:"wrong_count"`
+}
+
+// ResultListResponse defines model for ResultListResponse.
+type ResultListResponse struct {
+	Data []TestResultResponse `json:"data"`
+}
+
+// ReviewItemResponse defines model for ReviewItemResponse.
+type ReviewItemResponse struct {
+	CorrectOptionId  openapi_types.UUID           `json:"correct_option_id"`
+	Difficulty       ReviewItemResponseDifficulty `json:"difficulty"`
+	Explanation      *string                      `json:"explanation,omitempty"`
+	Options          []ReviewOptionResponse       `json:"options"`
+	OrderIndex       int                          `json:"order_index"`
+	QuestionId       openapi_types.UUID           `json:"question_id"`
+	SelectedOptionId *openapi_types.UUID          `json:"selected_option_id,omitempty"`
+	Status           ReviewItemResponseStatus     `json:"status"`
+	Text             string                       `json:"text"`
+	TopicId          openapi_types.UUID           `json:"topic_id"`
+	TopicName        string                       `json:"topic_name"`
+}
+
+// ReviewItemResponseDifficulty defines model for ReviewItemResponse.Difficulty.
+type ReviewItemResponseDifficulty string
+
+// ReviewItemResponseStatus defines model for ReviewItemResponse.Status.
+type ReviewItemResponseStatus string
+
+// ReviewOptionResponse defines model for ReviewOptionResponse.
+type ReviewOptionResponse struct {
+	Id        openapi_types.UUID `json:"id"`
+	IsCorrect bool               `json:"is_correct"`
+	Label     string             `json:"label"`
+	Text      string             `json:"text"`
+}
+
+// ReviewResponse defines model for ReviewResponse.
+type ReviewResponse struct {
+	Data []ReviewItemResponse `json:"data"`
+}
+
+// SaveAnswerRequest defines model for SaveAnswerRequest.
+type SaveAnswerRequest struct {
+	QuestionId       openapi_types.UUID  `json:"question_id"`
+	SelectedOptionId *openapi_types.UUID `json:"selected_option_id,omitempty"`
+}
+
+// ScoringConfigResponse defines model for ScoringConfigResponse.
+type ScoringConfigResponse struct {
+	BlankPoints   float64            `json:"blank_points"`
+	CorrectPoints float64            `json:"correct_points"`
+	Id            openapi_types.UUID `json:"id"`
+	TestId        openapi_types.UUID `json:"test_id"`
+	WrongPoints   float64            `json:"wrong_points"`
+}
+
+// SessionAnswerResponse defines model for SessionAnswerResponse.
+type SessionAnswerResponse struct {
+	AnsweredAt       time.Time           `json:"answered_at"`
+	Id               openapi_types.UUID  `json:"id"`
+	IsFlagged        bool                `json:"is_flagged"`
+	QuestionId       openapi_types.UUID  `json:"question_id"`
+	SelectedOptionId *openapi_types.UUID `json:"selected_option_id,omitempty"`
+	SessionId        openapi_types.UUID  `json:"session_id"`
+}
+
+// SessionResponse defines model for SessionResponse.
+type SessionResponse struct {
+	Answers              []SessionAnswerResponse `json:"answers"`
+	Id                   openapi_types.UUID      `json:"id"`
+	StartedAt            time.Time               `json:"started_at"`
+	Status               SessionResponseStatus   `json:"status"`
+	StudentId            openapi_types.UUID      `json:"student_id"`
+	SubmittedAt          *time.Time              `json:"submitted_at,omitempty"`
+	TestId               openapi_types.UUID      `json:"test_id"`
+	TimeRemainingSeconds int                     `json:"time_remaining_seconds"`
+}
+
+// SessionResponseStatus defines model for SessionResponse.Status.
+type SessionResponseStatus string
+
+// SetQuestionsRequest defines model for SetQuestionsRequest.
+type SetQuestionsRequest struct {
+	QuestionIds []openapi_types.UUID `json:"question_ids"`
+}
+
+// TestDetailResponse defines model for TestDetailResponse.
+type TestDetailResponse struct {
+	Category        TestDetailResponseCategory   `json:"category"`
+	ContributorId   openapi_types.UUID           `json:"contributor_id"`
+	CreatedAt       time.Time                    `json:"created_at"`
+	Description     *string                      `json:"description,omitempty"`
+	Difficulty      TestDetailResponseDifficulty `json:"difficulty"`
+	DurationMinutes int                          `json:"duration_minutes"`
+	Id              openapi_types.UUID           `json:"id"`
+	PublishedAt     *time.Time                   `json:"published_at,omitempty"`
+	Questions       []TestQuestionResponse       `json:"questions"`
+	ScoringConfig   *ScoringConfigResponse       `json:"scoring_config,omitempty"`
+	Status          TestDetailResponseStatus     `json:"status"`
+	Title           string                       `json:"title"`
+}
+
+// TestDetailResponseCategory defines model for TestDetailResponse.Category.
+type TestDetailResponseCategory string
+
+// TestDetailResponseDifficulty defines model for TestDetailResponse.Difficulty.
+type TestDetailResponseDifficulty string
+
+// TestDetailResponseStatus defines model for TestDetailResponse.Status.
+type TestDetailResponseStatus string
+
+// TestListResponse defines model for TestListResponse.
+type TestListResponse struct {
+	Data  []TestDetailResponse `json:"data"`
+	Limit int                  `json:"limit"`
+	Page  int                  `json:"page"`
+	Total int                  `json:"total"`
+}
+
+// TestQuestionResponse defines model for TestQuestionResponse.
+type TestQuestionResponse struct {
+	Id         openapi_types.UUID `json:"id"`
+	OrderIndex int                `json:"order_index"`
+	QuestionId openapi_types.UUID `json:"question_id"`
+	TestId     openapi_types.UUID `json:"test_id"`
+}
+
+// TestResultResponse defines model for TestResultResponse.
+type TestResultResponse struct {
+	BlankCount   int                `json:"blank_count"`
+	CompletedAt  time.Time          `json:"completed_at"`
+	CorrectCount int                `json:"correct_count"`
+	Id           openapi_types.UUID `json:"id"`
+	SessionId    openapi_types.UUID `json:"session_id"`
+	StudentId    openapi_types.UUID `json:"student_id"`
+	TestId       openapi_types.UUID `json:"test_id"`
+	TotalScore   float64            `json:"total_score"`
+	WrongCount   int                `json:"wrong_count"`
+}
+
+// TopicBreakdownResponse defines model for TopicBreakdownResponse.
+type TopicBreakdownResponse struct {
+	BlankCount   int                `json:"blank_count"`
+	CorrectCount int                `json:"correct_count"`
+	TopicId      openapi_types.UUID `json:"topic_id"`
+	TopicName    string             `json:"topic_name"`
+	Total        int                `json:"total"`
+	WrongCount   int                `json:"wrong_count"`
+}
+
 // TopicResponse defines model for TopicResponse.
 type TopicResponse struct {
 	CreatedAt   time.Time          `json:"created_at"`
@@ -329,6 +807,28 @@ type UpdateQuestionRequest struct {
 
 // UpdateQuestionRequestDifficulty defines model for UpdateQuestionRequest.Difficulty.
 type UpdateQuestionRequestDifficulty string
+
+// UpdateScoringConfigRequest defines model for UpdateScoringConfigRequest.
+type UpdateScoringConfigRequest struct {
+	BlankPoints   float64 `json:"blank_points"`
+	CorrectPoints float64 `json:"correct_points"`
+	WrongPoints   float64 `json:"wrong_points"`
+}
+
+// UpdateTestRequest defines model for UpdateTestRequest.
+type UpdateTestRequest struct {
+	Category        *UpdateTestRequestCategory   `json:"category,omitempty"`
+	Description     *string                      `json:"description,omitempty"`
+	Difficulty      *UpdateTestRequestDifficulty `json:"difficulty,omitempty"`
+	DurationMinutes *int                         `json:"duration_minutes,omitempty"`
+	Title           *string                      `json:"title,omitempty"`
+}
+
+// UpdateTestRequestCategory defines model for UpdateTestRequest.Category.
+type UpdateTestRequestCategory string
+
+// UpdateTestRequestDifficulty defines model for UpdateTestRequest.Difficulty.
+type UpdateTestRequestDifficulty string
 
 // UpdateTopicRequest defines model for UpdateTopicRequest.
 type UpdateTopicRequest struct {
@@ -367,6 +867,33 @@ type GetQuestionsParams struct {
 // GetQuestionsParamsDifficulty defines parameters for GetQuestions.
 type GetQuestionsParamsDifficulty string
 
+// GetResultsResultIdReviewParams defines parameters for GetResultsResultIdReview.
+type GetResultsResultIdReviewParams struct {
+	Status *GetResultsResultIdReviewParamsStatus `form:"status,omitempty" json:"status,omitempty"`
+}
+
+// GetResultsResultIdReviewParamsStatus defines parameters for GetResultsResultIdReview.
+type GetResultsResultIdReviewParamsStatus string
+
+// GetTestsParams defines parameters for GetTests.
+type GetTestsParams struct {
+	Page          *int                      `form:"page,omitempty" json:"page,omitempty"`
+	Limit         *int                      `form:"limit,omitempty" json:"limit,omitempty"`
+	Category      *GetTestsParamsCategory   `form:"category,omitempty" json:"category,omitempty"`
+	Difficulty    *GetTestsParamsDifficulty `form:"difficulty,omitempty" json:"difficulty,omitempty"`
+	Status        *GetTestsParamsStatus     `form:"status,omitempty" json:"status,omitempty"`
+	ContributorId *openapi_types.UUID       `form:"contributor_id,omitempty" json:"contributor_id,omitempty"`
+}
+
+// GetTestsParamsCategory defines parameters for GetTests.
+type GetTestsParamsCategory string
+
+// GetTestsParamsDifficulty defines parameters for GetTests.
+type GetTestsParamsDifficulty string
+
+// GetTestsParamsStatus defines parameters for GetTests.
+type GetTestsParamsStatus string
+
 // PostAuthLoginJSONRequestBody defines body for PostAuthLogin for application/json ContentType.
 type PostAuthLoginJSONRequestBody = LoginRequest
 
@@ -384,6 +911,24 @@ type PostQuestionsJSONRequestBody = CreateQuestionRequest
 
 // PatchQuestionsQuestionIdJSONRequestBody defines body for PatchQuestionsQuestionId for application/json ContentType.
 type PatchQuestionsQuestionIdJSONRequestBody = UpdateQuestionRequest
+
+// PostSessionsSessionIdAnswersJSONRequestBody defines body for PostSessionsSessionIdAnswers for application/json ContentType.
+type PostSessionsSessionIdAnswersJSONRequestBody = SaveAnswerRequest
+
+// PostSessionsSessionIdFlagJSONRequestBody defines body for PostSessionsSessionIdFlag for application/json ContentType.
+type PostSessionsSessionIdFlagJSONRequestBody = FlagRequest
+
+// PostTestsJSONRequestBody defines body for PostTests for application/json ContentType.
+type PostTestsJSONRequestBody = CreateTestRequest
+
+// PatchTestsTestIdJSONRequestBody defines body for PatchTestsTestId for application/json ContentType.
+type PatchTestsTestIdJSONRequestBody = UpdateTestRequest
+
+// PutTestsTestIdQuestionsJSONRequestBody defines body for PutTestsTestIdQuestions for application/json ContentType.
+type PutTestsTestIdQuestionsJSONRequestBody = SetQuestionsRequest
+
+// PatchTestsTestIdScoringJSONRequestBody defines body for PatchTestsTestIdScoring for application/json ContentType.
+type PatchTestsTestIdScoringJSONRequestBody = UpdateScoringConfigRequest
 
 // PostTopicsJSONRequestBody defines body for PostTopics for application/json ContentType.
 type PostTopicsJSONRequestBody = CreateTopicRequest
@@ -426,6 +971,57 @@ type ServerInterface interface {
 	// Update a question (own only for contributor, any for admin)
 	// (PATCH /questions/{questionId})
 	PatchQuestionsQuestionId(w http.ResponseWriter, r *http.Request, questionId openapi_types.UUID)
+	// List results (own for student, all for admin)
+	// (GET /results)
+	GetResults(w http.ResponseWriter, r *http.Request)
+	// Get result detail with per-topic breakdown
+	// (GET /results/{resultId})
+	GetResultsResultId(w http.ResponseWriter, r *http.Request, resultId openapi_types.UUID)
+	// Per-question review with correct answers and explanations
+	// (GET /results/{resultId}/review)
+	GetResultsResultIdReview(w http.ResponseWriter, r *http.Request, resultId openapi_types.UUID, params GetResultsResultIdReviewParams)
+	// Get session state (with current answers and time remaining)
+	// (GET /sessions/{sessionId})
+	GetSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID)
+	// Save or update an answer (blank if selected_option_id omitted)
+	// (POST /sessions/{sessionId}/answers)
+	PostSessionsSessionIdAnswers(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID)
+	// Toggle flag on a question
+	// (POST /sessions/{sessionId}/flag)
+	PostSessionsSessionIdFlag(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID)
+	// Submit the session and compute the result
+	// (POST /sessions/{sessionId}/submit)
+	PostSessionsSessionIdSubmit(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID)
+	// List tests
+	// (GET /tests)
+	GetTests(w http.ResponseWriter, r *http.Request, params GetTestsParams)
+	// Create a new test (contributor/admin)
+	// (POST /tests)
+	PostTests(w http.ResponseWriter, r *http.Request)
+	// Delete test (contributor/admin, draft only)
+	// (DELETE /tests/{testId})
+	DeleteTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Get test by ID
+	// (GET /tests/{testId})
+	GetTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Update test metadata (contributor/admin, draft only)
+	// (PATCH /tests/{testId})
+	PatchTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Publish a draft test (contributor/admin)
+	// (POST /tests/{testId}/publish)
+	PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Replace all questions in a test (contributor/admin, draft only)
+	// (PUT /tests/{testId}/questions)
+	PutTestsTestIdQuestions(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Update scoring config (contributor/admin, draft only)
+	// (PATCH /tests/{testId}/scoring)
+	PatchTestsTestIdScoring(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Start a new test session (or resume existing in-progress session)
+	// (POST /tests/{testId}/sessions)
+	PostTestsTestIdSessions(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
+	// Unpublish a test back to draft (admin only)
+	// (POST /tests/{testId}/unpublish)
+	PostTestsTestIdUnpublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
 	// List all topics
 	// (GET /topics)
 	GetTopics(w http.ResponseWriter, r *http.Request)
@@ -507,6 +1103,108 @@ func (_ Unimplemented) GetQuestionsQuestionId(w http.ResponseWriter, r *http.Req
 // Update a question (own only for contributor, any for admin)
 // (PATCH /questions/{questionId})
 func (_ Unimplemented) PatchQuestionsQuestionId(w http.ResponseWriter, r *http.Request, questionId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List results (own for student, all for admin)
+// (GET /results)
+func (_ Unimplemented) GetResults(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get result detail with per-topic breakdown
+// (GET /results/{resultId})
+func (_ Unimplemented) GetResultsResultId(w http.ResponseWriter, r *http.Request, resultId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Per-question review with correct answers and explanations
+// (GET /results/{resultId}/review)
+func (_ Unimplemented) GetResultsResultIdReview(w http.ResponseWriter, r *http.Request, resultId openapi_types.UUID, params GetResultsResultIdReviewParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get session state (with current answers and time remaining)
+// (GET /sessions/{sessionId})
+func (_ Unimplemented) GetSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Save or update an answer (blank if selected_option_id omitted)
+// (POST /sessions/{sessionId}/answers)
+func (_ Unimplemented) PostSessionsSessionIdAnswers(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Toggle flag on a question
+// (POST /sessions/{sessionId}/flag)
+func (_ Unimplemented) PostSessionsSessionIdFlag(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Submit the session and compute the result
+// (POST /sessions/{sessionId}/submit)
+func (_ Unimplemented) PostSessionsSessionIdSubmit(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// List tests
+// (GET /tests)
+func (_ Unimplemented) GetTests(w http.ResponseWriter, r *http.Request, params GetTestsParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a new test (contributor/admin)
+// (POST /tests)
+func (_ Unimplemented) PostTests(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete test (contributor/admin, draft only)
+// (DELETE /tests/{testId})
+func (_ Unimplemented) DeleteTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get test by ID
+// (GET /tests/{testId})
+func (_ Unimplemented) GetTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update test metadata (contributor/admin, draft only)
+// (PATCH /tests/{testId})
+func (_ Unimplemented) PatchTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Publish a draft test (contributor/admin)
+// (POST /tests/{testId}/publish)
+func (_ Unimplemented) PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Replace all questions in a test (contributor/admin, draft only)
+// (PUT /tests/{testId}/questions)
+func (_ Unimplemented) PutTestsTestIdQuestions(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update scoring config (contributor/admin, draft only)
+// (PATCH /tests/{testId}/scoring)
+func (_ Unimplemented) PatchTestsTestIdScoring(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Start a new test session (or resume existing in-progress session)
+// (POST /tests/{testId}/sessions)
+func (_ Unimplemented) PostTestsTestIdSessions(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Unpublish a test back to draft (admin only)
+// (POST /tests/{testId}/unpublish)
+func (_ Unimplemented) PostTestsTestIdUnpublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -846,6 +1544,614 @@ func (siw *ServerInterfaceWrapper) PatchQuestionsQuestionId(w http.ResponseWrite
 	handler.ServeHTTP(w, r)
 }
 
+// GetResults operation middleware
+func (siw *ServerInterfaceWrapper) GetResults(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetResults(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetResultsResultId operation middleware
+func (siw *ServerInterfaceWrapper) GetResultsResultId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "resultId" -------------
+	var resultId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "resultId", chi.URLParam(r, "resultId"), &resultId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resultId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetResultsResultId(w, r, resultId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetResultsResultIdReview operation middleware
+func (siw *ServerInterfaceWrapper) GetResultsResultIdReview(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "resultId" -------------
+	var resultId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "resultId", chi.URLParam(r, "resultId"), &resultId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "resultId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetResultsResultIdReviewParams
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetResultsResultIdReview(w, r, resultId, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetSessionsSessionId operation middleware
+func (siw *ServerInterfaceWrapper) GetSessionsSessionId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", chi.URLParam(r, "sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetSessionsSessionId(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostSessionsSessionIdAnswers operation middleware
+func (siw *ServerInterfaceWrapper) PostSessionsSessionIdAnswers(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", chi.URLParam(r, "sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSessionsSessionIdAnswers(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostSessionsSessionIdFlag operation middleware
+func (siw *ServerInterfaceWrapper) PostSessionsSessionIdFlag(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", chi.URLParam(r, "sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSessionsSessionIdFlag(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostSessionsSessionIdSubmit operation middleware
+func (siw *ServerInterfaceWrapper) PostSessionsSessionIdSubmit(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "sessionId" -------------
+	var sessionId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "sessionId", chi.URLParam(r, "sessionId"), &sessionId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "sessionId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostSessionsSessionIdSubmit(w, r, sessionId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTests operation middleware
+func (siw *ServerInterfaceWrapper) GetTests(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetTestsParams
+
+	// ------------- Optional query parameter "page" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "page", r.URL.Query(), &params.Page, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "page"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "page", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "category" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category", r.URL.Query(), &params.Category, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "difficulty" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "difficulty", r.URL.Query(), &params.Difficulty, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "difficulty"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "difficulty", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", r.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "status"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "status", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "contributor_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "contributor_id", r.URL.Query(), &params.ContributorId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "contributor_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "contributor_id", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTests(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostTests operation middleware
+func (siw *ServerInterfaceWrapper) PostTests(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostTests(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteTestsTestId operation middleware
+func (siw *ServerInterfaceWrapper) DeleteTestsTestId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteTestsTestId(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetTestsTestId operation middleware
+func (siw *ServerInterfaceWrapper) GetTestsTestId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetTestsTestId(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchTestsTestId operation middleware
+func (siw *ServerInterfaceWrapper) PatchTestsTestId(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchTestsTestId(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostTestsTestIdPublish operation middleware
+func (siw *ServerInterfaceWrapper) PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostTestsTestIdPublish(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PutTestsTestIdQuestions operation middleware
+func (siw *ServerInterfaceWrapper) PutTestsTestIdQuestions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PutTestsTestIdQuestions(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PatchTestsTestIdScoring operation middleware
+func (siw *ServerInterfaceWrapper) PatchTestsTestIdScoring(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PatchTestsTestIdScoring(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostTestsTestIdSessions operation middleware
+func (siw *ServerInterfaceWrapper) PostTestsTestIdSessions(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostTestsTestIdSessions(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// PostTestsTestIdUnpublish operation middleware
+func (siw *ServerInterfaceWrapper) PostTestsTestIdUnpublish(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "testId" -------------
+	var testId openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.PostTestsTestIdUnpublish(w, r, testId)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // GetTopics operation middleware
 func (siw *ServerInterfaceWrapper) GetTopics(w http.ResponseWriter, r *http.Request) {
 
@@ -1089,6 +2395,57 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/questions/{questionId}", wrapper.PatchQuestionsQuestionId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/results", wrapper.GetResults)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/results/{resultId}", wrapper.GetResultsResultId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/results/{resultId}/review", wrapper.GetResultsResultIdReview)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/sessions/{sessionId}", wrapper.GetSessionsSessionId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/sessions/{sessionId}/answers", wrapper.PostSessionsSessionIdAnswers)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/sessions/{sessionId}/flag", wrapper.PostSessionsSessionIdFlag)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/sessions/{sessionId}/submit", wrapper.PostSessionsSessionIdSubmit)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/tests", wrapper.GetTests)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/tests", wrapper.PostTests)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/tests/{testId}", wrapper.DeleteTestsTestId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/tests/{testId}", wrapper.GetTestsTestId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/tests/{testId}", wrapper.PatchTestsTestId)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/tests/{testId}/publish", wrapper.PostTestsTestIdPublish)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/tests/{testId}/questions", wrapper.PutTestsTestIdQuestions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/tests/{testId}/scoring", wrapper.PatchTestsTestIdScoring)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/tests/{testId}/sessions", wrapper.PostTestsTestIdSessions)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/tests/{testId}/unpublish", wrapper.PostTestsTestIdUnpublish)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/topics", wrapper.GetTopics)
@@ -1669,6 +3026,1253 @@ func (response PatchQuestionsQuestionId422JSONResponse) VisitPatchQuestionsQuest
 	return err
 }
 
+type GetResultsRequestObject struct {
+}
+
+type GetResultsResponseObject interface {
+	VisitGetResultsResponse(w http.ResponseWriter) error
+}
+
+type GetResults200JSONResponse ResultListResponse
+
+func (response GetResults200JSONResponse) VisitGetResultsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResults401JSONResponse ErrorResponse
+
+func (response GetResults401JSONResponse) VisitGetResultsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResults403JSONResponse ErrorResponse
+
+func (response GetResults403JSONResponse) VisitGetResultsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultIdRequestObject struct {
+	ResultId openapi_types.UUID `json:"resultId"`
+}
+
+type GetResultsResultIdResponseObject interface {
+	VisitGetResultsResultIdResponse(w http.ResponseWriter) error
+}
+
+type GetResultsResultId200JSONResponse ResultDetailResponse
+
+func (response GetResultsResultId200JSONResponse) VisitGetResultsResultIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultId401JSONResponse ErrorResponse
+
+func (response GetResultsResultId401JSONResponse) VisitGetResultsResultIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultId403JSONResponse ErrorResponse
+
+func (response GetResultsResultId403JSONResponse) VisitGetResultsResultIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultId404JSONResponse ErrorResponse
+
+func (response GetResultsResultId404JSONResponse) VisitGetResultsResultIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultIdReviewRequestObject struct {
+	ResultId openapi_types.UUID `json:"resultId"`
+	Params   GetResultsResultIdReviewParams
+}
+
+type GetResultsResultIdReviewResponseObject interface {
+	VisitGetResultsResultIdReviewResponse(w http.ResponseWriter) error
+}
+
+type GetResultsResultIdReview200JSONResponse ReviewResponse
+
+func (response GetResultsResultIdReview200JSONResponse) VisitGetResultsResultIdReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultIdReview401JSONResponse ErrorResponse
+
+func (response GetResultsResultIdReview401JSONResponse) VisitGetResultsResultIdReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultIdReview403JSONResponse ErrorResponse
+
+func (response GetResultsResultIdReview403JSONResponse) VisitGetResultsResultIdReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultIdReview404JSONResponse ErrorResponse
+
+func (response GetResultsResultIdReview404JSONResponse) VisitGetResultsResultIdReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetResultsResultIdReview422JSONResponse ErrorResponse
+
+func (response GetResultsResultIdReview422JSONResponse) VisitGetResultsResultIdReviewResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSessionsSessionIdRequestObject struct {
+	SessionId openapi_types.UUID `json:"sessionId"`
+}
+
+type GetSessionsSessionIdResponseObject interface {
+	VisitGetSessionsSessionIdResponse(w http.ResponseWriter) error
+}
+
+type GetSessionsSessionId200JSONResponse SessionResponse
+
+func (response GetSessionsSessionId200JSONResponse) VisitGetSessionsSessionIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSessionsSessionId401JSONResponse ErrorResponse
+
+func (response GetSessionsSessionId401JSONResponse) VisitGetSessionsSessionIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSessionsSessionId403JSONResponse ErrorResponse
+
+func (response GetSessionsSessionId403JSONResponse) VisitGetSessionsSessionIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetSessionsSessionId404JSONResponse ErrorResponse
+
+func (response GetSessionsSessionId404JSONResponse) VisitGetSessionsSessionIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdAnswersRequestObject struct {
+	SessionId openapi_types.UUID `json:"sessionId"`
+	Body      *PostSessionsSessionIdAnswersJSONRequestBody
+}
+
+type PostSessionsSessionIdAnswersResponseObject interface {
+	VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error
+}
+
+type PostSessionsSessionIdAnswers200JSONResponse SessionResponse
+
+func (response PostSessionsSessionIdAnswers200JSONResponse) VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdAnswers401JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdAnswers401JSONResponse) VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdAnswers403JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdAnswers403JSONResponse) VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdAnswers404JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdAnswers404JSONResponse) VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdAnswers409JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdAnswers409JSONResponse) VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdAnswers422JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdAnswers422JSONResponse) VisitPostSessionsSessionIdAnswersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdFlagRequestObject struct {
+	SessionId openapi_types.UUID `json:"sessionId"`
+	Body      *PostSessionsSessionIdFlagJSONRequestBody
+}
+
+type PostSessionsSessionIdFlagResponseObject interface {
+	VisitPostSessionsSessionIdFlagResponse(w http.ResponseWriter) error
+}
+
+type PostSessionsSessionIdFlag200JSONResponse SessionResponse
+
+func (response PostSessionsSessionIdFlag200JSONResponse) VisitPostSessionsSessionIdFlagResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdFlag401JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdFlag401JSONResponse) VisitPostSessionsSessionIdFlagResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdFlag403JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdFlag403JSONResponse) VisitPostSessionsSessionIdFlagResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdFlag404JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdFlag404JSONResponse) VisitPostSessionsSessionIdFlagResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdFlag409JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdFlag409JSONResponse) VisitPostSessionsSessionIdFlagResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdSubmitRequestObject struct {
+	SessionId openapi_types.UUID `json:"sessionId"`
+}
+
+type PostSessionsSessionIdSubmitResponseObject interface {
+	VisitPostSessionsSessionIdSubmitResponse(w http.ResponseWriter) error
+}
+
+type PostSessionsSessionIdSubmit200JSONResponse TestResultResponse
+
+func (response PostSessionsSessionIdSubmit200JSONResponse) VisitPostSessionsSessionIdSubmitResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdSubmit401JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdSubmit401JSONResponse) VisitPostSessionsSessionIdSubmitResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdSubmit403JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdSubmit403JSONResponse) VisitPostSessionsSessionIdSubmitResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdSubmit404JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdSubmit404JSONResponse) VisitPostSessionsSessionIdSubmitResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostSessionsSessionIdSubmit409JSONResponse ErrorResponse
+
+func (response PostSessionsSessionIdSubmit409JSONResponse) VisitPostSessionsSessionIdSubmitResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTestsRequestObject struct {
+	Params GetTestsParams
+}
+
+type GetTestsResponseObject interface {
+	VisitGetTestsResponse(w http.ResponseWriter) error
+}
+
+type GetTests200JSONResponse TestListResponse
+
+func (response GetTests200JSONResponse) VisitGetTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTests401JSONResponse ErrorResponse
+
+func (response GetTests401JSONResponse) VisitGetTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTests403JSONResponse ErrorResponse
+
+func (response GetTests403JSONResponse) VisitGetTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsRequestObject struct {
+	Body *PostTestsJSONRequestBody
+}
+
+type PostTestsResponseObject interface {
+	VisitPostTestsResponse(w http.ResponseWriter) error
+}
+
+type PostTests201JSONResponse TestDetailResponse
+
+func (response PostTests201JSONResponse) VisitPostTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTests401JSONResponse ErrorResponse
+
+func (response PostTests401JSONResponse) VisitPostTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTests403JSONResponse ErrorResponse
+
+func (response PostTests403JSONResponse) VisitPostTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTests422JSONResponse ErrorResponse
+
+func (response PostTests422JSONResponse) VisitPostTestsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTestsTestIdRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+}
+
+type DeleteTestsTestIdResponseObject interface {
+	VisitDeleteTestsTestIdResponse(w http.ResponseWriter) error
+}
+
+type DeleteTestsTestId200JSONResponse MessageResponse
+
+func (response DeleteTestsTestId200JSONResponse) VisitDeleteTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTestsTestId401JSONResponse ErrorResponse
+
+func (response DeleteTestsTestId401JSONResponse) VisitDeleteTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTestsTestId403JSONResponse ErrorResponse
+
+func (response DeleteTestsTestId403JSONResponse) VisitDeleteTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTestsTestId404JSONResponse ErrorResponse
+
+func (response DeleteTestsTestId404JSONResponse) VisitDeleteTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteTestsTestId409JSONResponse ErrorResponse
+
+func (response DeleteTestsTestId409JSONResponse) VisitDeleteTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTestsTestIdRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+}
+
+type GetTestsTestIdResponseObject interface {
+	VisitGetTestsTestIdResponse(w http.ResponseWriter) error
+}
+
+type GetTestsTestId200JSONResponse TestDetailResponse
+
+func (response GetTestsTestId200JSONResponse) VisitGetTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTestsTestId401JSONResponse ErrorResponse
+
+func (response GetTestsTestId401JSONResponse) VisitGetTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTestsTestId403JSONResponse ErrorResponse
+
+func (response GetTestsTestId403JSONResponse) VisitGetTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetTestsTestId404JSONResponse ErrorResponse
+
+func (response GetTestsTestId404JSONResponse) VisitGetTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestIdRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+	Body   *PatchTestsTestIdJSONRequestBody
+}
+
+type PatchTestsTestIdResponseObject interface {
+	VisitPatchTestsTestIdResponse(w http.ResponseWriter) error
+}
+
+type PatchTestsTestId200JSONResponse TestDetailResponse
+
+func (response PatchTestsTestId200JSONResponse) VisitPatchTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestId401JSONResponse ErrorResponse
+
+func (response PatchTestsTestId401JSONResponse) VisitPatchTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestId403JSONResponse ErrorResponse
+
+func (response PatchTestsTestId403JSONResponse) VisitPatchTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestId404JSONResponse ErrorResponse
+
+func (response PatchTestsTestId404JSONResponse) VisitPatchTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestId409JSONResponse ErrorResponse
+
+func (response PatchTestsTestId409JSONResponse) VisitPatchTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestId422JSONResponse ErrorResponse
+
+func (response PatchTestsTestId422JSONResponse) VisitPatchTestsTestIdResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdPublishRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+}
+
+type PostTestsTestIdPublishResponseObject interface {
+	VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error
+}
+
+type PostTestsTestIdPublish200JSONResponse TestDetailResponse
+
+func (response PostTestsTestIdPublish200JSONResponse) VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdPublish401JSONResponse ErrorResponse
+
+func (response PostTestsTestIdPublish401JSONResponse) VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdPublish403JSONResponse ErrorResponse
+
+func (response PostTestsTestIdPublish403JSONResponse) VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdPublish404JSONResponse ErrorResponse
+
+func (response PostTestsTestIdPublish404JSONResponse) VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdPublish409JSONResponse ErrorResponse
+
+func (response PostTestsTestIdPublish409JSONResponse) VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdPublish422JSONResponse ErrorResponse
+
+func (response PostTestsTestIdPublish422JSONResponse) VisitPostTestsTestIdPublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(422)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutTestsTestIdQuestionsRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+	Body   *PutTestsTestIdQuestionsJSONRequestBody
+}
+
+type PutTestsTestIdQuestionsResponseObject interface {
+	VisitPutTestsTestIdQuestionsResponse(w http.ResponseWriter) error
+}
+
+type PutTestsTestIdQuestions200JSONResponse TestDetailResponse
+
+func (response PutTestsTestIdQuestions200JSONResponse) VisitPutTestsTestIdQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutTestsTestIdQuestions401JSONResponse ErrorResponse
+
+func (response PutTestsTestIdQuestions401JSONResponse) VisitPutTestsTestIdQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutTestsTestIdQuestions403JSONResponse ErrorResponse
+
+func (response PutTestsTestIdQuestions403JSONResponse) VisitPutTestsTestIdQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutTestsTestIdQuestions404JSONResponse ErrorResponse
+
+func (response PutTestsTestIdQuestions404JSONResponse) VisitPutTestsTestIdQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PutTestsTestIdQuestions409JSONResponse ErrorResponse
+
+func (response PutTestsTestIdQuestions409JSONResponse) VisitPutTestsTestIdQuestionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestIdScoringRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+	Body   *PatchTestsTestIdScoringJSONRequestBody
+}
+
+type PatchTestsTestIdScoringResponseObject interface {
+	VisitPatchTestsTestIdScoringResponse(w http.ResponseWriter) error
+}
+
+type PatchTestsTestIdScoring200JSONResponse TestDetailResponse
+
+func (response PatchTestsTestIdScoring200JSONResponse) VisitPatchTestsTestIdScoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestIdScoring401JSONResponse ErrorResponse
+
+func (response PatchTestsTestIdScoring401JSONResponse) VisitPatchTestsTestIdScoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestIdScoring403JSONResponse ErrorResponse
+
+func (response PatchTestsTestIdScoring403JSONResponse) VisitPatchTestsTestIdScoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestIdScoring404JSONResponse ErrorResponse
+
+func (response PatchTestsTestIdScoring404JSONResponse) VisitPatchTestsTestIdScoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PatchTestsTestIdScoring409JSONResponse ErrorResponse
+
+func (response PatchTestsTestIdScoring409JSONResponse) VisitPatchTestsTestIdScoringResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdSessionsRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+}
+
+type PostTestsTestIdSessionsResponseObject interface {
+	VisitPostTestsTestIdSessionsResponse(w http.ResponseWriter) error
+}
+
+type PostTestsTestIdSessions201JSONResponse SessionResponse
+
+func (response PostTestsTestIdSessions201JSONResponse) VisitPostTestsTestIdSessionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdSessions401JSONResponse ErrorResponse
+
+func (response PostTestsTestIdSessions401JSONResponse) VisitPostTestsTestIdSessionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdSessions403JSONResponse ErrorResponse
+
+func (response PostTestsTestIdSessions403JSONResponse) VisitPostTestsTestIdSessionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdSessions404JSONResponse ErrorResponse
+
+func (response PostTestsTestIdSessions404JSONResponse) VisitPostTestsTestIdSessionsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdUnpublishRequestObject struct {
+	TestId openapi_types.UUID `json:"testId"`
+}
+
+type PostTestsTestIdUnpublishResponseObject interface {
+	VisitPostTestsTestIdUnpublishResponse(w http.ResponseWriter) error
+}
+
+type PostTestsTestIdUnpublish200JSONResponse TestDetailResponse
+
+func (response PostTestsTestIdUnpublish200JSONResponse) VisitPostTestsTestIdUnpublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdUnpublish401JSONResponse ErrorResponse
+
+func (response PostTestsTestIdUnpublish401JSONResponse) VisitPostTestsTestIdUnpublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdUnpublish403JSONResponse ErrorResponse
+
+func (response PostTestsTestIdUnpublish403JSONResponse) VisitPostTestsTestIdUnpublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdUnpublish404JSONResponse ErrorResponse
+
+func (response PostTestsTestIdUnpublish404JSONResponse) VisitPostTestsTestIdUnpublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type PostTestsTestIdUnpublish409JSONResponse ErrorResponse
+
+func (response PostTestsTestIdUnpublish409JSONResponse) VisitPostTestsTestIdUnpublishResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetTopicsRequestObject struct {
 }
 
@@ -1962,6 +4566,57 @@ type StrictServerInterface interface {
 	// Update a question (own only for contributor, any for admin)
 	// (PATCH /questions/{questionId})
 	PatchQuestionsQuestionId(ctx context.Context, request PatchQuestionsQuestionIdRequestObject) (PatchQuestionsQuestionIdResponseObject, error)
+	// List results (own for student, all for admin)
+	// (GET /results)
+	GetResults(ctx context.Context, request GetResultsRequestObject) (GetResultsResponseObject, error)
+	// Get result detail with per-topic breakdown
+	// (GET /results/{resultId})
+	GetResultsResultId(ctx context.Context, request GetResultsResultIdRequestObject) (GetResultsResultIdResponseObject, error)
+	// Per-question review with correct answers and explanations
+	// (GET /results/{resultId}/review)
+	GetResultsResultIdReview(ctx context.Context, request GetResultsResultIdReviewRequestObject) (GetResultsResultIdReviewResponseObject, error)
+	// Get session state (with current answers and time remaining)
+	// (GET /sessions/{sessionId})
+	GetSessionsSessionId(ctx context.Context, request GetSessionsSessionIdRequestObject) (GetSessionsSessionIdResponseObject, error)
+	// Save or update an answer (blank if selected_option_id omitted)
+	// (POST /sessions/{sessionId}/answers)
+	PostSessionsSessionIdAnswers(ctx context.Context, request PostSessionsSessionIdAnswersRequestObject) (PostSessionsSessionIdAnswersResponseObject, error)
+	// Toggle flag on a question
+	// (POST /sessions/{sessionId}/flag)
+	PostSessionsSessionIdFlag(ctx context.Context, request PostSessionsSessionIdFlagRequestObject) (PostSessionsSessionIdFlagResponseObject, error)
+	// Submit the session and compute the result
+	// (POST /sessions/{sessionId}/submit)
+	PostSessionsSessionIdSubmit(ctx context.Context, request PostSessionsSessionIdSubmitRequestObject) (PostSessionsSessionIdSubmitResponseObject, error)
+	// List tests
+	// (GET /tests)
+	GetTests(ctx context.Context, request GetTestsRequestObject) (GetTestsResponseObject, error)
+	// Create a new test (contributor/admin)
+	// (POST /tests)
+	PostTests(ctx context.Context, request PostTestsRequestObject) (PostTestsResponseObject, error)
+	// Delete test (contributor/admin, draft only)
+	// (DELETE /tests/{testId})
+	DeleteTestsTestId(ctx context.Context, request DeleteTestsTestIdRequestObject) (DeleteTestsTestIdResponseObject, error)
+	// Get test by ID
+	// (GET /tests/{testId})
+	GetTestsTestId(ctx context.Context, request GetTestsTestIdRequestObject) (GetTestsTestIdResponseObject, error)
+	// Update test metadata (contributor/admin, draft only)
+	// (PATCH /tests/{testId})
+	PatchTestsTestId(ctx context.Context, request PatchTestsTestIdRequestObject) (PatchTestsTestIdResponseObject, error)
+	// Publish a draft test (contributor/admin)
+	// (POST /tests/{testId}/publish)
+	PostTestsTestIdPublish(ctx context.Context, request PostTestsTestIdPublishRequestObject) (PostTestsTestIdPublishResponseObject, error)
+	// Replace all questions in a test (contributor/admin, draft only)
+	// (PUT /tests/{testId}/questions)
+	PutTestsTestIdQuestions(ctx context.Context, request PutTestsTestIdQuestionsRequestObject) (PutTestsTestIdQuestionsResponseObject, error)
+	// Update scoring config (contributor/admin, draft only)
+	// (PATCH /tests/{testId}/scoring)
+	PatchTestsTestIdScoring(ctx context.Context, request PatchTestsTestIdScoringRequestObject) (PatchTestsTestIdScoringResponseObject, error)
+	// Start a new test session (or resume existing in-progress session)
+	// (POST /tests/{testId}/sessions)
+	PostTestsTestIdSessions(ctx context.Context, request PostTestsTestIdSessionsRequestObject) (PostTestsTestIdSessionsResponseObject, error)
+	// Unpublish a test back to draft (admin only)
+	// (POST /tests/{testId}/unpublish)
+	PostTestsTestIdUnpublish(ctx context.Context, request PostTestsTestIdUnpublishRequestObject) (PostTestsTestIdUnpublishResponseObject, error)
 	// List all topics
 	// (GET /topics)
 	GetTopics(ctx context.Context, request GetTopicsRequestObject) (GetTopicsResponseObject, error)
@@ -2319,6 +4974,487 @@ func (sh *strictHandler) PatchQuestionsQuestionId(w http.ResponseWriter, r *http
 	}
 }
 
+// GetResults operation middleware
+func (sh *strictHandler) GetResults(w http.ResponseWriter, r *http.Request) {
+	var request GetResultsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetResults(ctx, request.(GetResultsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetResults")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetResultsResponseObject); ok {
+		if err := validResponse.VisitGetResultsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetResultsResultId operation middleware
+func (sh *strictHandler) GetResultsResultId(w http.ResponseWriter, r *http.Request, resultId openapi_types.UUID) {
+	var request GetResultsResultIdRequestObject
+
+	request.ResultId = resultId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetResultsResultId(ctx, request.(GetResultsResultIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetResultsResultId")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetResultsResultIdResponseObject); ok {
+		if err := validResponse.VisitGetResultsResultIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetResultsResultIdReview operation middleware
+func (sh *strictHandler) GetResultsResultIdReview(w http.ResponseWriter, r *http.Request, resultId openapi_types.UUID, params GetResultsResultIdReviewParams) {
+	var request GetResultsResultIdReviewRequestObject
+
+	request.ResultId = resultId
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetResultsResultIdReview(ctx, request.(GetResultsResultIdReviewRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetResultsResultIdReview")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetResultsResultIdReviewResponseObject); ok {
+		if err := validResponse.VisitGetResultsResultIdReviewResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetSessionsSessionId operation middleware
+func (sh *strictHandler) GetSessionsSessionId(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	var request GetSessionsSessionIdRequestObject
+
+	request.SessionId = sessionId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetSessionsSessionId(ctx, request.(GetSessionsSessionIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetSessionsSessionId")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetSessionsSessionIdResponseObject); ok {
+		if err := validResponse.VisitGetSessionsSessionIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostSessionsSessionIdAnswers operation middleware
+func (sh *strictHandler) PostSessionsSessionIdAnswers(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	var request PostSessionsSessionIdAnswersRequestObject
+
+	request.SessionId = sessionId
+
+	var body PostSessionsSessionIdAnswersJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostSessionsSessionIdAnswers(ctx, request.(PostSessionsSessionIdAnswersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostSessionsSessionIdAnswers")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostSessionsSessionIdAnswersResponseObject); ok {
+		if err := validResponse.VisitPostSessionsSessionIdAnswersResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostSessionsSessionIdFlag operation middleware
+func (sh *strictHandler) PostSessionsSessionIdFlag(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	var request PostSessionsSessionIdFlagRequestObject
+
+	request.SessionId = sessionId
+
+	var body PostSessionsSessionIdFlagJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostSessionsSessionIdFlag(ctx, request.(PostSessionsSessionIdFlagRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostSessionsSessionIdFlag")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostSessionsSessionIdFlagResponseObject); ok {
+		if err := validResponse.VisitPostSessionsSessionIdFlagResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostSessionsSessionIdSubmit operation middleware
+func (sh *strictHandler) PostSessionsSessionIdSubmit(w http.ResponseWriter, r *http.Request, sessionId openapi_types.UUID) {
+	var request PostSessionsSessionIdSubmitRequestObject
+
+	request.SessionId = sessionId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostSessionsSessionIdSubmit(ctx, request.(PostSessionsSessionIdSubmitRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostSessionsSessionIdSubmit")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostSessionsSessionIdSubmitResponseObject); ok {
+		if err := validResponse.VisitPostSessionsSessionIdSubmitResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTests operation middleware
+func (sh *strictHandler) GetTests(w http.ResponseWriter, r *http.Request, params GetTestsParams) {
+	var request GetTestsRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTests(ctx, request.(GetTestsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTests")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTestsResponseObject); ok {
+		if err := validResponse.VisitGetTestsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostTests operation middleware
+func (sh *strictHandler) PostTests(w http.ResponseWriter, r *http.Request) {
+	var request PostTestsRequestObject
+
+	var body PostTestsJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostTests(ctx, request.(PostTestsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostTests")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostTestsResponseObject); ok {
+		if err := validResponse.VisitPostTestsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteTestsTestId operation middleware
+func (sh *strictHandler) DeleteTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request DeleteTestsTestIdRequestObject
+
+	request.TestId = testId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteTestsTestId(ctx, request.(DeleteTestsTestIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteTestsTestId")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteTestsTestIdResponseObject); ok {
+		if err := validResponse.VisitDeleteTestsTestIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetTestsTestId operation middleware
+func (sh *strictHandler) GetTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request GetTestsTestIdRequestObject
+
+	request.TestId = testId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetTestsTestId(ctx, request.(GetTestsTestIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetTestsTestId")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetTestsTestIdResponseObject); ok {
+		if err := validResponse.VisitGetTestsTestIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PatchTestsTestId operation middleware
+func (sh *strictHandler) PatchTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request PatchTestsTestIdRequestObject
+
+	request.TestId = testId
+
+	var body PatchTestsTestIdJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchTestsTestId(ctx, request.(PatchTestsTestIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchTestsTestId")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PatchTestsTestIdResponseObject); ok {
+		if err := validResponse.VisitPatchTestsTestIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostTestsTestIdPublish operation middleware
+func (sh *strictHandler) PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request PostTestsTestIdPublishRequestObject
+
+	request.TestId = testId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostTestsTestIdPublish(ctx, request.(PostTestsTestIdPublishRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostTestsTestIdPublish")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostTestsTestIdPublishResponseObject); ok {
+		if err := validResponse.VisitPostTestsTestIdPublishResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PutTestsTestIdQuestions operation middleware
+func (sh *strictHandler) PutTestsTestIdQuestions(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request PutTestsTestIdQuestionsRequestObject
+
+	request.TestId = testId
+
+	var body PutTestsTestIdQuestionsJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PutTestsTestIdQuestions(ctx, request.(PutTestsTestIdQuestionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PutTestsTestIdQuestions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PutTestsTestIdQuestionsResponseObject); ok {
+		if err := validResponse.VisitPutTestsTestIdQuestionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PatchTestsTestIdScoring operation middleware
+func (sh *strictHandler) PatchTestsTestIdScoring(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request PatchTestsTestIdScoringRequestObject
+
+	request.TestId = testId
+
+	var body PatchTestsTestIdScoringJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PatchTestsTestIdScoring(ctx, request.(PatchTestsTestIdScoringRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PatchTestsTestIdScoring")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PatchTestsTestIdScoringResponseObject); ok {
+		if err := validResponse.VisitPatchTestsTestIdScoringResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostTestsTestIdSessions operation middleware
+func (sh *strictHandler) PostTestsTestIdSessions(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request PostTestsTestIdSessionsRequestObject
+
+	request.TestId = testId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostTestsTestIdSessions(ctx, request.(PostTestsTestIdSessionsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostTestsTestIdSessions")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostTestsTestIdSessionsResponseObject); ok {
+		if err := validResponse.VisitPostTestsTestIdSessionsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// PostTestsTestIdUnpublish operation middleware
+func (sh *strictHandler) PostTestsTestIdUnpublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
+	var request PostTestsTestIdUnpublishRequestObject
+
+	request.TestId = testId
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.PostTestsTestIdUnpublish(ctx, request.(PostTestsTestIdUnpublishRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "PostTestsTestIdUnpublish")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(PostTestsTestIdUnpublishResponseObject); ok {
+		if err := validResponse.VisitPostTestsTestIdUnpublishResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetTopics operation middleware
 func (sh *strictHandler) GetTopics(w http.ResponseWriter, r *http.Request) {
 	var request GetTopicsRequestObject
@@ -2438,47 +5574,75 @@ func (sh *strictHandler) PatchTopicsTopicId(w http.ResponseWriter, r *http.Reque
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"WH5qMvAtZnlGFQmP3Ofi8/P5/wMAAP//",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

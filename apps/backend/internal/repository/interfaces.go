@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 
@@ -48,4 +49,66 @@ type QuestionRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	// IsUsedInPublishedTest reports whether the question is referenced by any published test.
 	IsUsedInPublishedTest(ctx context.Context, id uuid.UUID) (bool, error)
+}
+
+// TestFilter holds optional filters for listing tests.
+type TestFilter struct {
+	ContributorID *uuid.UUID
+	Category      *domain.TestCategory
+	Difficulty    *domain.Difficulty
+	Status        *domain.TestStatus
+	Page          int
+	Limit         int
+}
+
+type TestRepository interface {
+	// Create inserts the test and its scoring config atomically.
+	Create(ctx context.Context, t *domain.Test) error
+	// FindByID returns the test with questions and scoring config populated.
+	FindByID(ctx context.Context, id uuid.UUID) (*domain.Test, error)
+	// List returns test summaries (no questions/scoring loaded).
+	List(ctx context.Context, f TestFilter) ([]*domain.Test, int, error)
+	Update(ctx context.Context, t *domain.Test) error
+	Delete(ctx context.Context, id uuid.UUID) error
+	SetStatus(ctx context.Context, id uuid.UUID, status domain.TestStatus, publishedAt *time.Time) error
+	// SetQuestions replaces the full question list for a test.
+	SetQuestions(ctx context.Context, testID uuid.UUID, questions []domain.TestQuestion) error
+	// UpdateScoringConfig updates correct/wrong/blank points for a test.
+	UpdateScoringConfig(ctx context.Context, sc *domain.ScoringConfig) error
+	// QuestionCount returns the number of questions in a test.
+	QuestionCount(ctx context.Context, id uuid.UUID) (int, error)
+}
+
+type SessionRepository interface {
+	// Create inserts a new session.
+	Create(ctx context.Context, s *domain.TestSession) error
+	// FindByID returns a session with its answers populated.
+	FindByID(ctx context.Context, id uuid.UUID) (*domain.TestSession, error)
+	// FindActiveByStudentAndTest returns an in_progress session for the given student+test pair, if any.
+	FindActiveByStudentAndTest(ctx context.Context, studentID, testID uuid.UUID) (*domain.TestSession, error)
+	// UpdateStatus sets the session status, submitted_at, and syncs time_remaining_seconds.
+	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.SessionStatus, submittedAt *time.Time, timeRemaining int) error
+	// UpsertAnswer creates or replaces the answer for a given question in the session.
+	UpsertAnswer(ctx context.Context, a *domain.SessionAnswer) error
+	// UpsertFlag sets is_flagged on an existing answer row (creating a blank-answer row if needed).
+	UpsertFlag(ctx context.Context, sessionID, questionID uuid.UUID, flagged bool) error
+	// LoadAnswers populates s.Answers in-place.
+	LoadAnswers(ctx context.Context, s *domain.TestSession) error
+}
+
+type ResultRepository interface {
+	// Create inserts a new test result.
+	Create(ctx context.Context, r *domain.TestResult) error
+	// FindBySessionID returns the result for a given session.
+	FindBySessionID(ctx context.Context, sessionID uuid.UUID) (*domain.TestResult, error)
+	// ListByStudent returns all results for a student, newest first.
+	ListByStudent(ctx context.Context, studentID uuid.UUID) ([]*domain.TestResult, error)
+	// ListAll returns all results across all students, newest first (admin use).
+	ListAll(ctx context.Context) ([]*domain.TestResult, error)
+	// FindByID returns a single result by its own primary key.
+	FindByID(ctx context.Context, id uuid.UUID) (*domain.TestResult, error)
+	// FindDetailByID returns the result enriched with per-topic breakdown.
+	FindDetailByID(ctx context.Context, id uuid.UUID) (*domain.ResultDetail, error)
+	// GetReview returns per-question review items for a completed session.
+	GetReview(ctx context.Context, sessionID, testID uuid.UUID) ([]domain.ReviewItem, error)
 }

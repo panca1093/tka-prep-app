@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS tests;
+DROP TYPE IF EXISTS test_status;
+DROP TYPE IF EXISTS test_category;

@@ -564,6 +564,802 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /tests:
+    get:
+      tags: [Tests]
+      summary: List tests
+      operationId: getTests
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [tka_saintek, tka_soshum, smbt]
+        - name: difficulty
+          in: query
+          schema:
+            type: string
+            enum: [easy, medium, hard]
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [draft, published]
+        - name: contributor_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of tests
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags: [Tests]
+      summary: Create a new test (contributor/admin)
+      operationId: postTests
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTestRequest'
+      responses:
+        '201':
+          description: Test created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}:
+    get:
+      tags: [Tests]
+      summary: Get test by ID
+      operationId: getTestsTestId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Test detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    patch:
+      tags: [Tests]
+      summary: Update test metadata (contributor/admin, draft only)
+      operationId: patchTestsTestId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTestRequest'
+      responses:
+        '200':
+          description: Updated test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Test is published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags: [Tests]
+      summary: Delete test (contributor/admin, draft only)
+      operationId: deleteTestsTestId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Test is published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}/publish:
+    post:
+      tags: [Tests]
+      summary: Publish a draft test (contributor/admin)
+      operationId: postTestsTestIdPublish
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Test published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Already published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Test has no questions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}/unpublish:
+    post:
+      tags: [Tests]
+      summary: Unpublish a test back to draft (admin only)
+      operationId: postTestsTestIdUnpublish
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Test unpublished
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Already a draft
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}/questions:
+    put:
+      tags: [Tests]
+      summary: Replace all questions in a test (contributor/admin, draft only)
+      operationId: putTestsTestIdQuestions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetQuestionsRequest'
+      responses:
+        '200':
+          description: Questions updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Test is published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}/scoring:
+    patch:
+      tags: [Tests]
+      summary: Update scoring config (contributor/admin, draft only)
+      operationId: patchTestsTestIdScoring
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateScoringConfigRequest'
+      responses:
+        '200':
+          description: Scoring config updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Test is published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}/sessions:
+    post:
+      tags: [Tests]
+      summary: Start a new test session (or resume existing in-progress session)
+      operationId: postTestsTestIdSessions
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '201':
+          description: Session started or resumed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Test not found or not published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/{sessionId}:
+    get:
+      tags: [Tests]
+      summary: Get session state (with current answers and time remaining)
+      operationId: getSessionsSessionId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Session state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden — not your session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/{sessionId}/answers:
+    post:
+      tags: [Tests]
+      summary: Save or update an answer (blank if selected_option_id omitted)
+      operationId: postSessionsSessionIdAnswers
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaveAnswerRequest'
+      responses:
+        '200':
+          description: Answer saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Session not in progress or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Question not in this test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/{sessionId}/flag:
+    post:
+      tags: [Tests]
+      summary: Toggle flag on a question
+      operationId: postSessionsSessionIdFlag
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlagRequest'
+      responses:
+        '200':
+          description: Flag updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Session not in progress
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /sessions/{sessionId}/submit:
+    post:
+      tags: [Tests]
+      summary: Submit the session and compute the result
+      operationId: postSessionsSessionIdSubmit
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Result computed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Already submitted or expired
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /results:
+    get:
+      tags: [Results]
+      summary: List results (own for student, all for admin)
+      operationId: getResults
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /results/{resultId}:
+    get:
+      tags: [Results]
+      summary: Get result detail with per-topic breakdown
+      operationId: getResultsResultId
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Result detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResultDetailResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /results/{resultId}/review:
+    get:
+      tags: [Results]
+      summary: Per-question review with correct answers and explanations
+      operationId: getResultsResultIdReview
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: resultId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [all, correct, wrong, blank]
+            default: all
+      responses:
+        '200':
+          description: Review items
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Invalid status filter
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     HealthResponse:
@@ -860,6 +1656,395 @@ components:
           maxItems: 5
           items:
             $ref: '#/components/schemas/QuestionOptionInput'
+
+    ScoringConfigResponse:
+      type: object
+      required: [id, test_id, correct_points, wrong_points, blank_points]
+      properties:
+        id:
+          type: string
+          format: uuid
+        test_id:
+          type: string
+          format: uuid
+        correct_points:
+          type: number
+          format: double
+        wrong_points:
+          type: number
+          format: double
+        blank_points:
+          type: number
+          format: double
+
+    TestQuestionResponse:
+      type: object
+      required: [id, test_id, question_id, order_index]
+      properties:
+        id:
+          type: string
+          format: uuid
+        test_id:
+          type: string
+          format: uuid
+        question_id:
+          type: string
+          format: uuid
+        order_index:
+          type: integer
+
+    TestDetailResponse:
+      type: object
+      required: [id, contributor_id, title, category, duration_minutes, difficulty, status, created_at, questions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        contributor_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        category:
+          type: string
+          enum: [tka_saintek, tka_soshum, smbt]
+        duration_minutes:
+          type: integer
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        status:
+          type: string
+          enum: [draft, published]
+        created_at:
+          type: string
+          format: date-time
+        published_at:
+          type: string
+          format: date-time
+          nullable: true
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestQuestionResponse'
+        scoring_config:
+          $ref: '#/components/schemas/ScoringConfigResponse'
+          nullable: true
+
+    TestListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestDetailResponse'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+
+    CreateTestRequest:
+      type: object
+      required: [title, category, duration_minutes, difficulty]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+        category:
+          type: string
+          enum: [tka_saintek, tka_soshum, smbt]
+        duration_minutes:
+          type: integer
+          minimum: 1
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        scoring_config:
+          $ref: '#/components/schemas/UpdateScoringConfigRequest'
+
+    UpdateTestRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 1000
+          nullable: true
+        category:
+          type: string
+          enum: [tka_saintek, tka_soshum, smbt]
+        duration_minutes:
+          type: integer
+          minimum: 1
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+
+    SetQuestionsRequest:
+      type: object
+      required: [question_ids]
+      properties:
+        question_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+
+    UpdateScoringConfigRequest:
+      type: object
+      required: [correct_points, wrong_points, blank_points]
+      properties:
+        correct_points:
+          type: number
+          format: double
+        wrong_points:
+          type: number
+          format: double
+        blank_points:
+          type: number
+          format: double
+
+    SessionAnswerResponse:
+      type: object
+      required: [id, session_id, question_id, is_flagged, answered_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        question_id:
+          type: string
+          format: uuid
+        selected_option_id:
+          type: string
+          format: uuid
+          nullable: true
+        is_flagged:
+          type: boolean
+        answered_at:
+          type: string
+          format: date-time
+
+    SessionResponse:
+      type: object
+      required: [id, student_id, test_id, started_at, status, time_remaining_seconds, answers]
+      properties:
+        id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        test_id:
+          type: string
+          format: uuid
+        started_at:
+          type: string
+          format: date-time
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum: [in_progress, submitted, expired]
+        time_remaining_seconds:
+          type: integer
+        answers:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionAnswerResponse'
+
+    TestResultResponse:
+      type: object
+      required: [id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        test_id:
+          type: string
+          format: uuid
+        total_score:
+          type: number
+          format: double
+        correct_count:
+          type: integer
+        wrong_count:
+          type: integer
+        blank_count:
+          type: integer
+        completed_at:
+          type: string
+          format: date-time
+
+    SaveAnswerRequest:
+      type: object
+      required: [question_id]
+      properties:
+        question_id:
+          type: string
+          format: uuid
+        selected_option_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    FlagRequest:
+      type: object
+      required: [question_id, is_flagged]
+      properties:
+        question_id:
+          type: string
+          format: uuid
+        is_flagged:
+          type: boolean
+
+    ResultListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestResultResponse'
+
+    TopicBreakdownResponse:
+      type: object
+      required: [topic_id, topic_name, total, correct_count, wrong_count, blank_count]
+      properties:
+        topic_id:
+          type: string
+          format: uuid
+        topic_name:
+          type: string
+        total:
+          type: integer
+        correct_count:
+          type: integer
+        wrong_count:
+          type: integer
+        blank_count:
+          type: integer
+
+    ResultDetailResponse:
+      type: object
+      required: [id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at, percentage, topic_breakdown]
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        test_id:
+          type: string
+          format: uuid
+        total_score:
+          type: number
+          format: double
+        correct_count:
+          type: integer
+        wrong_count:
+          type: integer
+        blank_count:
+          type: integer
+        completed_at:
+          type: string
+          format: date-time
+        percentage:
+          type: number
+          format: double
+          description: correct_count / total_questions * 100
+        topic_breakdown:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicBreakdownResponse'
+
+    ReviewOptionResponse:
+      type: object
+      required: [id, label, text, is_correct]
+      properties:
+        id:
+          type: string
+          format: uuid
+        label:
+          type: string
+          example: "A"
+        text:
+          type: string
+        is_correct:
+          type: boolean
+
+    ReviewItemResponse:
+      type: object
+      required: [question_id, order_index, text, difficulty, topic_id, topic_name, options, correct_option_id, status]
+      properties:
+        question_id:
+          type: string
+          format: uuid
+        order_index:
+          type: integer
+        text:
+          type: string
+        explanation:
+          type: string
+          nullable: true
+        difficulty:
+          type: string
+          enum: [easy, medium, hard]
+        topic_id:
+          type: string
+          format: uuid
+        topic_name:
+          type: string
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewOptionResponse'
+        selected_option_id:
+          type: string
+          format: uuid
+          nullable: true
+        correct_option_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [correct, wrong, blank]
+
+    ReviewResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReviewItemResponse'
 
   securitySchemes:
     bearerAuth:
