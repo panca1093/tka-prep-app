@@ -1,21 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
-import { getHealth } from '@/api/client';
+import { ref, onMounted } from 'vue'
+import client from '@/api/client'
 
-const status = ref<string>('checking…');
-const timestamp = ref<string>('');
-const error = ref<string>('');
+const status = ref<string>('checking…')
+const timestamp = ref<string>('')
+const error = ref<string>('')
 
 onMounted(async () => {
-  try {
-    const data = await getHealth();
-    status.value = data.status;
-    timestamp.value = data.timestamp;
-  } catch (e) {
-    status.value = 'error';
-    error.value = e instanceof Error ? e.message : String(e);
+  const { data, error: err } = await client.GET('/health')
+  if (data) {
+    status.value = data.status
+    timestamp.value = data.timestamp
+  } else {
+    status.value = 'error'
+    error.value = err ? String(err) : 'unknown error'
   }
-});
+})
 </script>
 
 <template>

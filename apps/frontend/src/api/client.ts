@@ -1,23 +1,30 @@
-/**
- * API client wrapper.
- *
- * Once `make generate-ts` is run, this file should consume types from
- * `@tkaprep/shared-types/generated/ts/index.ts`. Until then we hand-write
- * the bare minimum for /health so the skeleton can boot.
- */
+import createClient, { type Middleware } from 'openapi-fetch'
+import type { paths } from '@tkaprep/shared-types'
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
+// Token is stored here so the auth store can update it without a circular dep.
+let _accessToken = ''
 
-export interface HealthResponse {
-  status: 'ok' | 'degraded';
-  timestamp: string;
-  version?: string;
+export function setAccessToken(token: string) {
+  _accessToken = token
 }
 
-export async function getHealth(): Promise<HealthResponse> {
-  const res = await fetch(`${BASE_URL}/health`);
-  if (!res.ok) {
-    throw new Error(`Health check failed: HTTP ${res.status}`);
-  }
-  return res.json();
+export function clearAccessToken() {
+  _accessToken = ''
 }
+
+const authMiddleware: Middleware = {
+  async onRequest({ request }) {
+    if (_accessToken) {
+      request.headers.set('Authorization', `Bearer ${_accessToken}`)
+    }
+    return request
+  },
+}
+
+const client = createClient<paths>({
+  baseUrl: (import.meta.env.VITE_API_BASE_URL as string) || 'http://localhost:8080/api/v1',
+})
+
+client.use(authMiddleware)
+
+export default client

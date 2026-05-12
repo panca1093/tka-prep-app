@@ -11,12 +11,13 @@
     "lint": "eslint . --ext .vue,.ts,.tsx --fix"
   },
   "dependencies": {
+    "openapi-fetch": "^0.13.0",
     "pinia": "^2.2.0",
     "vue": "^3.5.0",
     "vue-router": "^4.4.0"
   },
   "devDependencies": {
-    "@tkaprep/shared-types": "*",
+    "@tkaprep/shared-types": "file:../../packages/shared-types",
     "@types/node": "^22.0.0",
     "@vitejs/plugin-vue": "^5.1.0",
     "@vue/eslint-config-typescript": "^14.0.0",

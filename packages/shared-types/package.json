@@ -4,6 +4,10 @@
   "private": true,
   "description": "Generated TypeScript types from the OpenAPI spec",
   "main": "generated/ts/index.ts",
+  "types": "generated/ts/index.ts",
+  "exports": {
+    ".": "./generated/ts/index.ts"
+  },
   "scripts": {
     "generate:ts": "openapi-typescript openapi.yaml -o generated/ts/index.ts"
   },
