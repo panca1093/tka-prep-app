@@ -57,6 +57,7 @@ func main() {
 	testRepo := pgstore.NewTestRepository(pool)
 	sessionRepo := pgstore.NewSessionRepository(pool)
 	resultRepo := pgstore.NewResultRepository(pool)
+	leaderboardRepo := pgstore.NewLeaderboardRepository(pool)
 
 	authSvc := authsvc.NewService(authsvc.Config{
 		JWTSecret:     cfg.JWTSecret,
@@ -69,7 +70,7 @@ func main() {
 	sessionService := sessionsvc.NewService(sessionRepo, resultRepo, testRepo, pool)
 	resultService := resultsvc.NewService(resultRepo, sessionRepo)
 
-	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService)
+	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardRepo)
 	srv := server.New(cfg, apiHandler)
 
 	httpServer := &http.Server{

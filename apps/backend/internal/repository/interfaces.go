@@ -96,6 +96,14 @@ type SessionRepository interface {
 	LoadAnswers(ctx context.Context, s *domain.TestSession) error
 }
 
+type LeaderboardRepository interface {
+	// List returns up to 100 entries ranked by aggregate total_score for the given scope.
+	List(ctx context.Context, scope domain.LeaderboardScope) ([]domain.LeaderboardEntry, error)
+	// GetMyRank returns the caller's rank and aggregate stats in the given scope.
+	// Returns apierr.ErrNotFound if the student has no results in the scope.
+	GetMyRank(ctx context.Context, studentID uuid.UUID, scope domain.LeaderboardScope) (*domain.LeaderboardEntry, error)
+}
+
 type ResultRepository interface {
 	// Create inserts a new test result.
 	Create(ctx context.Context, r *domain.TestResult) error

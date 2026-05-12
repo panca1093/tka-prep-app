@@ -378,6 +378,54 @@ func (e UserResponseStatus) Valid() bool {
 	}
 }
 
+// Defines values for GetLeaderboardParamsScope.
+const (
+	GetLeaderboardParamsScopeGlobal GetLeaderboardParamsScope = "global"
+	GetLeaderboardParamsScopeSmbt   GetLeaderboardParamsScope = "smbt"
+	GetLeaderboardParamsScopeTka    GetLeaderboardParamsScope = "tka"
+	GetLeaderboardParamsScopeWeek   GetLeaderboardParamsScope = "week"
+)
+
+// Valid indicates whether the value is a known member of the GetLeaderboardParamsScope enum.
+func (e GetLeaderboardParamsScope) Valid() bool {
+	switch e {
+	case GetLeaderboardParamsScopeGlobal:
+		return true
+	case GetLeaderboardParamsScopeSmbt:
+		return true
+	case GetLeaderboardParamsScopeTka:
+		return true
+	case GetLeaderboardParamsScopeWeek:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetLeaderboardMeParamsScope.
+const (
+	GetLeaderboardMeParamsScopeGlobal GetLeaderboardMeParamsScope = "global"
+	GetLeaderboardMeParamsScopeSmbt   GetLeaderboardMeParamsScope = "smbt"
+	GetLeaderboardMeParamsScopeTka    GetLeaderboardMeParamsScope = "tka"
+	GetLeaderboardMeParamsScopeWeek   GetLeaderboardMeParamsScope = "week"
+)
+
+// Valid indicates whether the value is a known member of the GetLeaderboardMeParamsScope enum.
+func (e GetLeaderboardMeParamsScope) Valid() bool {
+	switch e {
+	case GetLeaderboardMeParamsScopeGlobal:
+		return true
+	case GetLeaderboardMeParamsScopeSmbt:
+		return true
+	case GetLeaderboardMeParamsScopeTka:
+		return true
+	case GetLeaderboardMeParamsScopeWeek:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for GetQuestionsParamsDifficulty.
 const (
 	GetQuestionsParamsDifficultyEasy   GetQuestionsParamsDifficulty = "easy"
@@ -551,6 +599,20 @@ type HealthResponse struct {
 
 // HealthResponseStatus defines model for HealthResponse.Status.
 type HealthResponseStatus string
+
+// LeaderboardEntryResponse defines model for LeaderboardEntryResponse.
+type LeaderboardEntryResponse struct {
+	Rank        int64              `json:"rank"`
+	StudentId   openapi_types.UUID `json:"student_id"`
+	StudentName string             `json:"student_name"`
+	TestCount   int                `json:"test_count"`
+	TotalScore  float64            `json:"total_score"`
+}
+
+// LeaderboardResponse defines model for LeaderboardResponse.
+type LeaderboardResponse struct {
+	Data []LeaderboardEntryResponse `json:"data"`
+}
 
 // LoginRequest defines model for LoginRequest.
 type LoginRequest struct {
@@ -855,6 +917,22 @@ type UserResponseStatus string
 // bearerAuthContextKey is the context key for bearerAuth security scheme
 type bearerAuthContextKey string
 
+// GetLeaderboardParams defines parameters for GetLeaderboard.
+type GetLeaderboardParams struct {
+	Scope *GetLeaderboardParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
+// GetLeaderboardParamsScope defines parameters for GetLeaderboard.
+type GetLeaderboardParamsScope string
+
+// GetLeaderboardMeParams defines parameters for GetLeaderboardMe.
+type GetLeaderboardMeParams struct {
+	Scope *GetLeaderboardMeParamsScope `form:"scope,omitempty" json:"scope,omitempty"`
+}
+
+// GetLeaderboardMeParamsScope defines parameters for GetLeaderboardMe.
+type GetLeaderboardMeParamsScope string
+
 // GetQuestionsParams defines parameters for GetQuestions.
 type GetQuestionsParams struct {
 	Search     *string                       `form:"search,omitempty" json:"search,omitempty"`
@@ -956,6 +1034,12 @@ type ServerInterface interface {
 	// Health check
 	// (GET /health)
 	GetHealth(w http.ResponseWriter, r *http.Request)
+	// Get top-100 leaderboard
+	// (GET /leaderboard)
+	GetLeaderboard(w http.ResponseWriter, r *http.Request, params GetLeaderboardParams)
+	// Get the caller's personal rank on the leaderboard
+	// (GET /leaderboard/me)
+	GetLeaderboardMe(w http.ResponseWriter, r *http.Request, params GetLeaderboardMeParams)
 	// List questions (contributor/admin)
 	// (GET /questions)
 	GetQuestions(w http.ResponseWriter, r *http.Request, params GetQuestionsParams)
@@ -1073,6 +1157,18 @@ func (_ Unimplemented) PostAuthRegister(w http.ResponseWriter, r *http.Request) 
 // Health check
 // (GET /health)
 func (_ Unimplemented) GetHealth(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get top-100 leaderboard
+// (GET /leaderboard)
+func (_ Unimplemented) GetLeaderboard(w http.ResponseWriter, r *http.Request, params GetLeaderboardParams) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get the caller's personal rank on the leaderboard
+// (GET /leaderboard/me)
+func (_ Unimplemented) GetLeaderboardMe(w http.ResponseWriter, r *http.Request, params GetLeaderboardMeParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -1328,6 +1424,84 @@ func (siw *ServerInterfaceWrapper) GetHealth(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetHealth(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLeaderboard operation middleware
+func (siw *ServerInterfaceWrapper) GetLeaderboard(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetLeaderboardParams
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "scope", r.URL.Query(), &params.Scope, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "scope"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scope", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLeaderboard(w, r, params)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetLeaderboardMe operation middleware
+func (siw *ServerInterfaceWrapper) GetLeaderboardMe(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetLeaderboardMeParams
+
+	// ------------- Optional query parameter "scope" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "scope", r.URL.Query(), &params.Scope, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "scope"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "scope", Err: err})
+		}
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetLeaderboardMe(w, r, params)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -2382,6 +2556,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/health", wrapper.GetHealth)
 	})
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/leaderboard", wrapper.GetLeaderboard)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/leaderboard/me", wrapper.GetLeaderboardMe)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/questions", wrapper.GetQuestions)
 	})
 	r.Group(func(r chi.Router) {
@@ -2687,6 +2867,92 @@ func (response GetHealth200JSONResponse) VisitGetHealthResponse(w http.ResponseW
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeaderboardRequestObject struct {
+	Params GetLeaderboardParams
+}
+
+type GetLeaderboardResponseObject interface {
+	VisitGetLeaderboardResponse(w http.ResponseWriter) error
+}
+
+type GetLeaderboard200JSONResponse LeaderboardResponse
+
+func (response GetLeaderboard200JSONResponse) VisitGetLeaderboardResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeaderboard401JSONResponse ErrorResponse
+
+func (response GetLeaderboard401JSONResponse) VisitGetLeaderboardResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeaderboardMeRequestObject struct {
+	Params GetLeaderboardMeParams
+}
+
+type GetLeaderboardMeResponseObject interface {
+	VisitGetLeaderboardMeResponse(w http.ResponseWriter) error
+}
+
+type GetLeaderboardMe200JSONResponse LeaderboardEntryResponse
+
+func (response GetLeaderboardMe200JSONResponse) VisitGetLeaderboardMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeaderboardMe401JSONResponse ErrorResponse
+
+func (response GetLeaderboardMe401JSONResponse) VisitGetLeaderboardMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetLeaderboardMe404JSONResponse ErrorResponse
+
+func (response GetLeaderboardMe404JSONResponse) VisitGetLeaderboardMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -4551,6 +4817,12 @@ type StrictServerInterface interface {
 	// Health check
 	// (GET /health)
 	GetHealth(ctx context.Context, request GetHealthRequestObject) (GetHealthResponseObject, error)
+	// Get top-100 leaderboard
+	// (GET /leaderboard)
+	GetLeaderboard(ctx context.Context, request GetLeaderboardRequestObject) (GetLeaderboardResponseObject, error)
+	// Get the caller's personal rank on the leaderboard
+	// (GET /leaderboard/me)
+	GetLeaderboardMe(ctx context.Context, request GetLeaderboardMeRequestObject) (GetLeaderboardMeResponseObject, error)
 	// List questions (contributor/admin)
 	// (GET /questions)
 	GetQuestions(ctx context.Context, request GetQuestionsRequestObject) (GetQuestionsResponseObject, error)
@@ -4825,6 +5097,58 @@ func (sh *strictHandler) GetHealth(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetHealthResponseObject); ok {
 		if err := validResponse.VisitGetHealthResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLeaderboard operation middleware
+func (sh *strictHandler) GetLeaderboard(w http.ResponseWriter, r *http.Request, params GetLeaderboardParams) {
+	var request GetLeaderboardRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLeaderboard(ctx, request.(GetLeaderboardRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLeaderboard")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLeaderboardResponseObject); ok {
+		if err := validResponse.VisitGetLeaderboardResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetLeaderboardMe operation middleware
+func (sh *strictHandler) GetLeaderboardMe(w http.ResponseWriter, r *http.Request, params GetLeaderboardMeParams) {
+	var request GetLeaderboardMeRequestObject
+
+	request.Params = params
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetLeaderboardMe(ctx, request.(GetLeaderboardMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetLeaderboardMe")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetLeaderboardMeResponseObject); ok {
+		if err := validResponse.VisitGetLeaderboardMeResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -5574,75 +5898,79 @@ func (sh *strictHandler) PatchTopicsTopicId(w http.ResponseWriter, r *http.Reque
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"UrD3YZU0qqzwWH8O8vHy8f8DAAD//w==",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

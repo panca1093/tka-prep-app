@@ -1360,6 +1360,70 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /leaderboard:
+    get:
+      tags: [Leaderboard]
+      summary: Get top-100 leaderboard
+      operationId: getLeaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [global, tka, smbt, week]
+            default: global
+      responses:
+        '200':
+          description: Leaderboard entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /leaderboard/me:
+    get:
+      tags: [Leaderboard]
+      summary: Get the caller's personal rank on the leaderboard
+      operationId: getLeaderboardMe
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: scope
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [global, tka, smbt, week]
+            default: global
+      responses:
+        '200':
+          description: Personal leaderboard entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LeaderboardEntryResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: No results found for this scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 components:
   schemas:
     HealthResponse:
@@ -2045,6 +2109,33 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ReviewItemResponse'
+
+    LeaderboardEntryResponse:
+      type: object
+      required: [rank, student_id, student_name, total_score, test_count]
+      properties:
+        rank:
+          type: integer
+          format: int64
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        total_score:
+          type: number
+          format: double
+        test_count:
+          type: integer
+
+    LeaderboardResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/LeaderboardEntryResponse'
 
   securitySchemes:
     bearerAuth:

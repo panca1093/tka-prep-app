@@ -76,6 +76,23 @@ type ReviewOption struct {
 	IsCorrect bool
 }
 
+type LeaderboardScope string
+
+const (
+	ScopeGlobal LeaderboardScope = "global"
+	ScopeTKA    LeaderboardScope = "tka"
+	ScopeSMBT   LeaderboardScope = "smbt"
+	ScopeWeek   LeaderboardScope = "week"
+)
+
+type LeaderboardEntry struct {
+	Rank        int64
+	StudentID   uuid.UUID
+	StudentName string
+	TotalScore  float64
+	TestCount   int
+}
+
 type ReviewItem struct {
 	QuestionID       uuid.UUID
 	OrderIndex       int
