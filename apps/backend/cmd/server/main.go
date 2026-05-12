@@ -14,11 +14,15 @@ import (
 	"github.com/rs/zerolog/log"
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/config"
+	httphandler "github.com/yourorg/tkaprep/apps/backend/internal/handler/http"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/server"
+	pgstore "github.com/yourorg/tkaprep/apps/backend/internal/repository/postgres"
+	authsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/auth"
+	questionsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/question"
+	topicsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/topic"
 )
 
 func main() {
-	// Load .env if present (no error if missing — env vars may come from docker-compose)
 	_ = godotenv.Load()
 
 	cfg, err := config.Load()
@@ -26,7 +30,6 @@ func main() {
 		log.Fatal().Err(err).Msg("failed to load config")
 	}
 
-	// Configure structured logging
 	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 	level, err := zerolog.ParseLevel(cfg.LogLevel)
 	if err != nil {
@@ -34,15 +37,32 @@ func main() {
 	}
 	zerolog.SetGlobalLevel(level)
 
-	log.Info().
-		Str("env", cfg.Env).
-		Str("port", cfg.Port).
-		Msg("starting tkaprep backend")
+	log.Info().Str("env", cfg.Env).Str("port", cfg.Port).Msg("starting tkaprep backend")
 
-	// Build HTTP server
-	srv := server.New(cfg)
+	ctx := context.Background()
 
-	// Graceful shutdown
+	pool, err := pgstore.NewPool(ctx, cfg.DatabaseURL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to connect to database")
+	}
+	defer pool.Close()
+
+	userRepo := pgstore.NewUserRepository(pool)
+	tokenRepo := pgstore.NewRefreshTokenRepository(pool)
+	topicRepo := pgstore.NewTopicRepository(pool)
+	questionRepo := pgstore.NewQuestionRepository(pool)
+
+	authSvc := authsvc.NewService(authsvc.Config{
+		JWTSecret:     cfg.JWTSecret,
+		JWTAccessTTL:  cfg.JWTAccessTTL,
+		JWTRefreshTTL: cfg.JWTRefreshTTL,
+	}, userRepo, tokenRepo)
+	topicService := topicsvc.NewService(topicRepo)
+	questionService := questionsvc.NewService(questionRepo)
+
+	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService)
+	srv := server.New(cfg, apiHandler)
+
 	httpServer := &http.Server{
 		Addr:              ":" + cfg.Port,
 		Handler:           srv.Handler(),
@@ -56,16 +76,15 @@ func main() {
 	}()
 	log.Info().Str("addr", httpServer.Addr).Msg("listening")
 
-	// Wait for SIGTERM / SIGINT
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop
 
 	log.Info().Msg("shutting down")
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	shutCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	if err := httpServer.Shutdown(ctx); err != nil {
+	if err := httpServer.Shutdown(shutCtx); err != nil {
 		log.Error().Err(err).Msg("graceful shutdown failed")
 	}
 	log.Info().Msg("bye")

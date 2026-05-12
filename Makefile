@@ -62,7 +62,8 @@ generate: generate-go generate-ts
 
 generate-go:
 	@echo "→ Generating Go server types from openapi.yaml"
-	cd apps/backend && go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+	@command -v oapi-codegen >/dev/null || (echo "Installing oapi-codegen..." && go install github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@v2.7.0)
+	cd apps/backend && oapi-codegen \
 		-config ../../packages/shared-types/tools/oapi-codegen.yaml \
 		../../packages/shared-types/openapi.yaml
 

@@ -1,10 +1,10 @@
-# Configuration for oapi-codegen
-# Generates Go types and chi server interfaces from openapi.yaml
-# Output: packages/shared-types/generated/go/api.gen.go
-# Run via: make generate-go
-
+# oapi-codegen configuration
+# Run from apps/backend: go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen \
+#   -config ../../packages/shared-types/tools/oapi-codegen.yaml \
+#   ../../packages/shared-types/openapi.yaml
+# Output path is relative to CWD (apps/backend).
 package: api
-output: ../../packages/shared-types/generated/go/api.gen.go
+output: internal/api/api.gen.go
 generate:
   models: true
   chi-server: true
