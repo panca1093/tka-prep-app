@@ -47,11 +47,12 @@ type TopicRepository interface {
 
 // QuestionFilter holds optional filters for listing questions.
 type QuestionFilter struct {
-	Search     string
-	TopicID    *uuid.UUID
-	Difficulty *domain.Difficulty
-	Page       int
-	Limit      int
+	Search       string
+	TopicID      *uuid.UUID
+	Difficulty   *domain.Difficulty
+	QuestionType *domain.QuestionType
+	Page         int
+	Limit        int
 }
 
 type QuestionRepository interface {
@@ -93,20 +94,14 @@ type TestRepository interface {
 }
 
 type SessionRepository interface {
-	// Create inserts a new session.
 	Create(ctx context.Context, s *domain.TestSession) error
-	// FindByID returns a session with its answers populated.
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.TestSession, error)
-	// FindActiveByStudentAndTest returns an in_progress session for the given student+test pair, if any.
 	FindActiveByStudentAndTest(ctx context.Context, studentID, testID uuid.UUID) (*domain.TestSession, error)
-	// UpdateStatus sets the session status, submitted_at, and syncs time_remaining_seconds.
 	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.SessionStatus, submittedAt *time.Time, timeRemaining int) error
-	// UpsertAnswer creates or replaces the answer for a given question in the session.
-	UpsertAnswer(ctx context.Context, a *domain.SessionAnswer) error
-	// UpsertFlag sets is_flagged on an existing answer row (creating a blank-answer row if needed).
+	SaveMCQAnswer(ctx context.Context, sessionID, questionID uuid.UUID, optionID *uuid.UUID, now time.Time) error
+	SavePGKAnswers(ctx context.Context, sessionID, questionID uuid.UUID, optionIDs []uuid.UUID, now time.Time) error
+	SaveBSAnswers(ctx context.Context, sessionID, questionID uuid.UUID, stmtAnswers []domain.StatementAnswerInput, now time.Time) error
 	UpsertFlag(ctx context.Context, sessionID, questionID uuid.UUID, flagged bool) error
-	// LoadAnswers populates s.Answers in-place.
-	LoadAnswers(ctx context.Context, s *domain.TestSession) error
 }
 
 type LeaderboardRepository interface {

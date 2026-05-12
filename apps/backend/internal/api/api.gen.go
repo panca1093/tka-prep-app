@@ -108,6 +108,27 @@ func (e CreateQuestionRequestDifficulty) Valid() bool {
 	}
 }
 
+// Defines values for CreateQuestionRequestQuestionType.
+const (
+	CreateQuestionRequestQuestionTypeMcq          CreateQuestionRequestQuestionType = "mcq"
+	CreateQuestionRequestQuestionTypeMultiCorrect CreateQuestionRequestQuestionType = "multi_correct"
+	CreateQuestionRequestQuestionTypeTrueFalse    CreateQuestionRequestQuestionType = "true_false"
+)
+
+// Valid indicates whether the value is a known member of the CreateQuestionRequestQuestionType enum.
+func (e CreateQuestionRequestQuestionType) Valid() bool {
+	switch e {
+	case CreateQuestionRequestQuestionTypeMcq:
+		return true
+	case CreateQuestionRequestQuestionTypeMultiCorrect:
+		return true
+	case CreateQuestionRequestQuestionTypeTrueFalse:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for CreateTestRequestCategory.
 const (
 	CreateTestRequestCategorySmbt       CreateTestRequestCategory = "smbt"
@@ -189,6 +210,27 @@ func (e QuestionDetailResponseDifficulty) Valid() bool {
 	}
 }
 
+// Defines values for QuestionDetailResponseQuestionType.
+const (
+	QuestionDetailResponseQuestionTypeMcq          QuestionDetailResponseQuestionType = "mcq"
+	QuestionDetailResponseQuestionTypeMultiCorrect QuestionDetailResponseQuestionType = "multi_correct"
+	QuestionDetailResponseQuestionTypeTrueFalse    QuestionDetailResponseQuestionType = "true_false"
+)
+
+// Valid indicates whether the value is a known member of the QuestionDetailResponseQuestionType enum.
+func (e QuestionDetailResponseQuestionType) Valid() bool {
+	switch e {
+	case QuestionDetailResponseQuestionTypeMcq:
+		return true
+	case QuestionDetailResponseQuestionTypeMultiCorrect:
+		return true
+	case QuestionDetailResponseQuestionTypeTrueFalse:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for RegisterRequestRole.
 const (
 	RegisterRequestRoleContributor RegisterRequestRole = "contributor"
@@ -222,6 +264,27 @@ func (e ReviewItemResponseDifficulty) Valid() bool {
 	case ReviewItemResponseDifficultyHard:
 		return true
 	case ReviewItemResponseDifficultyMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for ReviewItemResponseQuestionType.
+const (
+	Mcq          ReviewItemResponseQuestionType = "mcq"
+	MultiCorrect ReviewItemResponseQuestionType = "multi_correct"
+	TrueFalse    ReviewItemResponseQuestionType = "true_false"
+)
+
+// Valid indicates whether the value is a known member of the ReviewItemResponseQuestionType enum.
+func (e ReviewItemResponseQuestionType) Valid() bool {
+	switch e {
+	case Mcq:
+		return true
+	case MultiCorrect:
+		return true
+	case TrueFalse:
 		return true
 	default:
 		return false
@@ -701,15 +764,20 @@ type AuthResponse struct {
 
 // CreateQuestionRequest defines model for CreateQuestionRequest.
 type CreateQuestionRequest struct {
-	Difficulty  CreateQuestionRequestDifficulty `json:"difficulty"`
-	Explanation *string                         `json:"explanation,omitempty"`
-	Options     []QuestionOptionInput           `json:"options"`
-	Text        string                          `json:"text"`
-	TopicId     openapi_types.UUID              `json:"topic_id"`
+	Difficulty   CreateQuestionRequestDifficulty   `json:"difficulty"`
+	Explanation  *string                           `json:"explanation,omitempty"`
+	Options      *[]QuestionOptionInput            `json:"options,omitempty"`
+	QuestionType CreateQuestionRequestQuestionType `json:"question_type"`
+	Statements   *[]QuestionStatementInput         `json:"statements,omitempty"`
+	Text         string                            `json:"text"`
+	TopicId      openapi_types.UUID                `json:"topic_id"`
 }
 
 // CreateQuestionRequestDifficulty defines model for CreateQuestionRequest.Difficulty.
 type CreateQuestionRequestDifficulty string
+
+// CreateQuestionRequestQuestionType defines model for CreateQuestionRequest.QuestionType.
+type CreateQuestionRequestQuestionType string
 
 // CreateTestRequest defines model for CreateTestRequest.
 type CreateTestRequest struct {
@@ -802,19 +870,24 @@ type PlatformStatsResponse struct {
 
 // QuestionDetailResponse defines model for QuestionDetailResponse.
 type QuestionDetailResponse struct {
-	ContributorId openapi_types.UUID               `json:"contributor_id"`
-	CreatedAt     time.Time                        `json:"created_at"`
-	Difficulty    QuestionDetailResponseDifficulty `json:"difficulty"`
-	Explanation   *string                          `json:"explanation,omitempty"`
-	Id            openapi_types.UUID               `json:"id"`
-	Options       []QuestionOptionResponse         `json:"options"`
-	Text          string                           `json:"text"`
-	TopicId       openapi_types.UUID               `json:"topic_id"`
-	UpdatedAt     time.Time                        `json:"updated_at"`
+	ContributorId openapi_types.UUID                 `json:"contributor_id"`
+	CreatedAt     time.Time                          `json:"created_at"`
+	Difficulty    QuestionDetailResponseDifficulty   `json:"difficulty"`
+	Explanation   *string                            `json:"explanation,omitempty"`
+	Id            openapi_types.UUID                 `json:"id"`
+	Options       []QuestionOptionResponse           `json:"options"`
+	QuestionType  QuestionDetailResponseQuestionType `json:"question_type"`
+	Statements    []QuestionStatementResponse        `json:"statements"`
+	Text          string                             `json:"text"`
+	TopicId       openapi_types.UUID                 `json:"topic_id"`
+	UpdatedAt     time.Time                          `json:"updated_at"`
 }
 
 // QuestionDetailResponseDifficulty defines model for QuestionDetailResponse.Difficulty.
 type QuestionDetailResponseDifficulty string
+
+// QuestionDetailResponseQuestionType defines model for QuestionDetailResponse.QuestionType.
+type QuestionDetailResponseQuestionType string
 
 // QuestionListResponse defines model for QuestionListResponse.
 type QuestionListResponse struct {
@@ -836,6 +909,21 @@ type QuestionOptionResponse struct {
 	Id        openapi_types.UUID `json:"id"`
 	IsCorrect bool               `json:"is_correct"`
 	Label     string             `json:"label"`
+	Text      string             `json:"text"`
+}
+
+// QuestionStatementInput defines model for QuestionStatementInput.
+type QuestionStatementInput struct {
+	IsCorrect bool   `json:"is_correct"`
+	Position  int    `json:"position"`
+	Text      string `json:"text"`
+}
+
+// QuestionStatementResponse defines model for QuestionStatementResponse.
+type QuestionStatementResponse struct {
+	Id        openapi_types.UUID `json:"id"`
+	IsCorrect bool               `json:"is_correct"`
+	Position  int                `json:"position"`
 	Text      string             `json:"text"`
 }
 
@@ -879,21 +967,28 @@ type ResultListResponse struct {
 
 // ReviewItemResponse defines model for ReviewItemResponse.
 type ReviewItemResponse struct {
-	CorrectOptionId  openapi_types.UUID           `json:"correct_option_id"`
-	Difficulty       ReviewItemResponseDifficulty `json:"difficulty"`
-	Explanation      *string                      `json:"explanation,omitempty"`
-	Options          []ReviewOptionResponse       `json:"options"`
-	OrderIndex       int                          `json:"order_index"`
-	QuestionId       openapi_types.UUID           `json:"question_id"`
-	SelectedOptionId *openapi_types.UUID          `json:"selected_option_id,omitempty"`
-	Status           ReviewItemResponseStatus     `json:"status"`
-	Text             string                       `json:"text"`
-	TopicId          openapi_types.UUID           `json:"topic_id"`
-	TopicName        string                       `json:"topic_name"`
+	CorrectOptionId   *openapi_types.UUID            `json:"correct_option_id,omitempty"`
+	CorrectOptionIds  *[]openapi_types.UUID          `json:"correct_option_ids,omitempty"`
+	Difficulty        ReviewItemResponseDifficulty   `json:"difficulty"`
+	Explanation       *string                        `json:"explanation,omitempty"`
+	Options           []ReviewOptionResponse         `json:"options"`
+	OrderIndex        int                            `json:"order_index"`
+	QuestionId        openapi_types.UUID             `json:"question_id"`
+	QuestionType      ReviewItemResponseQuestionType `json:"question_type"`
+	SelectedOptionId  *openapi_types.UUID            `json:"selected_option_id,omitempty"`
+	SelectedOptionIds *[]openapi_types.UUID          `json:"selected_option_ids,omitempty"`
+	Statements        []ReviewStatementResponse      `json:"statements"`
+	Status            ReviewItemResponseStatus       `json:"status"`
+	Text              string                         `json:"text"`
+	TopicId           openapi_types.UUID             `json:"topic_id"`
+	TopicName         string                         `json:"topic_name"`
 }
 
 // ReviewItemResponseDifficulty defines model for ReviewItemResponse.Difficulty.
 type ReviewItemResponseDifficulty string
+
+// ReviewItemResponseQuestionType defines model for ReviewItemResponse.QuestionType.
+type ReviewItemResponseQuestionType string
 
 // ReviewItemResponseStatus defines model for ReviewItemResponse.Status.
 type ReviewItemResponseStatus string
@@ -911,10 +1006,20 @@ type ReviewResponse struct {
 	Data []ReviewItemResponse `json:"data"`
 }
 
+// ReviewStatementResponse defines model for ReviewStatementResponse.
+type ReviewStatementResponse struct {
+	Id            openapi_types.UUID `json:"id"`
+	IsCorrect     bool               `json:"is_correct"`
+	StudentAnswer *bool              `json:"student_answer,omitempty"`
+	Text          string             `json:"text"`
+}
+
 // SaveAnswerRequest defines model for SaveAnswerRequest.
 type SaveAnswerRequest struct {
-	QuestionId       openapi_types.UUID  `json:"question_id"`
-	SelectedOptionId *openapi_types.UUID `json:"selected_option_id,omitempty"`
+	QuestionId        openapi_types.UUID      `json:"question_id"`
+	SelectedOptionId  *openapi_types.UUID     `json:"selected_option_id,omitempty"`
+	SelectedOptionIds *[]openapi_types.UUID   `json:"selected_option_ids,omitempty"`
+	StatementAnswers  *[]StatementAnswerInput `json:"statement_answers,omitempty"`
 }
 
 // ScoringConfigResponse defines model for ScoringConfigResponse.
@@ -929,23 +1034,31 @@ type ScoringConfigResponse struct {
 // SessionAnswerResponse defines model for SessionAnswerResponse.
 type SessionAnswerResponse struct {
 	AnsweredAt       time.Time           `json:"answered_at"`
+	BooleanAnswer    *bool               `json:"boolean_answer,omitempty"`
 	Id               openapi_types.UUID  `json:"id"`
-	IsFlagged        bool                `json:"is_flagged"`
 	QuestionId       openapi_types.UUID  `json:"question_id"`
 	SelectedOptionId *openapi_types.UUID `json:"selected_option_id,omitempty"`
 	SessionId        openapi_types.UUID  `json:"session_id"`
+	StatementId      *openapi_types.UUID `json:"statement_id,omitempty"`
+}
+
+// SessionQuestionFlagResponse defines model for SessionQuestionFlagResponse.
+type SessionQuestionFlagResponse struct {
+	IsFlagged  bool               `json:"is_flagged"`
+	QuestionId openapi_types.UUID `json:"question_id"`
 }
 
 // SessionResponse defines model for SessionResponse.
 type SessionResponse struct {
-	Answers              []SessionAnswerResponse `json:"answers"`
-	Id                   openapi_types.UUID      `json:"id"`
-	StartedAt            time.Time               `json:"started_at"`
-	Status               SessionResponseStatus   `json:"status"`
-	StudentId            openapi_types.UUID      `json:"student_id"`
-	SubmittedAt          *time.Time              `json:"submitted_at,omitempty"`
-	TestId               openapi_types.UUID      `json:"test_id"`
-	TimeRemainingSeconds int                     `json:"time_remaining_seconds"`
+	Answers              []SessionAnswerResponse        `json:"answers"`
+	Flags                *[]SessionQuestionFlagResponse `json:"flags,omitempty"`
+	Id                   openapi_types.UUID             `json:"id"`
+	StartedAt            time.Time                      `json:"started_at"`
+	Status               SessionResponseStatus          `json:"status"`
+	StudentId            openapi_types.UUID             `json:"student_id"`
+	SubmittedAt          *time.Time                     `json:"submitted_at,omitempty"`
+	TestId               openapi_types.UUID             `json:"test_id"`
+	TimeRemainingSeconds int                            `json:"time_remaining_seconds"`
 }
 
 // SessionResponseStatus defines model for SessionResponse.Status.
@@ -954,6 +1067,12 @@ type SessionResponseStatus string
 // SetQuestionsRequest defines model for SetQuestionsRequest.
 type SetQuestionsRequest struct {
 	QuestionIds []openapi_types.UUID `json:"question_ids"`
+}
+
+// StatementAnswerInput defines model for StatementAnswerInput.
+type StatementAnswerInput struct {
+	IsCorrect   bool               `json:"is_correct"`
+	StatementId openapi_types.UUID `json:"statement_id"`
 }
 
 // TestDetailResponse defines model for TestDetailResponse.
@@ -1033,6 +1152,7 @@ type UpdateQuestionRequest struct {
 	Difficulty  *UpdateQuestionRequestDifficulty `json:"difficulty,omitempty"`
 	Explanation *string                          `json:"explanation,omitempty"`
 	Options     *[]QuestionOptionInput           `json:"options,omitempty"`
+	Statements  *[]QuestionStatementInput        `json:"statements,omitempty"`
 	Text        *string                          `json:"text,omitempty"`
 	TopicId     *openapi_types.UUID              `json:"topic_id,omitempty"`
 }
@@ -7157,88 +7277,91 @@ func (sh *strictHandler) PatchTopicsTopicId(w http.ResponseWriter, r *http.Reque
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"7D3tchu3dq+C2XamTocyKVvOzVX/XMVxUrW+iSLZtz8SjwLuHpKIdoE1gJWsajTTh+gT9kk6+NpP7HKX",
-	"IinR4i+JJD4ODs43Dg7ugpAlKaNApQiO7wIRLiDB+t+TKCH0Awj5ngh5DiJlVID6IeUsBS4J6GYRllj9",
-	"JRIS/cU/c5gFx8E/jYuRx3bYcT5mPt79KJC3KQTHAeYc36rPMUmIVCPZHwiVMAeufkrxHPy/SCZx7Pvp",
-	"fhRw+JwRDlFw/JsB1zW3A7opP+WwsOmfEEo1bhPiBgawlJCk8jJkGW2BO8QS5ozfql+BZomCRF7hS4FV",
-	"oysFkPrExCJLglEgkmkZGiE5oXM9DqOSk2kmGb8kkRptxniCZXAcZBmJAl8XDlhCdIllpXmEJRxIkoCv",
-	"T0RmMxJmsawADFjcBqMggYhoKBeYR14oo4xjSRi9TAjNpEFSEyc94RcSy0yU4Yg4nkm1d9k0JmIBfiAk",
-	"kXGZVtwvNXrQk9bQ6jqX9q2Ckxwoz1IrCB/VaKOVwD4K4GtkMzXc7nBYJhcdzBWGIMSlZFdAPbuppp5x",
-	"EIuOFpkAPgxjtRVVYKjPaMf3reytpoRfMxCKRM7hs/rPs7UP4zb4ksaYair0Lp+l6ifRm3gcvL/ofqc0",
-	"zfRiEvzl1HR/MwoSQosPdeqS8EWvMiH0PdC5XATHhz4GZSkJ+0mx2n7kPe1cNeZ0C27fEiPPW7ZjXbI6",
-	"AhFykrp9SfCXHBuTyWQ7UjchlCRqnGIDShwtQqY6X4aMzsh8KYukSmdcmD5vdReHw7K4La3zlVpmJxXU",
-	"N9YjdpsCtoSnji1WNNLOcq1788a7NRQnenHwBSepWmfwdywhwZJcKVlX3dtha9ZD+9bxjnPG2wUjqJ89",
-	"1MuiGqT/OHl/+sPJh9Nffr58d37+y7lX4YPEJK7KiOq4MwJx5JUvRIisRdE21lQXFQkIYRVOAfApvcYx",
-	"iRDRomcZ/vSCi5GamKy1N3jzIfzHGM9bKYaIy1mM53MoI2HKWAyYqs6frdRcSaCVO4/KU/nA/HfAcZfG",
-	"bBpMTAmtCOYcR2bMAtf6J4/tlICQOEn7m4zXwIXlpmL0ycvDl5Olq8+NqWJa37rfA46ATxnm0Tsq+W07",
-	"BjimVxXICZXfHgVeESizCKi87G2MmuZOHjQxB6LTEdBW0aUSvFDFLcumcQmxNEumHttKr6wCdQ2m6gwV",
-	"eJbgdE2mZ+suNbjfZzZ6YWRz0m48QYJJXKW6aRaRv9mPL0OmlGaOZ9Pcs7MpFuKG8ag6lHgdZvz12d+E",
-	"WErFbuR8oJa1sKzd9Fhmy9apodLcN9/fjVRs31uvAPYJhdrU7eJ2FJzFWCqEX0gsRfvUKdBIWR84TTm7",
-	"xrHo4piSh9bZzknSzkaWYzrbKMYRPbyd2oheeKtjNkEdeXDhQ6yzzH/Q2rods7sRJaj5LTSLY6xk4LHk",
-	"GXja91zJw9ydLq/Z+TUP8WRGQabN6CGY7hex6OcT1cITJWC6CG6NoYkWGn7qQQqfU+yzEUPGueritRFj",
-	"PIWarjqpeQ+jpV5zH+e6tlgzb04YJTCXL7V923vS+4pIaV14D+YYtt5zo0W3p5TPYU6EBL5xm6bptX6f",
-	"RQRdYCqZYN1+66vVbKTSiH95VRnwO8+AnJmYgdMdVo1W5VvVYSma9HCrR02rzE7q3xeRxXKZcp3GmF51",
-	"xvqZAnWoMrUU2jVwT4ZLgYdApRWRlUhHdRY0RjVLBP0rOpxMyrTV5peMAgFC9PZ3Bzta2m/p21arvikH",
-	"fBWxG9pbFekQ0feuW6fmH+i1jYIbznRgrWUzfVKrhNCah+eQUXfuqjRTnXRUIdQaVVaIpInAduZYoyFg",
-	"z9SyWD7cRTyHawI3pxKSLqPYIMtYQn1pa8s27lDj1Sx8uenKeAT8ktAIvvhly7DwlSLWGEJFTZ3oXLre",
-	"ZqzKaWpLzY6O/Ud8azHITeOWiE5noK6MVb/ZXbbKi2kq5niDLHOstFP68zHN1GrXJHA8QmJlgXOBr+GE",
-	"ipsOI+5ROKqDXL3LqB7mdJs8KSM2ZtJD/zmyHtRpA7aBUYkDoPARbaF/a8uqjT+qYsqLcaPkHe20nnrr",
-	"3weakP25fo0nGetTBUPsyaX2U+uJyqiC244tWrY5/ZW0f889Wrp/Rgwf6l40FS2hlylncw7abxPZNCFS",
-	"agTBl1Qj9tPDzfh82C5gl5LGIGeAJHDJldtHCZ1fCggZjURvG9xvdpcwPqoeV3mmGuUE4qcu6QIsoo/u",
-	"qJLZ8uV3qbPKsD7glE2+NLi8Y6ls1ZP+pbT2lFLf8gS3B3FP5Uikt2tWZC21y6th+SN+Y+MpZfh1ppqU",
-	"GL8SQi/Q28ZRa3aadyxy7iWmVT2Wtfux/VVLt2HY7hi24aQW+9i9OONTCgB+XeE5L8n4g5WrkM1SAlhf",
-	"+KRDrAzdhLZQihNE/bHdit4Oo2cLlkdPfC9JRewhtSziSmvyYcSke245eXntAdKnmczcgmxvbu2jRWMe",
-	"Gjp5cKzEIOVJ5Go/htvQnbu9cr51G5ofki+9FD1OaA1NlG4B9qMAfqGt8VaIm04FDiW5hiLZSkc9hPrg",
-	"9S/8SapeOhVdobxVVMe6EgBI7aj+zZsJfHc0mRzAq79OD44Oo6MD/JfDbw+Ojr799s2bo6PJpHr6218H",
-	"1RILVjzpHwU4SghtiTy1biih+b/Fjhb7/GmIVnS41AD7fT5virmAMONE3l4oxWMFNWAO/CRT1O0+/ehQ",
-	"+x//9UENr1ur7dW/FphbSJkG92pgQmeseZB//u7iAzo5O0UzxpFcAPrwnydnHFKU2uTLl7/T3+lJHCOc",
-	"yQVQSZSojBDQyEhcZBGA/lAAMk7+WwugY/S9hgT9nk0mr8PyzSf9DfyhB74AQH+IFMKXSfQHIlSDwCFl",
-	"iDMmc6BmWRyjlLMoCyVSzclMwUEYffk7zZ3w48ABf3J2GpRSyW3+uFb7QHFKguPg9cvJy9fa75QLjeWx",
-	"JplxOeFy7Hb++C6Yg+Y7xZF64tMoOA6UR35m2rytJmqmmOMEpA7v/nYXEAXF5wx0fMBQvfN4jYVhdmaG",
-	"s1i67K1WoX0/8g9ofGfviK8m2laxQ1qJ2T7BJ0XXRhBp3LyaTFw+KBgjG6dpbLdg/Kcw0ryYd+nV3cY9",
-	"RU2iVdI8w3NCNbHFREjEZshuB6okxd6PgqPJ4drAq96W8YD1M5NVXjAQvN4eBBqDiNH4tiIxNKGVZcVv",
-	"n9RGiixJsLJsNLVWcIfwDSZSYdTlC6MXIkuBI5xP8Y1iLzxXZGwmDj6pSX3ccpcJ4KfR/diMZnQYEx6+",
-	"OTEN3lZEto9lFHcWBG7GD8pC19gJBWKX2cybpOx6krxv68zCo2dOtWrqo+1NraQNolqfZNSs/NWr7U3/",
-	"DxyTSI+M9KUx9ELBgn3i7JthHG3JyT/WeniZw582r8PPyuf69+fHyWbde07ec/JaONmQ03oYWfkaotVm",
-	"/Qmk7qJvVQUbZCL/9S2foWcbIgU4EZKEe6uuP+X8BDJ31g5uSAQlNA6lnPyyWqu3k5ex2Ts5veoTDXdy",
-	"9B6gGyIXyBZ9Qfq4Yc8TAz0dHMftyBzKGcpg6cEZH3WzXpwhAPNwUaHkRnTJ39OFlPJ+qwbD2ibIg1XN",
-	"KQYHP/diYT2xD0OAexEwWARoxBkRYA79cIxmJFa8uZIQKFyjIpKcYhkummLBHDLkm37h2Gp7/pE+1Pie",
-	"Rbdr27C2g5P7ajBcQXu/QU6q1dlqOgrmQrLe/b2L9oxdtGFSw5ANwppu/kUgHJobjobVB8iLTC7GMZsT",
-	"2h45OWNCKih0XZJgM9xaqXmyZRat1OPz7JSGDYlMHw3NsnjrbOrqQ4UclNlEcCyeCLkWAb6SFEGYRohD",
-	"COQakD5JE2XqU/RcJT6WyV7Ux3R1rA2RX6lMzZbpr0cQ7z2bzyFCzCTzbJX4PlJsz0uVehgioyzZKoqQ",
-	"C0BhxjlQiWy9AOSqSbYRhjlxbw0NZXLxdwgeUXO/tetREhilnM1IDDu0Oz+BrGxL9djcqhW3rPZdsru5",
-	"nH9t1YkNMXCtpsUT0yAftBB0lP8IsXinQRhH9rJTjQ2r0vycScW1lSZaqs9BIowo3CCTKLGUibkt/dGH",
-	"PmzLTRFItQZJLwo53BqFaGPUptyUTA1nFv91e6TyLsEkRjjmgKNb5PYPoqdmcbgNtfSo/ScvHS50+cgu",
-	"XWIKTG5Sl9RKWHpWewH8moSAiEAG4Nvaes0QKFxAeFVa6MWtkJDYpcZFLcKu9ZZKFvYMAYYsbQmDBfOY",
-	"TXU+uou85V9InZ+tU1BHwQ2Ar6bBRqNYvmKPPuOqaIaASk5A7JoeZ+nB4WSC4srGOhIpb3eDTpaYWaW+",
-	"2tp6FsRSq+PpiXoCFzo+F9dI5/aRCWfL0ZsLE8d/nPjNzwxxfaVMmAiOTcIkAhkKXM0axnFsLF+3xRzT",
-	"K8RMwmd5u1+I0uK/6WS3yoXUNk77tVwdc5OnMqV7Rf2DtC1jVa+LNg5hel4H2B++eK/wDD97KQjtWYmh",
-	"Hxmfkihybsygk5eiFNyL0lmkOUcpc3XBnp/uRx2uTJmNN+HH+J/Y2LI301bTtLk1rqXzbZ4tYe7U6YIh",
-	"MoRz7qgwR0PjlXmjou/Gd+7f0+jeiNsYJDQ55wf9fT7Or3mvXoeQn8vNdzZR0+DgWXPIds3H8snfNiMs",
-	"uUwkAmUCIkQowigv/aFzgYbxqyGdCr+yG3Pw929oGrPwSs0yUxNVp2nXcEvN1K+PR1fQauYZmT3Lbp1l",
-	"h/p2n2s71mrY+RNkztTXT4H0N5Uns5JB+aisZyv573nvMdTlDibKNFWjDhiV7NoRwtR82en9KQvXBp66",
-	"4jnntskGucZTotoX3rbBAQfzPjTQMzTgoouaYBRZ2IjfSKdreunEbXqFSsZ35h/rAy0hmHPbtpdq4UXj",
-	"p2lTeZ8Y8N5SU+329tSu2FO8vF8maTkFfqBjy6gorN+fM8ZcV6sewCCmvPX22KT/HYTivAvH5cMu86l/",
-	"wfcNc2al1LiXJ1ULZMpO7VnyKzezXIqQzSA2Nw+GCYYz4Ae5mWX42YgGS/LI1gnWqUSlQmiiVU7YGoRi",
-	"fGf/W6JDbeVpceFa9xIPotT6aarReolubwKJbqL3D54pu6L/+5//1Sn9tyzjyG7rLqlVUd5E9MIwj0vQ",
-	"LDGPJAmgvBJ32QI1V17buWdcKubeforV4KMT22vL7LT+cEfzIYsthzp6sLKBDwl8vY9vfP3HAU5wK7lF",
-	"KHJvFJRydbduC+RBNguTzqoZfiyheE0tI7MxGGplGHqhLV5EZqj5lgZi5gGFQUJtFuP5QIn2o+qy8+Ks",
-	"/IT70xNkCrp9oPaZC7JhMuMDm89jQIqhEaOluO0QcWBeYRkoEC5Mp6/DYfA9NtgadVP9sz2LPgMWPbHX",
-	"OvJniipWxiDdrkfQWbHOaVGOiSUlWx5VUVcL33ZX8PkJ5ENq96wnN3RAOmjLmKW3VprJscPLdj9OFm5H",
-	"kZU+z9a04qb+QM3TEZx9T9QMDe/P03qep0nL0XVx0JVO66TA5lJpy+X2t5xG63vcyHN5FITcp8/uZPos",
-	"hRtN9Utyyxt6cXyn/vTKmdV9P+jWvUxX6Zru82T3xurTNla14COiSFldKSm2hf9GSBsvjVz2Qil1GqZf",
-	"D8cNUEL77IwdOUbSND+9Rac/+M2tjiTXx6LuTSW2Djbvts1ZrgCcCa/vWevZ6bRdTKfVAiYBiSMs8Qra",
-	"tWnpji1GuoO2Jel0Zts/LxVcpZu9qHgGsdrHExWa4hZYIMrKV8sHpYQZ4BG2AuFB3nC1kEKa+YREVpYR",
-	"y2oq7Iop43tD/0kaMzmU+1PfvZfe8z2RNMYh6CsVRS0GfSN2Rc/dIzfsu/0dFbDrvo99mfarcIG8r+w+",
-	"SfFhIUWhBnUvQ/YyZIhTIqrUsx7JYbNEerslLq3k8fySw0fKOuc2nYCDyJI9126Vd/Iy9moD1IcVOelC",
-	"bWP54MrldrzINxbBFyL0W5yEHuTJqrZdT67K6FBv/2Pe43n5+zmm9gz1fDx+6ywPVIKOUpzlPMXhFZLM",
-	"6rwX/rcgKkzKUhJ252SZFg9kjdpL+1jqb801w2WcYx7tdyjM2RZzjm8bz5zroT2Pl7cn9Jj1VQvvFm90",
-	"udXnyDNfLMlgKXC2sRQWg5XHyWGp7oiv9nlKwn3+yk7mr5jr3G2iw1F/ITvGd/pvv8QV3eODad9Pq+dt",
-	"97kre1X+xD1azTmEokzAirXc+jHfktP8x2OyjR3oD1Z2k20ru33c6plw+VtGZzEJJXoRZWYSQIqPvtnV",
-	"Ilk9Fb4em187MVJ/qyrEMYrgGmKWJuaZ14zHwXGwkDI9Ho9j1WDBhDz+bvLdZIxTMr4+DBREdqb6iPbp",
-	"C0wjlMs4HCOgUcoI1fnhVnrZ1zDuR/UhSu+Tuasq7sm8BFM8BwuoHUejqTmKYe+ig8XUN0VHi6Nm1/xK",
-	"7RTTq0psstT711L97jtPOMBc/hdFiNHNai8i+PrkZazMq2y2Zo7teJ7XBKt3Pcf0yhyA2KblsvbN5hfl",
-	"9wbdHpUgNG8O3n+6//8AAAD//w==",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

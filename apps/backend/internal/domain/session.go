@@ -23,15 +23,31 @@ type TestSession struct {
 	Status               SessionStatus
 	TimeRemainingSeconds int
 	Answers              []SessionAnswer
+	Flags                []SessionQuestionFlag
 }
 
+type StatementAnswerInput struct {
+	StatementID uuid.UUID
+	IsCorrect   bool
+}
+
+// SessionAnswer is one row in session_answers.
+// For MCQ: SelectedOptionID set, StatementID nil.
+// For multi_correct: one row per chosen option, SelectedOptionID set.
+// For true_false: one row per statement, StatementID + BooleanAnswer set.
 type SessionAnswer struct {
 	ID               uuid.UUID
 	SessionID        uuid.UUID
 	QuestionID       uuid.UUID
 	SelectedOptionID *uuid.UUID
-	IsFlagged        bool
+	StatementID      *uuid.UUID
+	BooleanAnswer    *bool
 	AnsweredAt       time.Time
+}
+
+type SessionQuestionFlag struct {
+	QuestionID uuid.UUID
+	IsFlagged  bool
 }
 
 type TestResult struct {
@@ -76,6 +92,13 @@ type ReviewOption struct {
 	IsCorrect bool
 }
 
+type ReviewStatement struct {
+	ID            uuid.UUID
+	Text          string
+	IsCorrect     bool  // correct answer
+	StudentAnswer *bool // what student picked (nil = not answered)
+}
+
 type LeaderboardScope string
 
 const (
@@ -94,15 +117,26 @@ type LeaderboardEntry struct {
 }
 
 type ReviewItem struct {
-	QuestionID       uuid.UUID
-	OrderIndex       int
-	Text             string
-	Explanation      *string
-	Difficulty       Difficulty
-	TopicID          uuid.UUID
-	TopicName        string
+	QuestionID   uuid.UUID
+	QuestionType QuestionType
+	OrderIndex   int
+	Text         string
+	Explanation  *string
+	Difficulty   Difficulty
+	TopicID      uuid.UUID
+	TopicName    string
+
+	// MCQ
 	Options          []ReviewOption
 	SelectedOptionID *uuid.UUID
 	CorrectOptionID  uuid.UUID
-	Status           AnswerStatus
+
+	// multi_correct
+	SelectedOptionIDs []uuid.UUID
+	CorrectOptionIDs  []uuid.UUID
+
+	// true_false
+	Statements []ReviewStatement
+
+	Status AnswerStatus
 }

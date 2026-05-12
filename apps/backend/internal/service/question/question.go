@@ -28,13 +28,21 @@ type OptionInput struct {
 	IsCorrect bool
 }
 
+type StatementInput struct {
+	Text      string
+	IsCorrect bool
+	Position  int
+}
+
 type CreateInput struct {
 	ContributorID uuid.UUID
 	TopicID       uuid.UUID
+	QuestionType  domain.QuestionType
 	Text          string
 	Explanation   *string
 	Difficulty    domain.Difficulty
 	Options       []OptionInput
+	Statements    []StatementInput
 }
 
 type UpdateInput struct {
@@ -43,34 +51,38 @@ type UpdateInput struct {
 	Explanation *string
 	Difficulty  *domain.Difficulty
 	Options     []OptionInput
+	Statements  []StatementInput
 }
 
 type ListFilter struct {
-	Search     string
-	TopicID    *uuid.UUID
-	Difficulty *domain.Difficulty
-	Page       int
-	Limit      int
+	Search       string
+	TopicID      *uuid.UUID
+	Difficulty   *domain.Difficulty
+	QuestionType *domain.QuestionType
+	Page         int
+	Limit        int
 }
 
 func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Question, int, error) {
 	return s.questions.List(ctx, repository.QuestionFilter{
-		Search:     f.Search,
-		TopicID:    f.TopicID,
-		Difficulty: f.Difficulty,
-		Page:       f.Page,
-		Limit:      f.Limit,
+		Search:       f.Search,
+		TopicID:      f.TopicID,
+		Difficulty:   f.Difficulty,
+		QuestionType: f.QuestionType,
+		Page:         f.Page,
+		Limit:        f.Limit,
 	})
 }
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question, error) {
-	if err := validateOptions(in.Options); err != nil {
-		return nil, err
-	}
-
 	in.Text = strings.TrimSpace(in.Text)
 	if in.Text == "" {
 		return nil, fmt.Errorf("%w: question text is required", apierr.ErrValidation)
+	}
+
+	qt := in.QuestionType
+	if qt == "" {
+		qt = domain.QuestionTypeMCQ
 	}
 
 	now := time.Now().UTC()
@@ -78,19 +90,36 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 		ID:            uuid.New(),
 		ContributorID: in.ContributorID,
 		TopicID:       in.TopicID,
+		Type:          qt,
 		Text:          in.Text,
 		Explanation:   in.Explanation,
 		Difficulty:    in.Difficulty,
 		CreatedAt:     now,
 		UpdatedAt:     now,
 	}
-	for _, o := range in.Options {
-		q.Options = append(q.Options, domain.QuestionOption{
-			ID:        uuid.New(),
-			Label:     o.Label,
-			Text:      o.Text,
-			IsCorrect: o.IsCorrect,
-		})
+
+	switch qt {
+	case domain.QuestionTypeMCQ:
+		if err := validateMCQOptions(in.Options); err != nil {
+			return nil, err
+		}
+		for _, o := range in.Options {
+			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+		}
+	case domain.QuestionTypeMultiCorrect:
+		if err := validatePGKOptions(in.Options); err != nil {
+			return nil, err
+		}
+		for _, o := range in.Options {
+			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+		}
+	case domain.QuestionTypeTrueFalse:
+		if err := validateStatements(in.Statements); err != nil {
+			return nil, err
+		}
+		for _, st := range in.Statements {
+			q.Statements = append(q.Statements, domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position})
+		}
 	}
 
 	if err := s.questions.Create(ctx, q); err != nil {
@@ -108,7 +137,6 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if err != nil {
 		return nil, err
 	}
-
 	if callerRole != domain.RoleAdmin && q.ContributorID != callerID {
 		return nil, apierr.ErrForbidden
 	}
@@ -129,22 +157,41 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if in.Difficulty != nil {
 		q.Difficulty = *in.Difficulty
 	}
-	if len(in.Options) > 0 {
-		if err := validateOptions(in.Options); err != nil {
-			return nil, err
+
+	switch q.Type {
+	case domain.QuestionTypeMCQ:
+		if len(in.Options) > 0 {
+			if err := validateMCQOptions(in.Options); err != nil {
+				return nil, err
+			}
+			q.Options = make([]domain.QuestionOption, len(in.Options))
+			for i, o := range in.Options {
+				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+			}
 		}
-		q.Options = make([]domain.QuestionOption, len(in.Options))
-		for i, o := range in.Options {
-			q.Options[i] = domain.QuestionOption{
-				ID:        uuid.New(),
-				Label:     o.Label,
-				Text:      o.Text,
-				IsCorrect: o.IsCorrect,
+	case domain.QuestionTypeMultiCorrect:
+		if len(in.Options) > 0 {
+			if err := validatePGKOptions(in.Options); err != nil {
+				return nil, err
+			}
+			q.Options = make([]domain.QuestionOption, len(in.Options))
+			for i, o := range in.Options {
+				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+			}
+		}
+	case domain.QuestionTypeTrueFalse:
+		if len(in.Statements) > 0 {
+			if err := validateStatements(in.Statements); err != nil {
+				return nil, err
+			}
+			q.Statements = make([]domain.QuestionStatement, len(in.Statements))
+			for i, st := range in.Statements {
+				q.Statements[i] = domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position}
 			}
 		}
 	}
-	q.UpdatedAt = time.Now().UTC()
 
+	q.UpdatedAt = time.Now().UTC()
 	if err := s.questions.Update(ctx, q); err != nil {
 		return nil, fmt.Errorf("update question: %w", err)
 	}
@@ -156,11 +203,9 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if err != nil {
 		return err
 	}
-
 	if callerRole != domain.RoleAdmin && q.ContributorID != callerID {
 		return apierr.ErrForbidden
 	}
-
 	used, err := s.questions.IsUsedInPublishedTest(ctx, id)
 	if err != nil {
 		return fmt.Errorf("check question usage: %w", err)
@@ -168,44 +213,74 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if used {
 		return apierr.ErrConflict
 	}
-
 	return s.questions.Delete(ctx, id)
 }
 
-func validateOptions(opts []OptionInput) error {
+func validateMCQOptions(opts []OptionInput) error {
 	if len(opts) != 5 {
-		return fmt.Errorf("%w: exactly 5 options are required", apierr.ErrValidation)
+		return fmt.Errorf("%w: exactly 5 options required", apierr.ErrValidation)
 	}
-
 	labels := map[string]bool{}
-	correctCount := 0
+	correct := 0
 	for _, o := range opts {
-		label := strings.ToUpper(strings.TrimSpace(o.Label))
-		if label == "" || !strings.ContainsAny(label, "ABCDE") || len(label) != 1 {
-			return fmt.Errorf("%w: option label must be A, B, C, D, or E", apierr.ErrValidation)
+		l := strings.ToUpper(strings.TrimSpace(o.Label))
+		if len(l) != 1 || !strings.ContainsAny(l, "ABCDE") {
+			return fmt.Errorf("%w: option label must be A-E", apierr.ErrValidation)
 		}
-		if labels[label] {
-			return fmt.Errorf("%w: duplicate option label %s", apierr.ErrValidation, label)
+		if labels[l] {
+			return fmt.Errorf("%w: duplicate label %s", apierr.ErrValidation, l)
 		}
-		labels[label] = true
+		labels[l] = true
 		if strings.TrimSpace(o.Text) == "" {
 			return fmt.Errorf("%w: option text cannot be empty", apierr.ErrValidation)
 		}
 		if o.IsCorrect {
-			correctCount++
+			correct++
 		}
 	}
-
-	if correctCount != 1 {
-		return fmt.Errorf("%w: exactly one option must be marked correct", apierr.ErrValidation)
+	if correct != 1 {
+		return fmt.Errorf("%w: exactly one option must be correct for MCQ", apierr.ErrValidation)
 	}
+	return nil
+}
 
-	for _, required := range []string{"A", "B", "C", "D", "E"} {
-		if !labels[required] {
-			return fmt.Errorf("%w: missing option %s", apierr.ErrValidation, required)
+func validatePGKOptions(opts []OptionInput) error {
+	if len(opts) != 5 {
+		return fmt.Errorf("%w: exactly 5 options required", apierr.ErrValidation)
+	}
+	labels := map[string]bool{}
+	correct := 0
+	for _, o := range opts {
+		l := strings.ToUpper(strings.TrimSpace(o.Label))
+		if len(l) != 1 || !strings.ContainsAny(l, "ABCDE") {
+			return fmt.Errorf("%w: option label must be A-E", apierr.ErrValidation)
+		}
+		if labels[l] {
+			return fmt.Errorf("%w: duplicate label %s", apierr.ErrValidation, l)
+		}
+		labels[l] = true
+		if strings.TrimSpace(o.Text) == "" {
+			return fmt.Errorf("%w: option text cannot be empty", apierr.ErrValidation)
+		}
+		if o.IsCorrect {
+			correct++
 		}
 	}
+	if correct < 1 {
+		return fmt.Errorf("%w: at least one option must be correct for PGK", apierr.ErrValidation)
+	}
+	return nil
+}
 
+func validateStatements(stmts []StatementInput) error {
+	if len(stmts) < 2 || len(stmts) > 6 {
+		return fmt.Errorf("%w: true/false questions must have 2–6 statements", apierr.ErrValidation)
+	}
+	for _, s := range stmts {
+		if strings.TrimSpace(s.Text) == "" {
+			return fmt.Errorf("%w: statement text cannot be empty", apierr.ErrValidation)
+		}
+	}
 	return nil
 }
 

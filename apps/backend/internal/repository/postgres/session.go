@@ -48,8 +48,7 @@ func (r *SessionRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain
 		return nil, fmt.Errorf("find session: %w", err)
 	}
 	s.Status = domain.SessionStatus(status)
-
-	if err := r.LoadAnswers(ctx, s); err != nil {
+	if err := r.loadAnswersAndFlags(ctx, s); err != nil {
 		return nil, err
 	}
 	return s, nil
@@ -87,28 +86,74 @@ func (r *SessionRepository) UpdateStatus(ctx context.Context, id uuid.UUID, stat
 	return nil
 }
 
-func (r *SessionRepository) UpsertAnswer(ctx context.Context, a *domain.SessionAnswer) error {
+// SaveMCQAnswer replaces the single MCQ answer for a question.
+func (r *SessionRepository) SaveMCQAnswer(ctx context.Context, sessionID, questionID uuid.UUID, optionID *uuid.UUID, now time.Time) error {
+	// Delete existing answer for this question then insert the new one.
+	if _, err := r.pool.Exec(ctx,
+		`DELETE FROM session_answers WHERE session_id=$1 AND question_id=$2`, sessionID, questionID,
+	); err != nil {
+		return fmt.Errorf("delete old mcq answer: %w", err)
+	}
+	if optionID == nil {
+		return nil // blank answer — just deleted
+	}
 	_, err := r.pool.Exec(ctx,
-		`INSERT INTO session_answers (id, session_id, question_id, selected_option_id, is_flagged, answered_at)
-		 VALUES ($1,$2,$3,$4,$5,$6)
-		 ON CONFLICT (session_id, question_id)
-		 DO UPDATE SET selected_option_id = EXCLUDED.selected_option_id,
-		               answered_at = EXCLUDED.answered_at`,
-		a.ID, a.SessionID, a.QuestionID, a.SelectedOptionID, a.IsFlagged, a.AnsweredAt,
+		`INSERT INTO session_answers (id, session_id, question_id, selected_option_id, answered_at)
+		 VALUES ($1,$2,$3,$4,$5)
+		 ON CONFLICT (session_id, question_id, selected_option_id) WHERE selected_option_id IS NOT NULL
+		 DO UPDATE SET answered_at = EXCLUDED.answered_at`,
+		uuid.New(), sessionID, questionID, optionID, now,
 	)
-	if err != nil {
-		return fmt.Errorf("upsert answer: %w", err)
+	return fmt.Errorf("save mcq answer: %w", err)
+}
+
+// SavePGKAnswers replaces the selected-option set for a multi_correct question.
+func (r *SessionRepository) SavePGKAnswers(ctx context.Context, sessionID, questionID uuid.UUID, optionIDs []uuid.UUID, now time.Time) error {
+	if _, err := r.pool.Exec(ctx,
+		`DELETE FROM session_answers WHERE session_id=$1 AND question_id=$2`, sessionID, questionID,
+	); err != nil {
+		return fmt.Errorf("delete old pgk answers: %w", err)
+	}
+	for _, oid := range optionIDs {
+		if _, err := r.pool.Exec(ctx,
+			`INSERT INTO session_answers (id, session_id, question_id, selected_option_id, answered_at)
+			 VALUES ($1,$2,$3,$4,$5)`,
+			uuid.New(), sessionID, questionID, oid, now,
+		); err != nil {
+			return fmt.Errorf("insert pgk answer: %w", err)
+		}
 	}
 	return nil
 }
 
+// SaveBSAnswers replaces the statement answers for a true_false question.
+func (r *SessionRepository) SaveBSAnswers(ctx context.Context, sessionID, questionID uuid.UUID, stmtAnswers []domain.StatementAnswerInput, now time.Time) error {
+	if _, err := r.pool.Exec(ctx,
+		`DELETE FROM session_answers WHERE session_id=$1 AND question_id=$2`, sessionID, questionID,
+	); err != nil {
+		return fmt.Errorf("delete old bs answers: %w", err)
+	}
+	for _, sa := range stmtAnswers {
+		b := sa.IsCorrect
+		if _, err := r.pool.Exec(ctx,
+			`INSERT INTO session_answers (id, session_id, question_id, statement_id, boolean_answer, answered_at)
+			 VALUES ($1,$2,$3,$4,$5,$6)`,
+			uuid.New(), sessionID, questionID, sa.StatementID, b, now,
+		); err != nil {
+			return fmt.Errorf("insert bs answer: %w", err)
+		}
+	}
+	return nil
+}
+
+// UpsertFlag sets the flag on a question in this session.
 func (r *SessionRepository) UpsertFlag(ctx context.Context, sessionID, questionID uuid.UUID, flagged bool) error {
 	_, err := r.pool.Exec(ctx,
-		`INSERT INTO session_answers (id, session_id, question_id, is_flagged, answered_at)
-		 VALUES ($1,$2,$3,$4,now())
+		`INSERT INTO session_question_flags (session_id, question_id, is_flagged)
+		 VALUES ($1,$2,$3)
 		 ON CONFLICT (session_id, question_id)
 		 DO UPDATE SET is_flagged = EXCLUDED.is_flagged`,
-		uuid.New(), sessionID, questionID, flagged,
+		sessionID, questionID, flagged,
 	)
 	if err != nil {
 		return fmt.Errorf("upsert flag: %w", err)
@@ -116,9 +161,9 @@ func (r *SessionRepository) UpsertFlag(ctx context.Context, sessionID, questionI
 	return nil
 }
 
-func (r *SessionRepository) LoadAnswers(ctx context.Context, s *domain.TestSession) error {
+func (r *SessionRepository) loadAnswersAndFlags(ctx context.Context, s *domain.TestSession) error {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, session_id, question_id, selected_option_id, is_flagged, answered_at
+		`SELECT id, session_id, question_id, selected_option_id, statement_id, boolean_answer, answered_at
 		 FROM session_answers WHERE session_id = $1`, s.ID,
 	)
 	if err != nil {
@@ -128,17 +173,89 @@ func (r *SessionRepository) LoadAnswers(ctx context.Context, s *domain.TestSessi
 
 	for rows.Next() {
 		var a domain.SessionAnswer
-		if err := rows.Scan(&a.ID, &a.SessionID, &a.QuestionID, &a.SelectedOptionID, &a.IsFlagged, &a.AnsweredAt); err != nil {
+		if err := rows.Scan(&a.ID, &a.SessionID, &a.QuestionID,
+			&a.SelectedOptionID, &a.StatementID, &a.BooleanAnswer, &a.AnsweredAt); err != nil {
 			return fmt.Errorf("scan answer: %w", err)
 		}
 		s.Answers = append(s.Answers, a)
 	}
-	return rows.Err()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+
+	flagRows, err := r.pool.Query(ctx,
+		`SELECT question_id, is_flagged FROM session_question_flags WHERE session_id = $1`, s.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("load flags: %w", err)
+	}
+	defer flagRows.Close()
+
+	for flagRows.Next() {
+		var f domain.SessionQuestionFlag
+		if err := flagRows.Scan(&f.QuestionID, &f.IsFlagged); err != nil {
+			return fmt.Errorf("scan flag: %w", err)
+		}
+		s.Flags = append(s.Flags, f)
+	}
+	return flagRows.Err()
 }
 
-// CorrectOptionMap loads a map of question_id → correct option_id for all questions in a session's test.
-func CorrectOptionMap(ctx context.Context, pool *pgxpool.Pool, testID uuid.UUID) (map[uuid.UUID]uuid.UUID, error) {
+// TestQuestionInfo holds the type of a question inside a test.
+type TestQuestionInfo struct {
+	QuestionID   uuid.UUID
+	QuestionType domain.QuestionType
+}
+
+// TestQuestionsInfo loads question IDs + types for all questions in a test.
+func TestQuestionsInfo(ctx context.Context, pool *pgxpool.Pool, testID uuid.UUID) ([]TestQuestionInfo, error) {
 	rows, err := pool.Query(ctx,
+		`SELECT tq.question_id, q.question_type
+		 FROM test_questions tq
+		 JOIN questions q ON q.id = tq.question_id
+		 WHERE tq.test_id = $1
+		 ORDER BY tq.order_index`, testID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("load test question types: %w", err)
+	}
+	defer rows.Close()
+
+	var out []TestQuestionInfo
+	for rows.Next() {
+		var info TestQuestionInfo
+		var qt string
+		if err := rows.Scan(&info.QuestionID, &qt); err != nil {
+			return nil, fmt.Errorf("scan question info: %w", err)
+		}
+		info.QuestionType = domain.QuestionType(qt)
+		out = append(out, info)
+	}
+	return out, rows.Err()
+}
+
+// CorrectAnswerMap loads scoring data for all questions in a test.
+// Returns: map[questionID] → ScoringData.
+type ScoringData struct {
+	Type             domain.QuestionType
+	CorrectOptionIDs []uuid.UUID            // MCQ: 1 entry; PGK: N entries
+	Statements       []domain.QuestionStatement // true_false
+}
+
+func LoadScoringData(ctx context.Context, pool *pgxpool.Pool, testID uuid.UUID) (map[uuid.UUID]*ScoringData, error) {
+	// Load question types.
+	infos, err := TestQuestionsInfo(ctx, pool, testID)
+	if err != nil {
+		return nil, err
+	}
+
+	m := make(map[uuid.UUID]*ScoringData, len(infos))
+	for _, info := range infos {
+		m[info.QuestionID] = &ScoringData{Type: info.QuestionType}
+	}
+
+	// Load correct options for MCQ / multi_correct.
+	optRows, err := pool.Query(ctx,
 		`SELECT tq.question_id, qo.id
 		 FROM test_questions tq
 		 JOIN question_options qo ON qo.question_id = tq.question_id AND qo.is_correct = true
@@ -147,15 +264,43 @@ func CorrectOptionMap(ctx context.Context, pool *pgxpool.Pool, testID uuid.UUID)
 	if err != nil {
 		return nil, fmt.Errorf("load correct options: %w", err)
 	}
-	defer rows.Close()
+	defer optRows.Close()
 
-	m := make(map[uuid.UUID]uuid.UUID)
-	for rows.Next() {
+	for optRows.Next() {
 		var qID, optID uuid.UUID
-		if err := rows.Scan(&qID, &optID); err != nil {
+		if err := optRows.Scan(&qID, &optID); err != nil {
 			return nil, fmt.Errorf("scan correct option: %w", err)
 		}
-		m[qID] = optID
+		if sd, ok := m[qID]; ok {
+			sd.CorrectOptionIDs = append(sd.CorrectOptionIDs, optID)
+		}
 	}
-	return m, rows.Err()
+	if err := optRows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Load statements for true_false questions.
+	stmtRows, err := pool.Query(ctx,
+		`SELECT tq.question_id, qs.id, qs.text, qs.is_correct, qs.position
+		 FROM test_questions tq
+		 JOIN question_statements qs ON qs.question_id = tq.question_id
+		 WHERE tq.test_id = $1
+		 ORDER BY qs.position`, testID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("load statements: %w", err)
+	}
+	defer stmtRows.Close()
+
+	for stmtRows.Next() {
+		var qID uuid.UUID
+		var s domain.QuestionStatement
+		if err := stmtRows.Scan(&qID, &s.ID, &s.Text, &s.IsCorrect, &s.Position); err != nil {
+			return nil, fmt.Errorf("scan statement: %w", err)
+		}
+		if sd, ok := m[qID]; ok {
+			sd.Statements = append(sd.Statements, s)
+		}
+	}
+	return m, stmtRows.Err()
 }

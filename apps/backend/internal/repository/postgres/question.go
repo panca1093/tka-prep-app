@@ -51,6 +51,11 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 		args = append(args, string(*f.Difficulty))
 		i++
 	}
+	if f.QuestionType != nil {
+		conds = append(conds, fmt.Sprintf("q.question_type = $%d", i))
+		args = append(args, string(*f.QuestionType))
+		i++
+	}
 
 	where := ""
 	if len(conds) > 0 {
@@ -70,7 +75,7 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
-		fmt.Sprintf(`SELECT q.id, q.contributor_id, q.topic_id, q.text, q.explanation,
+		fmt.Sprintf(`SELECT q.id, q.contributor_id, q.topic_id, q.question_type, q.text, q.explanation,
 		       q.difficulty, q.created_at, q.updated_at
 		  FROM questions q %s
 		  ORDER BY q.created_at DESC
@@ -85,21 +90,21 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 	var qs []*domain.Question
 	for rows.Next() {
 		q := &domain.Question{}
-		var diff string
-		if err := rows.Scan(&q.ID, &q.ContributorID, &q.TopicID, &q.Text, &q.Explanation,
+		var diff, qtype string
+		if err := rows.Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.Text, &q.Explanation,
 			&diff, &q.CreatedAt, &q.UpdatedAt); err != nil {
 			return nil, 0, fmt.Errorf("scan question: %w", err)
 		}
 		q.Difficulty = domain.Difficulty(diff)
+		q.Type = domain.QuestionType(qtype)
 		qs = append(qs, q)
 	}
 	if err := rows.Err(); err != nil {
 		return nil, 0, err
 	}
 
-	// Load options for each question.
 	for _, q := range qs {
-		if err := r.loadOptions(ctx, q); err != nil {
+		if err := r.loadOptionsAndStatements(ctx, q); err != nil {
 			return nil, 0, err
 		}
 	}
@@ -114,17 +119,24 @@ func (r *QuestionRepository) Create(ctx context.Context, q *domain.Question) err
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx,
-		`INSERT INTO questions (id, contributor_id, topic_id, text, explanation, difficulty, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-		q.ID, q.ContributorID, q.TopicID, q.Text, q.Explanation,
+		`INSERT INTO questions (id, contributor_id, topic_id, question_type, text, explanation, difficulty, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+		q.ID, q.ContributorID, q.TopicID, string(q.Type), q.Text, q.Explanation,
 		string(q.Difficulty), q.CreatedAt, q.UpdatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("insert question: %w", err)
 	}
 
-	if err := insertOptions(ctx, tx, q.ID, q.Options); err != nil {
-		return err
+	if len(q.Options) > 0 {
+		if err := insertOptions(ctx, tx, q.ID, q.Options); err != nil {
+			return err
+		}
+	}
+	if len(q.Statements) > 0 {
+		if err := insertStatements(ctx, tx, q.ID, q.Statements); err != nil {
+			return err
+		}
 	}
 
 	return tx.Commit(ctx)
@@ -132,11 +144,11 @@ func (r *QuestionRepository) Create(ctx context.Context, q *domain.Question) err
 
 func (r *QuestionRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Question, error) {
 	q := &domain.Question{}
-	var diff string
+	var diff, qtype string
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, contributor_id, topic_id, text, explanation, difficulty, created_at, updated_at
+		`SELECT id, contributor_id, topic_id, question_type, text, explanation, difficulty, created_at, updated_at
 		 FROM questions WHERE id = $1`, id,
-	).Scan(&q.ID, &q.ContributorID, &q.TopicID, &q.Text, &q.Explanation,
+	).Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.Text, &q.Explanation,
 		&diff, &q.CreatedAt, &q.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -145,7 +157,8 @@ func (r *QuestionRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 		return nil, fmt.Errorf("find question by id: %w", err)
 	}
 	q.Difficulty = domain.Difficulty(diff)
-	if err := r.loadOptions(ctx, q); err != nil {
+	q.Type = domain.QuestionType(qtype)
+	if err := r.loadOptionsAndStatements(ctx, q); err != nil {
 		return nil, err
 	}
 	return q, nil
@@ -170,12 +183,19 @@ func (r *QuestionRepository) Update(ctx context.Context, q *domain.Question) err
 		return apierr.ErrNotFound
 	}
 
-	// Replace options if provided.
 	if len(q.Options) > 0 {
 		if _, err := tx.Exec(ctx, `DELETE FROM question_options WHERE question_id = $1`, q.ID); err != nil {
 			return fmt.Errorf("delete old options: %w", err)
 		}
 		if err := insertOptions(ctx, tx, q.ID, q.Options); err != nil {
+			return err
+		}
+	}
+	if len(q.Statements) > 0 {
+		if _, err := tx.Exec(ctx, `DELETE FROM question_statements WHERE question_id = $1`, q.ID); err != nil {
+			return fmt.Errorf("delete old statements: %w", err)
+		}
+		if err := insertStatements(ctx, tx, q.ID, q.Statements); err != nil {
 			return err
 		}
 	}
@@ -208,7 +228,13 @@ func (r *QuestionRepository) IsUsedInPublishedTest(ctx context.Context, id uuid.
 	return count > 0, nil
 }
 
-// loadOptions fetches options for a question and attaches them.
+func (r *QuestionRepository) loadOptionsAndStatements(ctx context.Context, q *domain.Question) error {
+	if q.Type != domain.QuestionTypeTrueFalse {
+		return r.loadOptions(ctx, q)
+	}
+	return r.loadStatements(ctx, q)
+}
+
 func (r *QuestionRepository) loadOptions(ctx context.Context, q *domain.Question) error {
 	rows, err := r.pool.Query(ctx,
 		`SELECT id, question_id, label, text, is_correct
@@ -229,7 +255,26 @@ func (r *QuestionRepository) loadOptions(ctx context.Context, q *domain.Question
 	return rows.Err()
 }
 
-// insertOptions bulk-inserts question options inside the given transaction.
+func (r *QuestionRepository) loadStatements(ctx context.Context, q *domain.Question) error {
+	rows, err := r.pool.Query(ctx,
+		`SELECT id, question_id, text, is_correct, position
+		 FROM question_statements WHERE question_id = $1 ORDER BY position`, q.ID,
+	)
+	if err != nil {
+		return fmt.Errorf("load statements: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var s domain.QuestionStatement
+		if err := rows.Scan(&s.ID, &s.QuestionID, &s.Text, &s.IsCorrect, &s.Position); err != nil {
+			return fmt.Errorf("scan statement: %w", err)
+		}
+		q.Statements = append(q.Statements, s)
+	}
+	return rows.Err()
+}
+
 func insertOptions(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, opts []domain.QuestionOption) error {
 	for _, opt := range opts {
 		_, err := tx.Exec(ctx,
@@ -239,6 +284,20 @@ func insertOptions(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, opts []
 		)
 		if err != nil {
 			return fmt.Errorf("insert option %s: %w", opt.Label, err)
+		}
+	}
+	return nil
+}
+
+func insertStatements(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, stmts []domain.QuestionStatement) error {
+	for _, s := range stmts {
+		_, err := tx.Exec(ctx,
+			`INSERT INTO question_statements (id, question_id, text, is_correct, position)
+			 VALUES ($1, $2, $3, $4, $5)`,
+			s.ID, questionID, s.Text, s.IsCorrect, s.Position,
+		)
+		if err != nil {
+			return fmt.Errorf("insert statement: %w", err)
 		}
 	}
 	return nil

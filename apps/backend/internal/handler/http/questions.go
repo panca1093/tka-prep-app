@@ -65,26 +65,38 @@ func (s *APIServer) PostQuestions(ctx context.Context, req api.PostQuestionsRequ
 		return api.PostQuestions403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
-	opts := make([]question.OptionInput, len(req.Body.Options))
-	for i, o := range req.Body.Options {
-		opts[i] = question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+	b := req.Body
+	qt := domain.QuestionTypeMCQ
+	if b.QuestionType != "" {
+		qt = domain.QuestionType(b.QuestionType)
 	}
 
-	q, err := s.questionSvc.Create(ctx, question.CreateInput{
+	in := question.CreateInput{
 		ContributorID: claims.UserID,
-		TopicID:       req.Body.TopicId,
-		Text:          req.Body.Text,
-		Explanation:   req.Body.Explanation,
-		Difficulty:    domain.Difficulty(req.Body.Difficulty),
-		Options:       opts,
-	})
+		TopicID:       b.TopicId,
+		QuestionType:  qt,
+		Text:          b.Text,
+		Explanation:   b.Explanation,
+		Difficulty:    domain.Difficulty(b.Difficulty),
+	}
+	if b.Options != nil {
+		for _, o := range *b.Options {
+			in.Options = append(in.Options, question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+		}
+	}
+	if b.Statements != nil {
+		for _, st := range *b.Statements {
+			in.Statements = append(in.Statements, question.StatementInput{Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position})
+		}
+	}
+
+	q, err := s.questionSvc.Create(ctx, in)
 	if err != nil {
 		if errors.Is(err, apierr.ErrValidation) {
 			return api.PostQuestions422JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
 		}
 		return nil, err
 	}
-
 	return api.PostQuestions201JSONResponse(toQuestionDetailResponse(q)), nil
 }
 
@@ -104,7 +116,6 @@ func (s *APIServer) GetQuestionsQuestionId(ctx context.Context, req api.GetQuest
 		}
 		return nil, err
 	}
-
 	return api.GetQuestionsQuestionId200JSONResponse(toQuestionDetailResponse(q)), nil
 }
 
@@ -117,21 +128,25 @@ func (s *APIServer) PatchQuestionsQuestionId(ctx context.Context, req api.PatchQ
 		return api.PatchQuestionsQuestionId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
+	b := req.Body
 	in := question.UpdateInput{
-		Text:        req.Body.Text,
-		Explanation: req.Body.Explanation,
-		TopicID:     req.Body.TopicId,
+		Text:        b.Text,
+		Explanation: b.Explanation,
+		TopicID:     b.TopicId,
 	}
-	if req.Body.Difficulty != nil {
-		d := domain.Difficulty(*req.Body.Difficulty)
+	if b.Difficulty != nil {
+		d := domain.Difficulty(*b.Difficulty)
 		in.Difficulty = &d
 	}
-	if req.Body.Options != nil {
-		opts := make([]question.OptionInput, len(*req.Body.Options))
-		for i, o := range *req.Body.Options {
-			opts[i] = question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+	if b.Options != nil {
+		for _, o := range *b.Options {
+			in.Options = append(in.Options, question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
 		}
-		in.Options = opts
+	}
+	if b.Statements != nil {
+		for _, st := range *b.Statements {
+			in.Statements = append(in.Statements, question.StatementInput{Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position})
+		}
 	}
 
 	q, err := s.questionSvc.Update(ctx, req.QuestionId, claims.UserID, claims.Role, in)
@@ -146,7 +161,6 @@ func (s *APIServer) PatchQuestionsQuestionId(ctx context.Context, req api.PatchQ
 		}
 		return nil, err
 	}
-
 	return api.PatchQuestionsQuestionId200JSONResponse(toQuestionDetailResponse(q)), nil
 }
 
@@ -170,28 +184,28 @@ func (s *APIServer) DeleteQuestionsQuestionId(ctx context.Context, req api.Delet
 		}
 		return nil, err
 	}
-
 	return api.DeleteQuestionsQuestionId200JSONResponse{Message: "deleted"}, nil
 }
 
 func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 	opts := make([]api.QuestionOptionResponse, len(q.Options))
 	for i, o := range q.Options {
-		opts[i] = api.QuestionOptionResponse{
-			Id:        o.ID,
-			Label:     o.Label,
-			Text:      o.Text,
-			IsCorrect: o.IsCorrect,
-		}
+		opts[i] = api.QuestionOptionResponse{Id: o.ID, Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+	}
+	stmts := make([]api.QuestionStatementResponse, len(q.Statements))
+	for i, s := range q.Statements {
+		stmts[i] = api.QuestionStatementResponse{Id: s.ID, Text: s.Text, IsCorrect: s.IsCorrect, Position: s.Position}
 	}
 	return api.QuestionDetailResponse{
 		Id:            q.ID,
 		ContributorId: q.ContributorID,
 		TopicId:       q.TopicID,
+		QuestionType:  api.QuestionDetailResponseQuestionType(q.Type),
 		Text:          q.Text,
 		Explanation:   q.Explanation,
 		Difficulty:    api.QuestionDetailResponseDifficulty(q.Difficulty),
 		Options:       opts,
+		Statements:    stmts,
 		CreatedAt:     q.CreatedAt,
 		UpdatedAt:     q.UpdatedAt,
 	}

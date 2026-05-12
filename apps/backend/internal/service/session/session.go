@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"fmt"
+	"sort"
 	"time"
 
 	"github.com/google/uuid"
@@ -13,6 +14,8 @@ import (
 	"github.com/yourorg/tkaprep/apps/backend/internal/repository"
 	pgstore "github.com/yourorg/tkaprep/apps/backend/internal/repository/postgres"
 )
+
+var _ = pgstore.LoadScoringData // ensure pgstore import is used
 
 type Service struct {
 	sessions repository.SessionRepository
@@ -27,15 +30,20 @@ func NewService(
 	tests repository.TestRepository,
 	pool *pgxpool.Pool,
 ) *Service {
-	return &Service{
-		sessions: sessions,
-		results:  results,
-		tests:    tests,
-		pool:     pool,
-	}
+	return &Service{sessions: sessions, results: results, tests: tests, pool: pool}
 }
 
-// Start creates a new session for a student, or returns the existing in_progress one.
+// AnswerInput is the parsed answer payload from the handler.
+type AnswerInput struct {
+	QuestionID      uuid.UUID
+	// MCQ
+	SelectedOptionID *uuid.UUID
+	// PGK
+	SelectedOptionIDs []uuid.UUID
+	// B/S
+	StatementAnswers []domain.StatementAnswerInput
+}
+
 func (s *Service) Start(ctx context.Context, studentID, testID uuid.UUID) (*domain.TestSession, error) {
 	t, err := s.tests.FindByID(ctx, testID)
 	if err != nil {
@@ -45,7 +53,6 @@ func (s *Service) Start(ctx context.Context, studentID, testID uuid.UUID) (*doma
 		return nil, fmt.Errorf("%w: test is not published", apierr.ErrNotFound)
 	}
 
-	// Return existing active session rather than creating a duplicate.
 	existing, err := s.sessions.FindActiveByStudentAndTest(ctx, studentID, testID)
 	if err != nil {
 		return nil, err
@@ -78,7 +85,6 @@ func (s *Service) Start(ctx context.Context, studentID, testID uuid.UUID) (*doma
 	return sess, nil
 }
 
-// Get returns the session, refreshing time_remaining, auto-expiring if past deadline.
 func (s *Service) Get(ctx context.Context, sessionID, callerID uuid.UUID) (*domain.TestSession, error) {
 	sess, err := s.sessions.FindByID(ctx, sessionID)
 	if err != nil {
@@ -106,8 +112,7 @@ func (s *Service) Get(ctx context.Context, sessionID, callerID uuid.UUID) (*doma
 	return sess, nil
 }
 
-// SaveAnswer upserts an answer (blank if selectedOptionID is nil).
-func (s *Service) SaveAnswer(ctx context.Context, sessionID, callerID, questionID uuid.UUID, selectedOptionID *uuid.UUID) (*domain.TestSession, error) {
+func (s *Service) SaveAnswer(ctx context.Context, sessionID, callerID uuid.UUID, in AnswerInput) (*domain.TestSession, error) {
 	sess, err := s.sessions.FindByID(ctx, sessionID)
 	if err != nil {
 		return nil, err
@@ -129,37 +134,36 @@ func (s *Service) SaveAnswer(ctx context.Context, sessionID, callerID, questionI
 		return nil, fmt.Errorf("%w: session has expired", apierr.ErrConflict)
 	}
 
-	// Verify question belongs to this test.
-	if !questionInTest(sess, questionID) {
-		if !questionInTestDB(ctx, s.pool, sess.TestID, questionID) {
-			return nil, fmt.Errorf("%w: question not in this test", apierr.ErrValidation)
-		}
+	if !questionInTestDB(ctx, s.pool, sess.TestID, in.QuestionID) {
+		return nil, fmt.Errorf("%w: question not in this test", apierr.ErrValidation)
 	}
 
-	a := &domain.SessionAnswer{
-		ID:               uuid.New(),
-		SessionID:        sessionID,
-		QuestionID:       questionID,
-		SelectedOptionID: selectedOptionID,
-		AnsweredAt:       time.Now().UTC(),
-	}
-	// Preserve existing flag.
-	for _, existing := range sess.Answers {
-		if existing.QuestionID == questionID {
-			a.IsFlagged = existing.IsFlagged
-			break
-		}
-	}
-
-	if err := s.sessions.UpsertAnswer(ctx, a); err != nil {
+	// Load question type to route to correct save method.
+	qtype, err := questionType(ctx, s.pool, in.QuestionID)
+	if err != nil {
 		return nil, err
 	}
 
-	// Reload to return fresh state.
+	now := time.Now().UTC()
+
+	switch qtype {
+	case domain.QuestionTypeMCQ:
+		if err := s.sessions.SaveMCQAnswer(ctx, sessionID, in.QuestionID, in.SelectedOptionID, now); err != nil {
+			return nil, err
+		}
+	case domain.QuestionTypeMultiCorrect:
+		if err := s.sessions.SavePGKAnswers(ctx, sessionID, in.QuestionID, in.SelectedOptionIDs, now); err != nil {
+			return nil, err
+		}
+	case domain.QuestionTypeTrueFalse:
+		if err := s.sessions.SaveBSAnswers(ctx, sessionID, in.QuestionID, in.StatementAnswers, now); err != nil {
+			return nil, err
+		}
+	}
+
 	return s.sessions.FindByID(ctx, sessionID)
 }
 
-// ToggleFlag sets is_flagged for a question in the session.
 func (s *Service) ToggleFlag(ctx context.Context, sessionID, callerID, questionID uuid.UUID, flagged bool) (*domain.TestSession, error) {
 	sess, err := s.sessions.FindByID(ctx, sessionID)
 	if err != nil {
@@ -171,14 +175,12 @@ func (s *Service) ToggleFlag(ctx context.Context, sessionID, callerID, questionI
 	if sess.Status != domain.SessionStatusInProgress {
 		return nil, fmt.Errorf("%w: session is not in progress", apierr.ErrConflict)
 	}
-
 	if err := s.sessions.UpsertFlag(ctx, sessionID, questionID, flagged); err != nil {
 		return nil, err
 	}
 	return s.sessions.FindByID(ctx, sessionID)
 }
 
-// Submit finalizes the session and computes the result in one transaction.
 func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*domain.TestResult, error) {
 	sess, err := s.sessions.FindByID(ctx, sessionID)
 	if err != nil {
@@ -202,36 +204,85 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 		return nil, fmt.Errorf("test has no scoring config")
 	}
 
-	// Load correct-option map for all test questions.
-	correctOpts, err := pgstore.CorrectOptionMap(ctx, s.pool, sess.TestID)
+	scoringData, err := pgstore.LoadScoringData(ctx, s.pool, sess.TestID)
 	if err != nil {
 		return nil, err
 	}
 
-	// Build answer lookup.
-	answered := make(map[uuid.UUID]*uuid.UUID)
-	for _, a := range sess.Answers {
-		optID := a.SelectedOptionID
-		answered[a.QuestionID] = optID
+	// Group student answers by question.
+	type answerGroup struct {
+		optionIDs   []uuid.UUID
+		stmtAnswers map[uuid.UUID]bool // statementID → student's boolean_answer
 	}
-
-	// Count correct / wrong / blank across all questions in the test.
-	correct, wrong, blank := 0, 0, 0
-	for qID, correctOptID := range correctOpts {
-		chosen, hasAnswer := answered[qID]
-		if !hasAnswer || chosen == nil {
-			blank++
-		} else if *chosen == correctOptID {
-			correct++
-		} else {
-			wrong++
+	groups := make(map[uuid.UUID]*answerGroup)
+	for _, a := range sess.Answers {
+		g, ok := groups[a.QuestionID]
+		if !ok {
+			g = &answerGroup{stmtAnswers: make(map[uuid.UUID]bool)}
+			groups[a.QuestionID] = g
+		}
+		if a.SelectedOptionID != nil {
+			g.optionIDs = append(g.optionIDs, *a.SelectedOptionID)
+		}
+		if a.StatementID != nil && a.BooleanAnswer != nil {
+			g.stmtAnswers[*a.StatementID] = *a.BooleanAnswer
 		}
 	}
 
 	sc := t.ScoringConfig
-	totalScore := (float64(correct) * sc.CorrectPoints) +
-		(float64(wrong) * sc.WrongPoints) +
-		(float64(blank) * sc.BlankPoints)
+	totalScore := 0.0
+	correct, wrong, blank := 0, 0, 0
+
+	for qID, sd := range scoringData {
+		g := groups[qID]
+		switch sd.Type {
+		case domain.QuestionTypeMCQ:
+			if g == nil || len(g.optionIDs) == 0 {
+				blank++
+				totalScore += sc.BlankPoints
+			} else if len(sd.CorrectOptionIDs) > 0 && g.optionIDs[0] == sd.CorrectOptionIDs[0] {
+				correct++
+				totalScore += sc.CorrectPoints
+			} else {
+				wrong++
+				totalScore += sc.WrongPoints
+			}
+
+		case domain.QuestionTypeMultiCorrect:
+			if g == nil || len(g.optionIDs) == 0 {
+				blank++
+				totalScore += sc.BlankPoints
+			} else if setsEqual(g.optionIDs, sd.CorrectOptionIDs) {
+				correct++
+				totalScore += sc.CorrectPoints
+			} else {
+				wrong++
+				totalScore += sc.WrongPoints
+			}
+
+		case domain.QuestionTypeTrueFalse:
+			if g == nil || len(g.stmtAnswers) == 0 {
+				blank++
+				totalScore += sc.BlankPoints
+			} else {
+				total := len(sd.Statements)
+				correctStmts := 0
+				for _, stmt := range sd.Statements {
+					if ans, answered := g.stmtAnswers[stmt.ID]; answered && ans == stmt.IsCorrect {
+						correctStmts++
+					}
+				}
+				proportion := float64(correctStmts) / float64(total)
+				qScore := proportion * sc.CorrectPoints
+				totalScore += qScore
+				if correctStmts == total {
+					correct++
+				} else {
+					wrong++
+				}
+			}
+		}
+	}
 
 	now := time.Now().UTC()
 	result := &domain.TestResult{
@@ -246,7 +297,6 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 		CompletedAt:  now,
 	}
 
-	// Transactional: update session status + insert result atomically.
 	tx, err := s.pool.Begin(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("begin tx: %w", err)
@@ -259,7 +309,6 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 	); err != nil {
 		return nil, fmt.Errorf("update session: %w", err)
 	}
-
 	if _, err := tx.Exec(ctx,
 		`INSERT INTO test_results (id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at)
 		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
@@ -269,31 +318,16 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 		return nil, fmt.Errorf("insert result: %w", err)
 	}
 
-	if err := tx.Commit(ctx); err != nil {
-		return nil, fmt.Errorf("commit submit: %w", err)
-	}
-
-	return result, nil
+	return result, tx.Commit(ctx)
 }
 
-// computeRemaining calculates seconds remaining based on started_at vs now.
 func computeRemaining(sess *domain.TestSession, durationMinutes int) int {
 	elapsed := int(time.Since(sess.StartedAt).Seconds())
 	total := durationMinutes * 60
-	remaining := total - elapsed
-	if remaining < 0 {
-		return 0
+	if r := total - elapsed; r > 0 {
+		return r
 	}
-	return remaining
-}
-
-func questionInTest(sess *domain.TestSession, questionID uuid.UUID) bool {
-	for _, a := range sess.Answers {
-		if a.QuestionID == questionID {
-			return true
-		}
-	}
-	return false
+	return 0
 }
 
 func questionInTestDB(ctx context.Context, pool *pgxpool.Pool, testID, questionID uuid.UUID) bool {
@@ -303,4 +337,32 @@ func questionInTestDB(ctx context.Context, pool *pgxpool.Pool, testID, questionI
 		testID, questionID,
 	).Scan(&exists)
 	return exists
+}
+
+func questionType(ctx context.Context, pool *pgxpool.Pool, questionID uuid.UUID) (domain.QuestionType, error) {
+	var qt string
+	err := pool.QueryRow(ctx, `SELECT question_type FROM questions WHERE id=$1`, questionID).Scan(&qt)
+	if err != nil {
+		return "", fmt.Errorf("get question type: %w", err)
+	}
+	return domain.QuestionType(qt), nil
+}
+
+func setsEqual(a, b []uuid.UUID) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	toKey := func(ids []uuid.UUID) string {
+		strs := make([]string, len(ids))
+		for i, id := range ids {
+			strs[i] = id.String()
+		}
+		sort.Strings(strs)
+		out := ""
+		for _, s := range strs {
+			out += s
+		}
+		return out
+	}
+	return toKey(a) == toKey(b)
 }

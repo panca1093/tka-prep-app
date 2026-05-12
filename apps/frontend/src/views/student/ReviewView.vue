@@ -29,6 +29,14 @@ const filtered = computed(() =>
   filter.value === 'all' ? items.value : items.value.filter((i) => i.status === filter.value)
 )
 
+function isPGKSelected(item: ReviewItem, optId: string): boolean {
+  return (item.selected_option_ids ?? []).some((id) => id === optId)
+}
+
+function isPGKCorrect(item: ReviewItem, optId: string): boolean {
+  return (item.correct_option_ids ?? []).some((id) => id === optId)
+}
+
 const statusColor: Record<string, string> = {
   correct: '#22c55e',
   wrong: '#ef4444',
@@ -39,6 +47,18 @@ const statusLabel: Record<string, string> = {
   correct: '✓ Correct',
   wrong: '✗ Wrong',
   blank: '— Blank',
+}
+
+const typeLabel: Record<string, string> = {
+  mcq: 'PG',
+  multi_correct: 'PGK',
+  true_false: 'B/S',
+}
+
+const typeColor: Record<string, string> = {
+  mcq: '#4f8ef7',
+  multi_correct: '#a855f7',
+  true_false: '#22c55e',
 }
 </script>
 
@@ -68,6 +88,10 @@ const statusLabel: Record<string, string> = {
         <div v-for="item in filtered" :key="item.question_id" class="review-card">
           <div class="review-header">
             <span class="q-num">Q{{ item.order_index + 1 }}</span>
+            <span
+              class="q-type-badge"
+              :style="{ color: typeColor[item.question_type], borderColor: typeColor[item.question_type] + '44', background: typeColor[item.question_type] + '18' }"
+            >{{ typeLabel[item.question_type] ?? item.question_type }}</span>
             <span class="q-status" :style="{ color: statusColor[item.status] }">
               {{ statusLabel[item.status] }}
             </span>
@@ -76,20 +100,84 @@ const statusLabel: Record<string, string> = {
 
           <p class="q-text">{{ item.text }}</p>
 
-          <div class="options">
+          <!-- MCQ: single select review -->
+          <div v-if="item.question_type === 'mcq'" class="options">
             <div
               v-for="opt in item.options"
               :key="opt.id"
               class="opt-row"
               :class="{
                 correct: opt.is_correct,
-                selected: opt.id === item.selected_option_id && !opt.is_correct,
+                'wrong-selected': opt.id === item.selected_option_id && !opt.is_correct,
               }"
             >
               <span class="opt-label">{{ opt.label }}</span>
               <span class="opt-text">{{ opt.text }}</span>
-              <span v-if="opt.is_correct" class="opt-badge correct-badge">Correct</span>
-              <span v-if="opt.id === item.selected_option_id && !opt.is_correct" class="opt-badge wrong-badge">Your answer</span>
+              <span v-if="opt.is_correct" class="opt-badge correct-badge">Jawaban Benar</span>
+              <span v-if="opt.id === item.selected_option_id && !opt.is_correct" class="opt-badge wrong-badge">Jawaban Kamu</span>
+              <span v-if="opt.id === item.selected_option_id && opt.is_correct" class="opt-badge selected-correct-badge">Jawaban Kamu ✓</span>
+            </div>
+          </div>
+
+          <!-- PGK: multi-correct review -->
+          <div v-else-if="item.question_type === 'multi_correct'" class="options">
+            <div class="pgk-legend">
+              <span class="pgk-legend-item correct-legend">Jawaban Benar</span>
+              <span class="pgk-legend-item selected-legend">Pilihan Kamu</span>
+            </div>
+            <div
+              v-for="opt in item.options"
+              :key="opt.id"
+              class="opt-row pgk-opt-row"
+              :class="{
+                correct: isPGKCorrect(item, opt.id),
+                'wrong-selected': isPGKSelected(item, opt.id) && !isPGKCorrect(item, opt.id),
+                'missed-correct': !isPGKSelected(item, opt.id) && isPGKCorrect(item, opt.id),
+              }"
+            >
+              <span class="opt-label pgk-label" :class="{ checked: isPGKSelected(item, opt.id), 'correct-check': isPGKCorrect(item, opt.id) }">
+                {{ isPGKSelected(item, opt.id) ? '✓' : opt.label }}
+              </span>
+              <span class="opt-text">{{ opt.text }}</span>
+              <div class="pgk-badges">
+                <span v-if="isPGKCorrect(item, opt.id)" class="opt-badge correct-badge">Benar</span>
+                <span v-if="isPGKSelected(item, opt.id)" class="opt-badge" :class="isPGKCorrect(item, opt.id) ? 'selected-correct-badge' : 'wrong-badge'">Dipilih</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- B/S: per-statement review -->
+          <div v-else-if="item.question_type === 'true_false'" class="statements">
+            <div
+              v-for="(stmt, idx) in item.statements"
+              :key="stmt.id"
+              class="stmt-review-row"
+              :class="{
+                'stmt-correct': stmt.student_answer != null && stmt.student_answer === stmt.is_correct,
+                'stmt-wrong': stmt.student_answer != null && stmt.student_answer !== stmt.is_correct,
+                'stmt-blank': stmt.student_answer == null,
+              }"
+            >
+              <div class="stmt-num">{{ idx + 1 }}</div>
+              <div class="stmt-text">{{ stmt.text }}</div>
+              <div class="stmt-answers">
+                <div class="answer-row">
+                  <span class="answer-label">Jawaban:</span>
+                  <span
+                    class="answer-val"
+                    :class="stmt.is_correct ? 'val-benar' : 'val-salah'"
+                  >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</span>
+                </div>
+                <div class="answer-row">
+                  <span class="answer-label">Kamu:</span>
+                  <span
+                    v-if="stmt.student_answer != null"
+                    class="answer-val"
+                    :class="stmt.student_answer ? 'val-benar' : 'val-salah'"
+                  >{{ stmt.student_answer ? 'Benar' : 'Salah' }}</span>
+                  <span v-else class="answer-val val-blank">—</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -124,13 +212,18 @@ const statusLabel: Record<string, string> = {
   padding: 1.25rem; display: flex; flex-direction: column; gap: 0.875rem;
 }
 
-.review-header { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
+.review-header { display: flex; align-items: center; gap: 0.625rem; flex-wrap: wrap; }
 .q-num { font-weight: 700; font-size: 0.85rem; color: #4f8ef7; }
+.q-type-badge {
+  font-size: 0.68rem; font-weight: 800; padding: 0.15rem 0.45rem;
+  border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.03em;
+}
 .q-status { font-size: 0.8rem; font-weight: 600; }
 .q-topic { margin-left: auto; font-size: 0.75rem; color: #64748b; }
 
 .q-text { margin: 0; font-size: 0.95rem; line-height: 1.65; color: #e2e8f0; }
 
+/* MCQ / PGK options */
 .options { display: flex; flex-direction: column; gap: 0.5rem; }
 
 .opt-row {
@@ -140,19 +233,64 @@ const statusLabel: Record<string, string> = {
   font-size: 0.875rem;
 }
 .opt-row.correct { border-color: #22c55e; background: rgba(34, 197, 94, 0.06); }
-.opt-row.selected { border-color: #ef4444; background: rgba(239, 68, 68, 0.06); }
+.opt-row.wrong-selected { border-color: #ef4444; background: rgba(239, 68, 68, 0.06); }
+.opt-row.missed-correct { border-color: #22c55e; border-style: dashed; background: rgba(34, 197, 94, 0.03); }
 
 .opt-label {
   width: 1.5rem; height: 1.5rem; border-radius: 50%;
   background: #1e2a45; display: flex; align-items: center; justify-content: center;
   font-size: 0.75rem; font-weight: 700; flex-shrink: 0;
 }
-.opt-row.correct .opt-label { background: #22c55e; color: #000; }
-.opt-row.selected .opt-label { background: #ef4444; }
+.opt-row.correct .opt-label:not(.pgk-label) { background: #22c55e; color: #000; }
+.opt-row.wrong-selected .opt-label:not(.pgk-label) { background: #ef4444; }
+
+/* PGK label override */
+.pgk-opt-row .pgk-label { border-radius: 4px; }
+.pgk-opt-row .pgk-label.checked { background: #64748b; }
+.pgk-opt-row.correct .pgk-label.correct-check { background: #22c55e; color: #000; }
+.pgk-opt-row.wrong-selected .pgk-label.checked:not(.correct-check) { background: #ef4444; }
+
 .opt-text { flex: 1; }
 .opt-badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; flex-shrink: 0; }
 .correct-badge { background: rgba(34,197,94,0.15); color: #22c55e; }
 .wrong-badge { background: rgba(239,68,68,0.15); color: #ef4444; }
+.selected-correct-badge { background: rgba(34,197,94,0.25); color: #22c55e; border: 1px solid #22c55e44; }
+
+.pgk-legend { display: flex; gap: 1rem; margin-bottom: 0.25rem; }
+.pgk-legend-item { font-size: 0.72rem; color: #64748b; }
+.correct-legend::before { content: '◼ '; color: #22c55e; }
+.selected-legend::before { content: '◼ '; color: #ef4444; }
+
+.pgk-badges { display: flex; gap: 0.375rem; flex-shrink: 0; }
+
+/* B/S statements */
+.statements { display: flex; flex-direction: column; gap: 0.625rem; }
+
+.stmt-review-row {
+  display: flex; align-items: flex-start; gap: 0.875rem;
+  padding: 0.875rem 1rem;
+  border-radius: 10px; border: 1px solid #1e2a45; background: #0d1424;
+}
+.stmt-review-row.stmt-correct { border-color: #22c55e; background: rgba(34,197,94,0.05); }
+.stmt-review-row.stmt-wrong { border-color: #ef4444; background: rgba(239,68,68,0.05); }
+.stmt-review-row.stmt-blank { border-color: #64748b44; }
+
+.stmt-num {
+  width: 1.5rem; height: 1.5rem; border-radius: 50%; background: #1e2a45;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; color: #94a3b8; flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.stmt-text { flex: 1; font-size: 0.875rem; line-height: 1.5; color: #e2e8f0; }
+
+.stmt-answers { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; min-width: 110px; }
+.answer-row { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; }
+.answer-label { color: #64748b; width: 3.5rem; flex-shrink: 0; }
+.answer-val { font-weight: 700; padding: 0.1rem 0.5rem; border-radius: 4px; font-size: 0.72rem; }
+.val-benar { color: #22c55e; background: rgba(34,197,94,0.12); }
+.val-salah { color: #ef4444; background: rgba(239,68,68,0.12); }
+.val-blank { color: #64748b; background: #1e2a45; }
 
 .explanation {
   font-size: 0.825rem; line-height: 1.6; color: #94a3b8;

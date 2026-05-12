@@ -49,24 +49,47 @@ const currentQ = computed(() => store.questions[store.currentIndex])
 
 function goTo(i: number) { store.currentIndex = i }
 
-const questionStatus = (qid: string) => {
-  const answered = store.answers[qid] != null
-  const isFlagged = store.flagged.has(qid)
-  if (isFlagged) return 'flagged'
-  if (answered) return 'answered'
+function questionStatus(i: number) {
+  const q = store.questions[i]
+  if (!q) return 'unanswered'
+  if (store.flagged.has(q.id)) return 'flagged'
+  if (store.isAnswered(q)) return 'answered'
   return 'unanswered'
 }
 
-// ─── Answer + flag ────────────────────────────────────────────────────────────
-async function selectOption(optionId: string) {
+// ─── MCQ ──────────────────────────────────────────────────────────────────────
+async function selectMCQOption(optionId: string) {
   if (!currentQ.value) return
   const qid = currentQ.value.id
   const current = store.answers[qid]
-  // Toggle off if same option
-  const newVal = current === optionId ? null : optionId
-  await store.saveAnswer(qid, newVal)
+  await store.saveMCQAnswer(qid, current === optionId ? null : optionId)
 }
 
+// ─── PGK (multi-correct) ──────────────────────────────────────────────────────
+async function togglePGKOption(optionId: string) {
+  if (!currentQ.value) return
+  await store.togglePGKOption(currentQ.value.id, optionId)
+}
+
+function isPGKSelected(optionId: string): boolean {
+  if (!currentQ.value) return false
+  return store.pgkAnswers[currentQ.value.id]?.has(optionId) ?? false
+}
+
+// ─── B/S (true_false) ─────────────────────────────────────────────────────────
+async function setBSAnswer(statementId: string, value: boolean) {
+  if (!currentQ.value) return
+  await store.saveBSStatement(currentQ.value.id, statementId, value)
+}
+
+function getBSAnswer(statementId: string): boolean | null {
+  if (!currentQ.value) return null
+  const map = store.bsAnswers[currentQ.value.id]
+  if (!map || !(statementId in map)) return null
+  return map[statementId]
+}
+
+// ─── Flag ─────────────────────────────────────────────────────────────────────
 async function toggleFlag() {
   if (!currentQ.value) return
   await store.toggleFlag(currentQ.value.id)
@@ -122,29 +145,83 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
       <!-- Question area -->
       <div class="question-area">
         <div class="question-meta">
-          Question {{ store.currentIndex + 1 }} of {{ store.questions.length }}
-          <button
-            class="flag-btn"
-            :class="{ flagged: store.flagged.has(currentQ?.id ?? '') }"
-            @click="toggleFlag"
-          >
-            {{ store.flagged.has(currentQ?.id ?? '') ? '🚩 Flagged' : '⚑ Flag' }}
-          </button>
+          <span>Question {{ store.currentIndex + 1 }} of {{ store.questions.length }}</span>
+          <div class="meta-right">
+            <span class="q-type-badge" :class="currentQ?.question_type">
+              {{ currentQ?.question_type === 'mcq' ? 'Pilihan Ganda'
+                : currentQ?.question_type === 'multi_correct' ? 'PGK'
+                : 'Benar / Salah' }}
+            </span>
+            <button
+              class="flag-btn"
+              :class="{ flagged: store.flagged.has(currentQ?.id ?? '') }"
+              @click="toggleFlag"
+            >
+              {{ store.flagged.has(currentQ?.id ?? '') ? '🚩 Flagged' : '⚑ Flag' }}
+            </button>
+          </div>
         </div>
 
         <div class="question-text">{{ currentQ?.text }}</div>
 
-        <div class="options">
+        <!-- MCQ: single select -->
+        <div v-if="currentQ?.question_type === 'mcq'" class="options">
           <button
-            v-for="opt in currentQ?.options"
+            v-for="opt in currentQ.options"
             :key="opt.id"
             class="option-btn"
-            :class="{ selected: store.answers[currentQ?.id ?? ''] === opt.id }"
-            @click="selectOption(opt.id)"
+            :class="{ selected: store.answers[currentQ.id] === opt.id }"
+            @click="selectMCQOption(opt.id)"
           >
             <span class="opt-label">{{ opt.label }}</span>
             <span class="opt-text">{{ opt.text }}</span>
           </button>
+        </div>
+
+        <!-- PGK: multi-select checkboxes -->
+        <div v-else-if="currentQ?.question_type === 'multi_correct'" class="options">
+          <div class="pgk-hint">Pilih semua jawaban yang benar.</div>
+          <button
+            v-for="opt in currentQ.options"
+            :key="opt.id"
+            class="option-btn"
+            :class="{ selected: isPGKSelected(opt.id) }"
+            @click="togglePGKOption(opt.id)"
+          >
+            <span class="opt-label pgk" :class="{ checked: isPGKSelected(opt.id) }">
+              {{ isPGKSelected(opt.id) ? '✓' : opt.label }}
+            </span>
+            <span class="opt-text">{{ opt.text }}</span>
+          </button>
+        </div>
+
+        <!-- B/S: per-statement Benar/Salah toggles -->
+        <div v-else-if="currentQ?.question_type === 'true_false'" class="statements">
+          <div class="bs-hint">Tentukan apakah setiap pernyataan berikut Benar atau Salah.</div>
+          <div
+            v-for="(stmt, idx) in currentQ.statements"
+            :key="stmt.id"
+            class="stmt-row"
+            :class="{
+              'stmt-benar': getBSAnswer(stmt.id) === true,
+              'stmt-salah': getBSAnswer(stmt.id) === false,
+            }"
+          >
+            <div class="stmt-num">{{ idx + 1 }}</div>
+            <div class="stmt-text">{{ stmt.text }}</div>
+            <div class="bs-btns">
+              <button
+                class="bs-btn benar"
+                :class="{ active: getBSAnswer(stmt.id) === true }"
+                @click="setBSAnswer(stmt.id, true)"
+              >Benar</button>
+              <button
+                class="bs-btn salah"
+                :class="{ active: getBSAnswer(stmt.id) === false }"
+                @click="setBSAnswer(stmt.id, false)"
+              >Salah</button>
+            </div>
+          </div>
         </div>
 
         <div class="nav-arrows">
@@ -161,7 +238,7 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
             v-for="(q, i) in store.questions"
             :key="q.id"
             class="q-cell"
-            :class="[questionStatus(q.id), { current: i === store.currentIndex }]"
+            :class="[questionStatus(i), { current: i === store.currentIndex }]"
             @click="goTo(i)"
           >
             {{ i + 1 }}
@@ -260,6 +337,22 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   color: #94a3b8;
 }
 
+.meta-right { display: flex; align-items: center; gap: 0.625rem; }
+
+.q-type-badge {
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: #1e2a45;
+  color: #94a3b8;
+}
+.q-type-badge.mcq { background: rgba(79,142,247,0.15); color: #4f8ef7; }
+.q-type-badge.multi_correct { background: rgba(168,85,247,0.15); color: #a855f7; }
+.q-type-badge.true_false { background: rgba(34,197,94,0.15); color: #22c55e; }
+
 .flag-btn {
   padding: 0.3rem 0.75rem;
   border-radius: 6px;
@@ -282,7 +375,14 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   padding: 1.5rem;
 }
 
+/* MCQ / PGK options */
 .options { display: flex; flex-direction: column; gap: 0.625rem; }
+
+.pgk-hint, .bs-hint {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin-bottom: 0.25rem;
+}
 
 .option-btn {
   display: flex;
@@ -313,9 +413,65 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   font-weight: 700;
   flex-shrink: 0;
 }
-.option-btn.selected .opt-label { background: #4f8ef7; }
+.opt-label.pgk { border-radius: 5px; }
+.opt-label.pgk.checked { background: #a855f7; }
+.option-btn.selected .opt-label:not(.pgk) { background: #4f8ef7; }
 .opt-text { font-size: 0.9rem; line-height: 1.5; padding-top: 0.15rem; }
 
+/* B/S statements */
+.statements { display: flex; flex-direction: column; gap: 0.75rem; }
+
+.stmt-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid #1e2a45;
+  background: #141c2e;
+  transition: all 0.15s;
+}
+.stmt-row.stmt-benar { border-color: #22c55e; background: rgba(34,197,94,0.07); }
+.stmt-row.stmt-salah { border-color: #ef4444; background: rgba(239,68,68,0.07); }
+
+.stmt-num {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: #1e2a45;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  flex-shrink: 0;
+  color: #94a3b8;
+}
+
+.stmt-text {
+  flex: 1;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #f1f5f9;
+}
+
+.bs-btns { display: flex; gap: 0.5rem; flex-shrink: 0; }
+
+.bs-btn {
+  padding: 0.35rem 0.875rem;
+  border-radius: 6px;
+  border: 1px solid #1e2a45;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #94a3b8;
+}
+.bs-btn.benar:hover, .bs-btn.benar.active { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; }
+.bs-btn.salah:hover, .bs-btn.salah.active { border-color: #ef4444; background: rgba(239,68,68,0.15); color: #ef4444; }
+
+/* Nav */
 .nav-arrows { display: flex; gap: 0.75rem; justify-content: space-between; }
 .arrow-btn {
   padding: 0.5rem 1.25rem;
@@ -330,6 +486,7 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
 .arrow-btn:hover:not(:disabled) { border-color: #4f8ef7; color: #f1f5f9; }
 .arrow-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* Side panel */
 .side-panel {
   width: 220px;
   flex-shrink: 0;

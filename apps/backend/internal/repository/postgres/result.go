@@ -165,21 +165,14 @@ func (r *ResultRepository) FindDetailByID(ctx context.Context, id uuid.UUID) (*d
 }
 
 func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid.UUID) ([]domain.ReviewItem, error) {
-	// Load questions with their correct options and student answers.
+	// 1. Load base question info.
 	rows, err := r.pool.Query(ctx,
-		`SELECT
-		     q.id, tq.order_index, q.text, q.explanation, q.difficulty,
-		     tp.id, tp.name,
-		     sa.selected_option_id,
-		     co.id AS correct_option_id
+		`SELECT q.id, q.question_type, tq.order_index, q.text, q.explanation, q.difficulty, tp.id, tp.name
 		 FROM test_questions tq
 		 JOIN questions q ON q.id = tq.question_id
 		 JOIN topics tp ON tp.id = q.topic_id
-		 JOIN question_options co ON co.question_id = q.id AND co.is_correct = true
-		 LEFT JOIN session_answers sa ON sa.session_id = $1 AND sa.question_id = q.id
-		 WHERE tq.test_id = $2
-		 ORDER BY tq.order_index`,
-		sessionID, testID,
+		 WHERE tq.test_id = $1
+		 ORDER BY tq.order_index`, testID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("review query: %w", err)
@@ -187,28 +180,17 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 	defer rows.Close()
 
 	var items []domain.ReviewItem
-	var questionIDs []uuid.UUID
 	questionIndex := map[uuid.UUID]int{}
+	var questionIDs []uuid.UUID
 
 	for rows.Next() {
 		var item domain.ReviewItem
-		var diff string
-		if err := rows.Scan(
-			&item.QuestionID, &item.OrderIndex, &item.Text, &item.Explanation, &diff,
-			&item.TopicID, &item.TopicName,
-			&item.SelectedOptionID,
-			&item.CorrectOptionID,
-		); err != nil {
-			return nil, fmt.Errorf("scan review item: %w", err)
+		var diff, qtype string
+		if err := rows.Scan(&item.QuestionID, &qtype, &item.OrderIndex, &item.Text, &item.Explanation, &diff, &item.TopicID, &item.TopicName); err != nil {
+			return nil, fmt.Errorf("scan review base: %w", err)
 		}
 		item.Difficulty = domain.Difficulty(diff)
-		if item.SelectedOptionID == nil {
-			item.Status = domain.AnswerStatusBlank
-		} else if *item.SelectedOptionID == item.CorrectOptionID {
-			item.Status = domain.AnswerStatusCorrect
-		} else {
-			item.Status = domain.AnswerStatusWrong
-		}
+		item.QuestionType = domain.QuestionType(qtype)
 		questionIndex[item.QuestionID] = len(items)
 		questionIDs = append(questionIDs, item.QuestionID)
 		items = append(items, item)
@@ -216,23 +198,20 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
-
 	if len(items) == 0 {
 		return items, nil
 	}
 
-	// Load all options for these questions in one query, then attach.
+	// 2. Load options for MCQ / multi_correct questions.
 	optRows, err := r.pool.Query(ctx,
-		`SELECT id, question_id, label, text, is_correct
-		 FROM question_options
-		 WHERE question_id = ANY($1)
-		 ORDER BY label`, questionIDs,
+		`SELECT id, question_id, label, text, is_correct FROM question_options WHERE question_id = ANY($1) ORDER BY label`,
+		questionIDs,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("load review options: %w", err)
 	}
 	defer optRows.Close()
-
+	correctOptsByQ := map[uuid.UUID][]uuid.UUID{}
 	for optRows.Next() {
 		var opt domain.ReviewOption
 		var qID uuid.UUID
@@ -242,6 +221,164 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 		if idx, ok := questionIndex[qID]; ok {
 			items[idx].Options = append(items[idx].Options, opt)
 		}
+		if opt.IsCorrect {
+			correctOptsByQ[qID] = append(correctOptsByQ[qID], opt.ID)
+		}
 	}
-	return items, optRows.Err()
+	if err := optRows.Err(); err != nil {
+		return nil, err
+	}
+
+	// Set MCQ convenience fields.
+	for i := range items {
+		if items[i].QuestionType == domain.QuestionTypeMCQ {
+			ids := correctOptsByQ[items[i].QuestionID]
+			if len(ids) > 0 {
+				items[i].CorrectOptionID = ids[0]
+			}
+		}
+		if items[i].QuestionType == domain.QuestionTypeMultiCorrect {
+			items[i].CorrectOptionIDs = correctOptsByQ[items[i].QuestionID]
+		}
+	}
+
+	// 3. Load statements for true_false questions.
+	stmtRows, err := r.pool.Query(ctx,
+		`SELECT id, question_id, text, is_correct, position FROM question_statements WHERE question_id = ANY($1) ORDER BY position`,
+		questionIDs,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("load review statements: %w", err)
+	}
+	defer stmtRows.Close()
+	stmtsByQ := map[uuid.UUID][]domain.ReviewStatement{}
+	for stmtRows.Next() {
+		var rs domain.ReviewStatement
+		var qID uuid.UUID
+		var pos int
+		if err := stmtRows.Scan(&rs.ID, &qID, &rs.Text, &rs.IsCorrect, &pos); err != nil {
+			return nil, fmt.Errorf("scan statement: %w", err)
+		}
+		stmtsByQ[qID] = append(stmtsByQ[qID], rs)
+	}
+	if err := stmtRows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 4. Load student answers.
+	ansRows, err := r.pool.Query(ctx,
+		`SELECT question_id, selected_option_id, statement_id, boolean_answer FROM session_answers WHERE session_id = $1`,
+		sessionID,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("load student answers: %w", err)
+	}
+	defer ansRows.Close()
+
+	// Group by question.
+	type studentAns struct {
+		optionIDs   []uuid.UUID
+		stmtAnswers map[uuid.UUID]bool
+	}
+	studentAnswers := map[uuid.UUID]*studentAns{}
+	for ansRows.Next() {
+		var qID uuid.UUID
+		var optID, stmtID *uuid.UUID
+		var boolAns *bool
+		if err := ansRows.Scan(&qID, &optID, &stmtID, &boolAns); err != nil {
+			return nil, fmt.Errorf("scan student answer: %w", err)
+		}
+		if studentAnswers[qID] == nil {
+			studentAnswers[qID] = &studentAns{stmtAnswers: make(map[uuid.UUID]bool)}
+		}
+		if optID != nil {
+			studentAnswers[qID].optionIDs = append(studentAnswers[qID].optionIDs, *optID)
+		}
+		if stmtID != nil && boolAns != nil {
+			studentAnswers[qID].stmtAnswers[*stmtID] = *boolAns
+		}
+	}
+	if err := ansRows.Err(); err != nil {
+		return nil, err
+	}
+
+	// 5. Compute status and attach student answers to each item.
+	for i := range items {
+		q := &items[i]
+		sa := studentAnswers[q.QuestionID]
+
+		switch q.QuestionType {
+		case domain.QuestionTypeMCQ:
+			if sa == nil || len(sa.optionIDs) == 0 {
+				q.Status = domain.AnswerStatusBlank
+			} else {
+				q.SelectedOptionID = &sa.optionIDs[0]
+				if sa.optionIDs[0] == q.CorrectOptionID {
+					q.Status = domain.AnswerStatusCorrect
+				} else {
+					q.Status = domain.AnswerStatusWrong
+				}
+			}
+
+		case domain.QuestionTypeMultiCorrect:
+			if sa == nil || len(sa.optionIDs) == 0 {
+				q.Status = domain.AnswerStatusBlank
+			} else {
+				q.SelectedOptionIDs = sa.optionIDs
+				if setsEqualUUID(sa.optionIDs, q.CorrectOptionIDs) {
+					q.Status = domain.AnswerStatusCorrect
+				} else {
+					q.Status = domain.AnswerStatusWrong
+				}
+			}
+
+		case domain.QuestionTypeTrueFalse:
+			stmts := stmtsByQ[q.QuestionID]
+			if sa == nil || len(sa.stmtAnswers) == 0 {
+				q.Status = domain.AnswerStatusBlank
+				for _, s := range stmts {
+					q.Statements = append(q.Statements, domain.ReviewStatement{ID: s.ID, Text: s.Text, IsCorrect: s.IsCorrect})
+				}
+			} else {
+				allCorrect := true
+				for _, s := range stmts {
+					ans, answered := sa.stmtAnswers[s.ID]
+					var ansPtr *bool
+					if answered {
+						a := ans
+						ansPtr = &a
+						if ans != s.IsCorrect {
+							allCorrect = false
+						}
+					} else {
+						allCorrect = false
+					}
+					q.Statements = append(q.Statements, domain.ReviewStatement{ID: s.ID, Text: s.Text, IsCorrect: s.IsCorrect, StudentAnswer: ansPtr})
+				}
+				if allCorrect {
+					q.Status = domain.AnswerStatusCorrect
+				} else {
+					q.Status = domain.AnswerStatusWrong
+				}
+			}
+		}
+	}
+
+	return items, nil
+}
+
+func setsEqualUUID(a, b []uuid.UUID) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	set := make(map[uuid.UUID]struct{}, len(b))
+	for _, id := range b {
+		set[id] = struct{}{}
+	}
+	for _, id := range a {
+		if _, ok := set[id]; !ok {
+			return false
+		}
+	}
+	return true
 }

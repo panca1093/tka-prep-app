@@ -8,6 +8,7 @@ import (
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
 	pkgjwt "github.com/yourorg/tkaprep/apps/backend/internal/pkg/jwt"
+	"github.com/yourorg/tkaprep/apps/backend/internal/service/session"
 )
 
 func (s *APIServer) PostTestsTestIdSessions(ctx context.Context, req api.PostTestsTestIdSessionsRequestObject) (api.PostTestsTestIdSessionsResponseObject, error) {
@@ -55,7 +56,28 @@ func (s *APIServer) PostSessionsSessionIdAnswers(ctx context.Context, req api.Po
 		return api.PostSessionsSessionIdAnswers401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
 
-	sess, err := s.sessionSvc.SaveAnswer(ctx, req.SessionId, claims.UserID, req.Body.QuestionId, req.Body.SelectedOptionId)
+	b := req.Body
+	in := session.AnswerInput{QuestionID: b.QuestionId}
+
+	// MCQ
+	in.SelectedOptionID = b.SelectedOptionId
+
+	// PGK
+	if b.SelectedOptionIds != nil {
+		in.SelectedOptionIDs = *b.SelectedOptionIds
+	}
+
+	// B/S
+	if b.StatementAnswers != nil {
+		for _, sa := range *b.StatementAnswers {
+			in.StatementAnswers = append(in.StatementAnswers, domain.StatementAnswerInput{
+				StatementID: sa.StatementId,
+				IsCorrect:   sa.IsCorrect,
+			})
+		}
+	}
+
+	sess, err := s.sessionSvc.SaveAnswer(ctx, req.SessionId, claims.UserID, in)
 	if err != nil {
 		switch {
 		case errors.Is(err, apierr.ErrNotFound):
@@ -122,8 +144,16 @@ func toSessionResponse(s *domain.TestSession) api.SessionResponse {
 			SessionId:        a.SessionID,
 			QuestionId:       a.QuestionID,
 			SelectedOptionId: a.SelectedOptionID,
-			IsFlagged:        a.IsFlagged,
+			StatementId:      a.StatementID,
+			BooleanAnswer:    a.BooleanAnswer,
 			AnsweredAt:       a.AnsweredAt,
+		}
+	}
+	flags := make([]api.SessionQuestionFlagResponse, len(s.Flags))
+	for i, f := range s.Flags {
+		flags[i] = api.SessionQuestionFlagResponse{
+			QuestionId: f.QuestionID,
+			IsFlagged:  f.IsFlagged,
 		}
 	}
 	return api.SessionResponse{
@@ -135,6 +165,7 @@ func toSessionResponse(s *domain.TestSession) api.SessionResponse {
 		Status:               api.SessionResponseStatus(s.Status),
 		TimeRemainingSeconds: s.TimeRemainingSeconds,
 		Answers:              answers,
+		Flags:                &flags,
 	}
 }
 

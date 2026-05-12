@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	openapi_types "github.com/oapi-codegen/runtime/types"
+
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
@@ -113,24 +115,49 @@ func toResultDetailResponse(d *domain.ResultDetail) api.ResultDetailResponse {
 func toReviewItemResponse(item domain.ReviewItem) api.ReviewItemResponse {
 	opts := make([]api.ReviewOptionResponse, len(item.Options))
 	for i, o := range item.Options {
-		opts[i] = api.ReviewOptionResponse{
-			Id:        o.ID,
-			Label:     o.Label,
-			Text:      o.Text,
-			IsCorrect: o.IsCorrect,
+		opts[i] = api.ReviewOptionResponse{Id: o.ID, Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+	}
+
+	stmts := make([]api.ReviewStatementResponse, len(item.Statements))
+	for i, s := range item.Statements {
+		stmts[i] = api.ReviewStatementResponse{
+			Id:            s.ID,
+			Text:          s.Text,
+			IsCorrect:     s.IsCorrect,
+			StudentAnswer: s.StudentAnswer,
 		}
 	}
+
+	selOptIDs := make([]openapi_types.UUID, len(item.SelectedOptionIDs))
+	for i, id := range item.SelectedOptionIDs {
+		selOptIDs[i] = id
+	}
+	corrOptIDs := make([]openapi_types.UUID, len(item.CorrectOptionIDs))
+	for i, id := range item.CorrectOptionIDs {
+		corrOptIDs[i] = id
+	}
+
+	var correctOptID *openapi_types.UUID
+	if item.CorrectOptionID != (openapi_types.UUID{}) {
+		id := item.CorrectOptionID
+		correctOptID = &id
+	}
+
 	return api.ReviewItemResponse{
-		QuestionId:       item.QuestionID,
-		OrderIndex:       item.OrderIndex,
-		Text:             item.Text,
-		Explanation:      item.Explanation,
-		Difficulty:       api.ReviewItemResponseDifficulty(item.Difficulty),
-		TopicId:          item.TopicID,
-		TopicName:        item.TopicName,
-		Options:          opts,
-		SelectedOptionId: item.SelectedOptionID,
-		CorrectOptionId:  item.CorrectOptionID,
-		Status:           api.ReviewItemResponseStatus(item.Status),
+		QuestionId:        item.QuestionID,
+		QuestionType:      api.ReviewItemResponseQuestionType(item.QuestionType),
+		OrderIndex:        item.OrderIndex,
+		Text:              item.Text,
+		Explanation:       item.Explanation,
+		Difficulty:        api.ReviewItemResponseDifficulty(item.Difficulty),
+		TopicId:           item.TopicID,
+		TopicName:         item.TopicName,
+		Options:           opts,
+		Statements:        stmts,
+		SelectedOptionId:  item.SelectedOptionID,
+		CorrectOptionId:   correctOptID,
+		SelectedOptionIds: &selOptIDs,
+		CorrectOptionIds:  &corrOptIDs,
+		Status:            api.ReviewItemResponseStatus(item.Status),
 	}
 }

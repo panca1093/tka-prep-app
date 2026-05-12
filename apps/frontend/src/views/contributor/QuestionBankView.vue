@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
 
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
 type CreateReq = components['schemas']['CreateQuestionRequest']
+type QuestionType = 'mcq' | 'multi_correct' | 'true_false'
 
 const questions = ref<Question[]>([])
 const topics = ref<Topic[]>([])
@@ -19,29 +20,39 @@ const deleteError = ref('')
 const searchText = ref('')
 const topicFilter = ref('')
 const difficultyFilter = ref('')
+const typeFilter = ref('')
 
 // Form state
-const form = ref<{
+interface FormState {
+  question_type: QuestionType
   topic_id: string
   text: string
   explanation: string
   difficulty: 'easy' | 'medium' | 'hard'
   options: { label: string; text: string; is_correct: boolean }[]
-}>({
+  statements: { text: string; is_correct: boolean }[]
+}
+
+const emptyForm = (): FormState => ({
+  question_type: 'mcq',
   topic_id: '',
   text: '',
   explanation: '',
   difficulty: 'medium',
-  options: [
-    { label: 'A', text: '', is_correct: false },
-    { label: 'B', text: '', is_correct: false },
-    { label: 'C', text: '', is_correct: false },
-    { label: 'D', text: '', is_correct: false },
-    { label: 'E', text: '', is_correct: false },
+  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false })),
+  statements: [
+    { text: '', is_correct: true },
+    { text: '', is_correct: false },
   ],
 })
+
+const form = ref<FormState>(emptyForm())
 const formError = ref('')
 const isSaving = ref(false)
+
+// Computed helpers
+const isMultiCorrect = computed(() => form.value.question_type === 'multi_correct')
+const isTrueFalse = computed(() => form.value.question_type === 'true_false')
 
 async function fetchQuestions() {
   isLoading.value = true
@@ -51,6 +62,7 @@ async function fetchQuestions() {
         search: searchText.value || undefined,
         topic_id: topicFilter.value || undefined,
         difficulty: (difficultyFilter.value as 'easy' | 'medium' | 'hard') || undefined,
+        question_type: (typeFilter.value as QuestionType) || undefined,
         limit: 50,
       },
     },
@@ -67,30 +79,85 @@ onMounted(async () => {
 
 function openCreate() {
   editTarget.value = null
-  form.value = { topic_id: '', text: '', explanation: '', difficulty: 'medium', options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false })) }
+  form.value = emptyForm()
   formError.value = ''
   showForm.value = true
 }
 
-function setCorrect(idx: number) {
+function onTypeChange() {
+  formError.value = ''
+}
+
+// MCQ: only one correct at a time
+function setCorrectMCQ(idx: number) {
   form.value.options.forEach((o, i) => { o.is_correct = i === idx })
+}
+
+// PGK: toggle correct
+function toggleCorrectPGK(idx: number) {
+  form.value.options[idx].is_correct = !form.value.options[idx].is_correct
+}
+
+// B/S statements
+function addStatement() {
+  if (form.value.statements.length >= 6) return
+  form.value.statements.push({ text: '', is_correct: false })
+}
+
+function removeStatement(idx: number) {
+  if (form.value.statements.length <= 2) return
+  form.value.statements.splice(idx, 1)
+}
+
+function toggleStatementCorrect(idx: number) {
+  form.value.statements[idx].is_correct = !form.value.statements[idx].is_correct
 }
 
 async function saveQuestion() {
   formError.value = ''
-  const correctCount = form.value.options.filter((o) => o.is_correct).length
-  if (correctCount !== 1) { formError.value = 'Exactly one option must be marked correct.'; return }
   if (!form.value.topic_id) { formError.value = 'Please select a topic.'; return }
+  if (!form.value.text.trim()) { formError.value = 'Question text is required.'; return }
 
-  isSaving.value = true
-  try {
-    const body: CreateReq = {
+  let body: CreateReq
+
+  if (form.value.question_type === 'mcq') {
+    const correctCount = form.value.options.filter((o) => o.is_correct).length
+    if (correctCount !== 1) { formError.value = 'Exactly one option must be marked correct.'; return }
+    body = {
+      question_type: 'mcq',
       topic_id: form.value.topic_id,
       text: form.value.text,
       explanation: form.value.explanation || undefined,
       difficulty: form.value.difficulty,
       options: form.value.options,
     }
+  } else if (form.value.question_type === 'multi_correct') {
+    const correctCount = form.value.options.filter((o) => o.is_correct).length
+    if (correctCount < 1) { formError.value = 'At least one option must be marked correct for PGK.'; return }
+    body = {
+      question_type: 'multi_correct',
+      topic_id: form.value.topic_id,
+      text: form.value.text,
+      explanation: form.value.explanation || undefined,
+      difficulty: form.value.difficulty,
+      options: form.value.options,
+    }
+  } else {
+    const stmts = form.value.statements
+    if (stmts.length < 2) { formError.value = 'Add at least 2 statements.'; return }
+    if (stmts.some(s => !s.text.trim())) { formError.value = 'All statement texts are required.'; return }
+    body = {
+      question_type: 'true_false',
+      topic_id: form.value.topic_id,
+      text: form.value.text,
+      explanation: form.value.explanation || undefined,
+      difficulty: form.value.difficulty,
+      statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i })),
+    }
+  }
+
+  isSaving.value = true
+  try {
     if (editTarget.value) {
       await client.PATCH('/questions/{questionId}', { params: { path: { questionId: editTarget.value.id } }, body })
     } else {
@@ -114,6 +181,12 @@ async function deleteQuestion(id: string) {
 }
 
 const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', hard: '#ef4444' }
+const typeLabel: Record<string, string> = { mcq: 'PG', multi_correct: 'PGK', true_false: 'B/S' }
+const typeColor: Record<string, string> = {
+  mcq: '#4f8ef7',
+  multi_correct: '#a855f7',
+  true_false: '#22c55e',
+}
 </script>
 
 <template>
@@ -135,6 +208,12 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
         <option value="medium">Medium</option>
         <option value="hard">Hard</option>
       </select>
+      <select v-model="typeFilter" class="filter-select" @change="fetchQuestions">
+        <option value="">All Types</option>
+        <option value="mcq">Pilihan Ganda (PG)</option>
+        <option value="multi_correct">PGK</option>
+        <option value="true_false">Benar/Salah</option>
+      </select>
     </div>
 
     <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
@@ -146,6 +225,10 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
     <div v-else class="question-list">
       <div v-for="q in questions" :key="q.id" class="question-card">
         <div class="q-header">
+          <span
+            class="q-type-badge"
+            :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] + '44', background: typeColor[q.question_type] + '18' }"
+          >{{ typeLabel[q.question_type] ?? q.question_type }}</span>
           <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
           <span class="q-topic">{{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}</span>
           <div class="q-actions">
@@ -153,10 +236,18 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
           </div>
         </div>
         <p class="q-text">{{ q.text }}</p>
-        <div class="q-options">
-          <span v-for="o in q.options" :key="o.id" class="q-opt" :class="{ correct: o.is_correct }">
-            {{ o.label }}
-          </span>
+        <!-- Options summary for MCQ / PGK -->
+        <div v-if="q.question_type !== 'true_false'" class="q-options">
+          <span
+            v-for="o in q.options"
+            :key="o.id"
+            class="q-opt"
+            :class="{ correct: o.is_correct }"
+          >{{ o.label }}</span>
+        </div>
+        <!-- Statement count for B/S -->
+        <div v-else class="q-stmt-count">
+          {{ q.statements.length }} pernyataan
         </div>
       </div>
     </div>
@@ -165,6 +256,20 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
     <div v-if="showForm" class="form-backdrop" @click.self="showForm = false">
       <div class="form-panel">
         <h2>{{ editTarget ? 'Edit Question' : 'New Question' }}</h2>
+
+        <!-- Question type -->
+        <div class="field">
+          <label>Question Type</label>
+          <div class="type-tabs">
+            <button
+              v-for="t in [{ v: 'mcq', label: 'Pilihan Ganda (PG)' }, { v: 'multi_correct', label: 'PGK' }, { v: 'true_false', label: 'Benar / Salah' }]"
+              :key="t.v"
+              class="type-tab"
+              :class="{ active: form.question_type === t.v }"
+              @click="form.question_type = t.v as QuestionType; onTypeChange()"
+            >{{ t.label }}</button>
+          </div>
+        </div>
 
         <div class="field">
           <label>Topic</label>
@@ -188,14 +293,43 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
           <textarea v-model="form.text" rows="3" class="text-area" placeholder="Enter question…" />
         </div>
 
-        <div class="field">
-          <label>Options (click ● to mark correct)</label>
+        <!-- MCQ options: single correct -->
+        <div v-if="!isTrueFalse" class="field">
+          <label>
+            Options
+            <span v-if="isMultiCorrect" class="hint-inline"> — mark all correct answers</span>
+            <span v-else class="hint-inline"> — click label to mark correct</span>
+          </label>
           <div class="option-inputs">
             <div v-for="(opt, i) in form.options" :key="opt.label" class="opt-input-row">
-              <button class="correct-dot" :class="{ active: opt.is_correct }" @click="setCorrect(i)">{{ opt.label }}</button>
+              <button
+                class="correct-dot"
+                :class="{ active: opt.is_correct, pgk: isMultiCorrect }"
+                @click="isMultiCorrect ? toggleCorrectPGK(i) : setCorrectMCQ(i)"
+              >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
               <input v-model="opt.text" class="opt-text-input" :placeholder="`Option ${opt.label}`" />
             </div>
           </div>
+        </div>
+
+        <!-- B/S statements -->
+        <div v-if="isTrueFalse" class="field">
+          <label>Pernyataan ({{ form.statements.length }}/6)</label>
+          <div class="stmt-inputs">
+            <div v-for="(stmt, i) in form.statements" :key="i" class="stmt-input-row">
+              <span class="stmt-idx">{{ i + 1 }}</span>
+              <input v-model="stmt.text" class="opt-text-input" :placeholder="`Pernyataan ${i + 1}`" />
+              <button
+                class="bs-toggle"
+                :class="{ benar: stmt.is_correct, salah: !stmt.is_correct }"
+                @click="toggleStatementCorrect(i)"
+              >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</button>
+              <button class="remove-btn" :disabled="form.statements.length <= 2" @click="removeStatement(i)">✕</button>
+            </div>
+          </div>
+          <button class="btn-add-stmt" :disabled="form.statements.length >= 6" @click="addStatement">
+            + Tambah Pernyataan
+          </button>
         </div>
 
         <div class="field">
@@ -240,7 +374,11 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 
 .question-list { display: flex; flex-direction: column; gap: 0.625rem; }
 .question-card { background: #141c2e; border: 1px solid #1e2a45; border-radius: 10px; padding: 1rem; }
-.q-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem; }
+.q-header { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.5rem; }
+.q-type-badge {
+  font-size: 0.68rem; font-weight: 800; padding: 0.2rem 0.5rem;
+  border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.03em;
+}
 .q-difficulty { font-size: 0.75rem; font-weight: 700; text-transform: capitalize; }
 .q-topic { font-size: 0.75rem; color: #64748b; }
 .q-actions { margin-left: auto; }
@@ -250,6 +388,7 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 .q-options { display: flex; gap: 0.375rem; }
 .q-opt { width: 1.6rem; height: 1.6rem; border-radius: 50%; background: #1e2a45; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: #94a3b8; }
 .q-opt.correct { background: #22c55e; color: #000; }
+.q-stmt-count { font-size: 0.75rem; color: #64748b; }
 
 .btn-primary {
   padding: 0.55rem 1.25rem; border-radius: 8px; border: none;
@@ -262,7 +401,7 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 /* Form panel */
 .form-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; }
 .form-panel {
-  position: fixed; right: 0; top: 0; bottom: 0; width: 480px; max-width: 100vw;
+  position: fixed; right: 0; top: 0; bottom: 0; width: 500px; max-width: 100vw;
   background: #141c2e; border-left: 1px solid #1e2a45;
   padding: 2rem; overflow-y: auto;
   display: flex; flex-direction: column; gap: 1rem;
@@ -270,6 +409,7 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 .form-panel h2 { margin: 0; font-size: 1.1rem; }
 .field { display: flex; flex-direction: column; gap: 0.375rem; }
 .field label { font-size: 0.78rem; font-weight: 600; color: #94a3b8; }
+.hint-inline { font-size: 0.72rem; font-weight: 400; color: #64748b; margin-left: 0.25rem; }
 .text-area {
   padding: 0.65rem 0.875rem; border-radius: 8px; border: 1px solid #1e2a45;
   background: #0d1424; color: #f1f5f9; font-size: 0.875rem; resize: vertical; font-family: inherit;
@@ -277,6 +417,17 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 }
 .text-area:focus { border-color: #4f8ef7; }
 
+/* Type tabs */
+.type-tabs { display: flex; gap: 0.375rem; }
+.type-tab {
+  flex: 1; padding: 0.5rem 0.25rem; border-radius: 8px;
+  border: 1px solid #1e2a45; background: #0d1424;
+  color: #64748b; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; text-align: center;
+}
+.type-tab.active { border-color: #4f8ef7; background: rgba(79,142,247,0.12); color: #4f8ef7; }
+
+/* Options */
 .option-inputs { display: flex; flex-direction: column; gap: 0.5rem; }
 .opt-input-row { display: flex; align-items: center; gap: 0.5rem; }
 .correct-dot {
@@ -285,12 +436,42 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
   cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
   transition: all 0.15s;
 }
+.correct-dot.pgk { border-radius: 5px; }
 .correct-dot.active { background: #22c55e; border-color: #22c55e; color: #000; }
+.correct-dot.pgk.active { background: #a855f7; border-color: #a855f7; }
 .opt-text-input {
   flex: 1; padding: 0.55rem 0.75rem; border-radius: 8px; border: 1px solid #1e2a45;
   background: #0d1424; color: #f1f5f9; font-size: 0.875rem; outline: none;
 }
 .opt-text-input:focus { border-color: #4f8ef7; }
+
+/* Statements */
+.stmt-inputs { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
+.stmt-input-row { display: flex; align-items: center; gap: 0.5rem; }
+.stmt-idx {
+  width: 1.5rem; height: 1.5rem; border-radius: 50%; background: #1e2a45;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700; color: #94a3b8; flex-shrink: 0;
+}
+.bs-toggle {
+  padding: 0.35rem 0.625rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700;
+  border: 1px solid #1e2a45; background: transparent; cursor: pointer; flex-shrink: 0; transition: all 0.15s;
+}
+.bs-toggle.benar { border-color: #22c55e; background: rgba(34,197,94,0.15); color: #22c55e; }
+.bs-toggle.salah { border-color: #ef4444; background: rgba(239,68,68,0.15); color: #ef4444; }
+.remove-btn {
+  padding: 0.3rem 0.5rem; border-radius: 6px; background: transparent;
+  border: 1px solid #1e2a45; color: #64748b; cursor: pointer; font-size: 0.75rem;
+  flex-shrink: 0; transition: all 0.15s;
+}
+.remove-btn:hover:not(:disabled) { border-color: #ef4444; color: #ef4444; }
+.remove-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-add-stmt {
+  padding: 0.45rem 0.875rem; border-radius: 8px; border: 1px dashed #1e2a45;
+  background: transparent; color: #64748b; font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+}
+.btn-add-stmt:hover:not(:disabled) { border-color: #4f8ef7; color: #4f8ef7; }
+.btn-add-stmt:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .form-actions { display: flex; gap: 0.75rem; margin-top: auto; padding-top: 1rem; }
 .btn-cancel {
