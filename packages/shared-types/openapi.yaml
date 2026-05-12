@@ -1932,6 +1932,9 @@ components:
           type: string
         is_correct:
           type: boolean
+        image_url:
+          type: string
+          nullable: true
 
     QuestionStatementResponse:
       type: object
@@ -1946,6 +1949,9 @@ components:
           type: boolean
         position:
           type: integer
+        image_url:
+          type: string
+          nullable: true
 
     QuestionDetailResponse:
       type: object
@@ -1966,6 +1972,9 @@ components:
         text:
           type: string
         explanation:
+          type: string
+          nullable: true
+        image_url:
           type: string
           nullable: true
         difficulty:
@@ -2015,6 +2024,9 @@ components:
           minLength: 1
         is_correct:
           type: boolean
+        image_url:
+          type: string
+          nullable: true
 
     QuestionStatementInput:
       type: object
@@ -2027,6 +2039,9 @@ components:
           type: boolean
         position:
           type: integer
+        image_url:
+          type: string
+          nullable: true
 
     CreateQuestionRequest:
       type: object
@@ -2043,6 +2058,9 @@ components:
           minLength: 1
         explanation:
           type: string
+        image_url:
+          type: string
+          nullable: true
         difficulty:
           type: string
           enum: [easy, medium, hard]
@@ -2071,6 +2089,9 @@ components:
         explanation:
           type: string
           nullable: true
+        image_url:
+          type: string
+          nullable: true
         difficulty:
           type: string
           enum: [easy, medium, hard]
@@ -2086,6 +2107,14 @@ components:
           maxItems: 6
           items:
             $ref: '#/components/schemas/QuestionStatementInput'
+
+    UploadResponse:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+          example: "/uploads/3fa85f64.jpg"
 
     ScoringConfigResponse:
       type: object
@@ -2469,6 +2498,9 @@ components:
           type: string
         is_correct:
           type: boolean
+        image_url:
+          type: string
+          nullable: true
 
     ReviewStatementResponse:
       type: object
@@ -2483,6 +2515,9 @@ components:
           type: boolean
         student_answer:
           type: boolean
+          nullable: true
+        image_url:
+          type: string
           nullable: true
 
     ReviewItemResponse:
@@ -2500,6 +2535,9 @@ components:
         text:
           type: string
         explanation:
+          type: string
+          nullable: true
+        image_url:
           type: string
           nullable: true
         difficulty:

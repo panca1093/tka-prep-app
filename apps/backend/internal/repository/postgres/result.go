@@ -167,7 +167,7 @@ func (r *ResultRepository) FindDetailByID(ctx context.Context, id uuid.UUID) (*d
 func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid.UUID) ([]domain.ReviewItem, error) {
 	// 1. Load base question info.
 	rows, err := r.pool.Query(ctx,
-		`SELECT q.id, q.question_type, tq.order_index, q.text, q.explanation, q.difficulty, tp.id, tp.name
+		`SELECT q.id, q.question_type, tq.order_index, q.text, q.explanation, q.image_url, q.difficulty, tp.id, tp.name
 		 FROM test_questions tq
 		 JOIN questions q ON q.id = tq.question_id
 		 JOIN topics tp ON tp.id = q.topic_id
@@ -186,7 +186,7 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 	for rows.Next() {
 		var item domain.ReviewItem
 		var diff, qtype string
-		if err := rows.Scan(&item.QuestionID, &qtype, &item.OrderIndex, &item.Text, &item.Explanation, &diff, &item.TopicID, &item.TopicName); err != nil {
+		if err := rows.Scan(&item.QuestionID, &qtype, &item.OrderIndex, &item.Text, &item.Explanation, &item.ImageURL, &diff, &item.TopicID, &item.TopicName); err != nil {
 			return nil, fmt.Errorf("scan review base: %w", err)
 		}
 		item.Difficulty = domain.Difficulty(diff)
@@ -204,7 +204,7 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 
 	// 2. Load options for MCQ / multi_correct questions.
 	optRows, err := r.pool.Query(ctx,
-		`SELECT id, question_id, label, text, is_correct FROM question_options WHERE question_id = ANY($1) ORDER BY label`,
+		`SELECT id, question_id, label, text, is_correct, image_url FROM question_options WHERE question_id = ANY($1) ORDER BY label`,
 		questionIDs,
 	)
 	if err != nil {
@@ -215,7 +215,7 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 	for optRows.Next() {
 		var opt domain.ReviewOption
 		var qID uuid.UUID
-		if err := optRows.Scan(&opt.ID, &qID, &opt.Label, &opt.Text, &opt.IsCorrect); err != nil {
+		if err := optRows.Scan(&opt.ID, &qID, &opt.Label, &opt.Text, &opt.IsCorrect, &opt.ImageURL); err != nil {
 			return nil, fmt.Errorf("scan option: %w", err)
 		}
 		if idx, ok := questionIndex[qID]; ok {
@@ -244,7 +244,7 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 
 	// 3. Load statements for true_false questions.
 	stmtRows, err := r.pool.Query(ctx,
-		`SELECT id, question_id, text, is_correct, position FROM question_statements WHERE question_id = ANY($1) ORDER BY position`,
+		`SELECT id, question_id, text, is_correct, position, image_url FROM question_statements WHERE question_id = ANY($1) ORDER BY position`,
 		questionIDs,
 	)
 	if err != nil {
@@ -256,7 +256,7 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 		var rs domain.ReviewStatement
 		var qID uuid.UUID
 		var pos int
-		if err := stmtRows.Scan(&rs.ID, &qID, &rs.Text, &rs.IsCorrect, &pos); err != nil {
+		if err := stmtRows.Scan(&rs.ID, &qID, &rs.Text, &rs.IsCorrect, &pos, &rs.ImageURL); err != nil {
 			return nil, fmt.Errorf("scan statement: %w", err)
 		}
 		stmtsByQ[qID] = append(stmtsByQ[qID], rs)

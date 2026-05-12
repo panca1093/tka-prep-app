@@ -98,7 +98,10 @@ const typeColor: Record<string, string> = {
             <span class="q-topic">{{ item.topic_name }}</span>
           </div>
 
-          <p class="q-text">{{ item.text }}</p>
+          <div class="q-text-block">
+            <p class="q-text">{{ item.text }}</p>
+            <img v-if="item.image_url" :src="item.image_url" class="q-img" alt="" />
+          </div>
 
           <!-- MCQ: single select review -->
           <div v-if="item.question_type === 'mcq'" class="options">
@@ -112,7 +115,10 @@ const typeColor: Record<string, string> = {
               }"
             >
               <span class="opt-label">{{ opt.label }}</span>
-              <span class="opt-text">{{ opt.text }}</span>
+              <div class="opt-body">
+                <span class="opt-text">{{ opt.text }}</span>
+                <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+              </div>
               <span v-if="opt.is_correct" class="opt-badge correct-badge">Jawaban Benar</span>
               <span v-if="opt.id === item.selected_option_id && !opt.is_correct" class="opt-badge wrong-badge">Jawaban Kamu</span>
               <span v-if="opt.id === item.selected_option_id && opt.is_correct" class="opt-badge selected-correct-badge">Jawaban Kamu ✓</span>
@@ -138,7 +144,10 @@ const typeColor: Record<string, string> = {
               <span class="opt-label pgk-label" :class="{ checked: isPGKSelected(item, opt.id), 'correct-check': isPGKCorrect(item, opt.id) }">
                 {{ isPGKSelected(item, opt.id) ? '✓' : opt.label }}
               </span>
-              <span class="opt-text">{{ opt.text }}</span>
+              <div class="opt-body">
+                <span class="opt-text">{{ opt.text }}</span>
+                <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+              </div>
               <div class="pgk-badges">
                 <span v-if="isPGKCorrect(item, opt.id)" class="opt-badge correct-badge">Benar</span>
                 <span v-if="isPGKSelected(item, opt.id)" class="opt-badge" :class="isPGKCorrect(item, opt.id) ? 'selected-correct-badge' : 'wrong-badge'">Dipilih</span>
@@ -159,7 +168,10 @@ const typeColor: Record<string, string> = {
               }"
             >
               <div class="stmt-num">{{ idx + 1 }}</div>
-              <div class="stmt-text">{{ stmt.text }}</div>
+              <div class="stmt-body">
+                <div class="stmt-text">{{ stmt.text }}</div>
+                <img v-if="stmt.image_url" :src="stmt.image_url" class="stmt-img" alt="" />
+              </div>
               <div class="stmt-answers">
                 <div class="answer-row">
                   <span class="answer-label">Jawaban:</span>
@@ -250,7 +262,11 @@ const typeColor: Record<string, string> = {
 .pgk-opt-row.correct .pgk-label.correct-check { background: #22c55e; color: #000; }
 .pgk-opt-row.wrong-selected .pgk-label.checked:not(.correct-check) { background: #ef4444; }
 
-.opt-text { flex: 1; }
+.opt-body { flex: 1; display: flex; flex-direction: column; gap: 0.375rem; }
+.opt-text { }
+.opt-img { max-width: 100%; max-height: 140px; border-radius: 6px; border: 1px solid #1e2a45; }
+.q-text-block { display: flex; flex-direction: column; gap: 0; }
+.q-img { max-width: 100%; max-height: 220px; border-radius: 8px; margin-top: 0.625rem; border: 1px solid #1e2a45; }
 .opt-badge { font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 4px; flex-shrink: 0; }
 .correct-badge { background: rgba(34,197,94,0.15); color: #22c55e; }
 .wrong-badge { background: rgba(239,68,68,0.15); color: #ef4444; }
@@ -282,7 +298,9 @@ const typeColor: Record<string, string> = {
   margin-top: 0.1rem;
 }
 
-.stmt-text { flex: 1; font-size: 0.875rem; line-height: 1.5; color: #e2e8f0; }
+.stmt-body { flex: 1; display: flex; flex-direction: column; gap: 0.375rem; }
+.stmt-text { font-size: 0.875rem; line-height: 1.5; color: #e2e8f0; }
+.stmt-img { max-width: 100%; max-height: 120px; border-radius: 6px; border: 1px solid #1e2a45; }
 
 .stmt-answers { display: flex; flex-direction: column; gap: 0.25rem; flex-shrink: 0; min-width: 110px; }
 .answer-row { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; }

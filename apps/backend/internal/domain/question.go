@@ -36,8 +36,9 @@ type Question struct {
 	Type          QuestionType
 	Text          string
 	Explanation   *string
+	ImageURL      *string
 	Difficulty    Difficulty
-	Options       []QuestionOption   // MCQ and multi_correct
+	Options       []QuestionOption    // MCQ and multi_correct
 	Statements    []QuestionStatement // true_false only
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
@@ -49,6 +50,7 @@ type QuestionOption struct {
 	Label      string
 	Text       string
 	IsCorrect  bool
+	ImageURL   *string
 }
 
 type QuestionStatement struct {
@@ -57,4 +59,5 @@ type QuestionStatement struct {
 	Text       string
 	IsCorrect  bool
 	Position   int
+	ImageURL   *string
 }

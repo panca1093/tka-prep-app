@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
+import ImageUpload from '@/components/ImageUpload.vue'
 
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
@@ -28,9 +29,10 @@ interface FormState {
   topic_id: string
   text: string
   explanation: string
+  image_url: string | null
   difficulty: 'easy' | 'medium' | 'hard'
-  options: { label: string; text: string; is_correct: boolean }[]
-  statements: { text: string; is_correct: boolean }[]
+  options: { label: string; text: string; is_correct: boolean; image_url: string | null }[]
+  statements: { text: string; is_correct: boolean; image_url: string | null }[]
 }
 
 const emptyForm = (): FormState => ({
@@ -38,11 +40,12 @@ const emptyForm = (): FormState => ({
   topic_id: '',
   text: '',
   explanation: '',
+  image_url: null,
   difficulty: 'medium',
-  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false })),
+  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
   statements: [
-    { text: '', is_correct: true },
-    { text: '', is_correct: false },
+    { text: '', is_correct: true, image_url: null },
+    { text: '', is_correct: false, image_url: null },
   ],
 })
 
@@ -101,7 +104,7 @@ function toggleCorrectPGK(idx: number) {
 // B/S statements
 function addStatement() {
   if (form.value.statements.length >= 6) return
-  form.value.statements.push({ text: '', is_correct: false })
+  form.value.statements.push({ text: '', is_correct: false, image_url: null })
 }
 
 function removeStatement(idx: number) {
@@ -128,8 +131,9 @@ async function saveQuestion() {
       topic_id: form.value.topic_id,
       text: form.value.text,
       explanation: form.value.explanation || undefined,
+      image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
-      options: form.value.options,
+      options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else if (form.value.question_type === 'multi_correct') {
     const correctCount = form.value.options.filter((o) => o.is_correct).length
@@ -139,8 +143,9 @@ async function saveQuestion() {
       topic_id: form.value.topic_id,
       text: form.value.text,
       explanation: form.value.explanation || undefined,
+      image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
-      options: form.value.options,
+      options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else {
     const stmts = form.value.statements
@@ -151,8 +156,9 @@ async function saveQuestion() {
       topic_id: form.value.topic_id,
       text: form.value.text,
       explanation: form.value.explanation || undefined,
+      image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
-      statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i })),
+      statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
     }
   }
 
@@ -293,6 +299,8 @@ const typeColor: Record<string, string> = {
           <textarea v-model="form.text" rows="3" class="text-area" placeholder="Enter question…" />
         </div>
 
+        <ImageUpload v-model="form.image_url" label="Question image (optional)" />
+
         <!-- MCQ options: single correct -->
         <div v-if="!isTrueFalse" class="field">
           <label>
@@ -301,13 +309,16 @@ const typeColor: Record<string, string> = {
             <span v-else class="hint-inline"> — click label to mark correct</span>
           </label>
           <div class="option-inputs">
-            <div v-for="(opt, i) in form.options" :key="opt.label" class="opt-input-row">
-              <button
-                class="correct-dot"
-                :class="{ active: opt.is_correct, pgk: isMultiCorrect }"
-                @click="isMultiCorrect ? toggleCorrectPGK(i) : setCorrectMCQ(i)"
-              >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
-              <input v-model="opt.text" class="opt-text-input" :placeholder="`Option ${opt.label}`" />
+            <div v-for="(opt, i) in form.options" :key="opt.label" class="opt-input-row-wrap">
+              <div class="opt-input-row">
+                <button
+                  class="correct-dot"
+                  :class="{ active: opt.is_correct, pgk: isMultiCorrect }"
+                  @click="isMultiCorrect ? toggleCorrectPGK(i) : setCorrectMCQ(i)"
+                >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
+                <input v-model="opt.text" class="opt-text-input" :placeholder="`Option ${opt.label}`" />
+              </div>
+              <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
             </div>
           </div>
         </div>
@@ -316,15 +327,18 @@ const typeColor: Record<string, string> = {
         <div v-if="isTrueFalse" class="field">
           <label>Pernyataan ({{ form.statements.length }}/6)</label>
           <div class="stmt-inputs">
-            <div v-for="(stmt, i) in form.statements" :key="i" class="stmt-input-row">
-              <span class="stmt-idx">{{ i + 1 }}</span>
-              <input v-model="stmt.text" class="opt-text-input" :placeholder="`Pernyataan ${i + 1}`" />
-              <button
-                class="bs-toggle"
-                :class="{ benar: stmt.is_correct, salah: !stmt.is_correct }"
-                @click="toggleStatementCorrect(i)"
-              >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</button>
-              <button class="remove-btn" :disabled="form.statements.length <= 2" @click="removeStatement(i)">✕</button>
+            <div v-for="(stmt, i) in form.statements" :key="i" class="stmt-input-block">
+              <div class="stmt-input-row">
+                <span class="stmt-idx">{{ i + 1 }}</span>
+                <input v-model="stmt.text" class="opt-text-input" :placeholder="`Pernyataan ${i + 1}`" />
+                <button
+                  class="bs-toggle"
+                  :class="{ benar: stmt.is_correct, salah: !stmt.is_correct }"
+                  @click="toggleStatementCorrect(i)"
+                >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</button>
+                <button class="remove-btn" :disabled="form.statements.length <= 2" @click="removeStatement(i)">✕</button>
+              </div>
+              <ImageUpload v-model="stmt.image_url" class="stmt-img-upload" />
             </div>
           </div>
           <button class="btn-add-stmt" :disabled="form.statements.length >= 6" @click="addStatement">
@@ -428,8 +442,10 @@ const typeColor: Record<string, string> = {
 .type-tab.active { border-color: #4f8ef7; background: rgba(79,142,247,0.12); color: #4f8ef7; }
 
 /* Options */
-.option-inputs { display: flex; flex-direction: column; gap: 0.5rem; }
+.option-inputs { display: flex; flex-direction: column; gap: 0.625rem; }
+.opt-input-row-wrap { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem; border: 1px solid #1e2a45; border-radius: 8px; background: #0a0f1e; }
 .opt-input-row { display: flex; align-items: center; gap: 0.5rem; }
+.opt-img-upload { margin-left: 2.5rem; }
 .correct-dot {
   width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid #1e2a45;
   background: #0d1424; color: #94a3b8; font-size: 0.75rem; font-weight: 700;
@@ -446,8 +462,10 @@ const typeColor: Record<string, string> = {
 .opt-text-input:focus { border-color: #4f8ef7; }
 
 /* Statements */
-.stmt-inputs { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
+.stmt-inputs { display: flex; flex-direction: column; gap: 0.625rem; margin-bottom: 0.5rem; }
+.stmt-input-block { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem; border: 1px solid #1e2a45; border-radius: 8px; background: #0a0f1e; }
 .stmt-input-row { display: flex; align-items: center; gap: 0.5rem; }
+.stmt-img-upload { margin-left: 2rem; }
 .stmt-idx {
   width: 1.5rem; height: 1.5rem; border-radius: 50%; background: #1e2a45;
   display: flex; align-items: center; justify-content: center;

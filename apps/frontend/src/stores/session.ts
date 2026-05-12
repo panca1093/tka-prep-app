@@ -12,13 +12,15 @@ export interface LoadedStatement {
   id: string
   text: string
   is_correct?: boolean  // not exposed during session, only in review
+  image_url?: string | null
 }
 
 export interface LoadedQuestion {
   id: string
   question_type: QuestionType
   text: string
-  options: { id: string; label: string; text: string }[]
+  image_url?: string | null
+  options: { id: string; label: string; text: string; image_url?: string | null }[]
   statements: LoadedStatement[]
   order_index: number
 }
@@ -80,8 +82,9 @@ export const useSessionStore = defineStore('session', () => {
           id: q.id,
           question_type: q.question_type as QuestionType,
           text: q.text,
-          options: q.options.map((o) => ({ id: o.id, label: o.label, text: o.text })),
-          statements: q.statements.map((s) => ({ id: s.id, text: s.text })),
+          image_url: q.image_url,
+          options: q.options.map((o) => ({ id: o.id, label: o.label, text: o.text, image_url: o.image_url })),
+          statements: q.statements.map((s) => ({ id: s.id, text: s.text, image_url: s.image_url })),
           order_index: tq.order_index,
         }))
 

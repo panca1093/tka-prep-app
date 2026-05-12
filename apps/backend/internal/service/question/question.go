@@ -26,12 +26,14 @@ type OptionInput struct {
 	Label     string
 	Text      string
 	IsCorrect bool
+	ImageURL  *string
 }
 
 type StatementInput struct {
 	Text      string
 	IsCorrect bool
 	Position  int
+	ImageURL  *string
 }
 
 type CreateInput struct {
@@ -40,6 +42,7 @@ type CreateInput struct {
 	QuestionType  domain.QuestionType
 	Text          string
 	Explanation   *string
+	ImageURL      *string
 	Difficulty    domain.Difficulty
 	Options       []OptionInput
 	Statements    []StatementInput
@@ -49,6 +52,7 @@ type UpdateInput struct {
 	TopicID     *uuid.UUID
 	Text        *string
 	Explanation *string
+	ImageURL    *string
 	Difficulty  *domain.Difficulty
 	Options     []OptionInput
 	Statements  []StatementInput
@@ -93,6 +97,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 		Type:          qt,
 		Text:          in.Text,
 		Explanation:   in.Explanation,
+		ImageURL:      in.ImageURL,
 		Difficulty:    in.Difficulty,
 		CreatedAt:     now,
 		UpdatedAt:     now,
@@ -104,21 +109,21 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 			return nil, err
 		}
 		for _, o := range in.Options {
-			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL})
 		}
 	case domain.QuestionTypeMultiCorrect:
 		if err := validatePGKOptions(in.Options); err != nil {
 			return nil, err
 		}
 		for _, o := range in.Options {
-			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL})
 		}
 	case domain.QuestionTypeTrueFalse:
 		if err := validateStatements(in.Statements); err != nil {
 			return nil, err
 		}
 		for _, st := range in.Statements {
-			q.Statements = append(q.Statements, domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position})
+			q.Statements = append(q.Statements, domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageURL})
 		}
 	}
 
@@ -154,6 +159,9 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if in.Explanation != nil {
 		q.Explanation = in.Explanation
 	}
+	if in.ImageURL != nil {
+		q.ImageURL = in.ImageURL
+	}
 	if in.Difficulty != nil {
 		q.Difficulty = *in.Difficulty
 	}
@@ -166,7 +174,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 			}
 			q.Options = make([]domain.QuestionOption, len(in.Options))
 			for i, o := range in.Options {
-				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL}
 			}
 		}
 	case domain.QuestionTypeMultiCorrect:
@@ -176,7 +184,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 			}
 			q.Options = make([]domain.QuestionOption, len(in.Options))
 			for i, o := range in.Options {
-				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL}
 			}
 		}
 	case domain.QuestionTypeTrueFalse:
@@ -186,7 +194,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 			}
 			q.Statements = make([]domain.QuestionStatement, len(in.Statements))
 			for i, st := range in.Statements {
-				q.Statements[i] = domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position}
+				q.Statements[i] = domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageURL}
 			}
 		}
 	}

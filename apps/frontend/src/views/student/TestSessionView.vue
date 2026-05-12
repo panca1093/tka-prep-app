@@ -162,7 +162,10 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
           </div>
         </div>
 
-        <div class="question-text">{{ currentQ?.text }}</div>
+        <div class="question-text">
+          <div>{{ currentQ?.text }}</div>
+          <img v-if="currentQ?.image_url" :src="currentQ.image_url" class="q-img" alt="" />
+        </div>
 
         <!-- MCQ: single select -->
         <div v-if="currentQ?.question_type === 'mcq'" class="options">
@@ -174,7 +177,10 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
             @click="selectMCQOption(opt.id)"
           >
             <span class="opt-label">{{ opt.label }}</span>
-            <span class="opt-text">{{ opt.text }}</span>
+            <div class="opt-body">
+              <span class="opt-text">{{ opt.text }}</span>
+              <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+            </div>
           </button>
         </div>
 
@@ -191,7 +197,10 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
             <span class="opt-label pgk" :class="{ checked: isPGKSelected(opt.id) }">
               {{ isPGKSelected(opt.id) ? '✓' : opt.label }}
             </span>
-            <span class="opt-text">{{ opt.text }}</span>
+            <div class="opt-body">
+              <span class="opt-text">{{ opt.text }}</span>
+              <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+            </div>
           </button>
         </div>
 
@@ -208,7 +217,10 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
             }"
           >
             <div class="stmt-num">{{ idx + 1 }}</div>
-            <div class="stmt-text">{{ stmt.text }}</div>
+            <div class="stmt-body">
+              <div class="stmt-text">{{ stmt.text }}</div>
+              <img v-if="stmt.image_url" :src="stmt.image_url" class="stmt-img" alt="" />
+            </div>
             <div class="bs-btns">
               <button
                 class="bs-btn benar"
@@ -416,7 +428,10 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
 .opt-label.pgk { border-radius: 5px; }
 .opt-label.pgk.checked { background: #a855f7; }
 .option-btn.selected .opt-label:not(.pgk) { background: #4f8ef7; }
+.opt-body { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
 .opt-text { font-size: 0.9rem; line-height: 1.5; padding-top: 0.15rem; }
+.opt-img { max-width: 100%; max-height: 160px; border-radius: 6px; border: 1px solid #1e2a45; }
+.q-img { max-width: 100%; max-height: 240px; border-radius: 8px; margin-top: 0.75rem; border: 1px solid #1e2a45; }
 
 /* B/S statements */
 .statements { display: flex; flex-direction: column; gap: 0.75rem; }
@@ -448,12 +463,13 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   color: #94a3b8;
 }
 
+.stmt-body { flex: 1; display: flex; flex-direction: column; gap: 0.375rem; }
 .stmt-text {
-  flex: 1;
   font-size: 0.9rem;
   line-height: 1.5;
   color: #f1f5f9;
 }
+.stmt-img { max-width: 100%; max-height: 140px; border-radius: 6px; border: 1px solid #1e2a45; }
 
 .bs-btns { display: flex; gap: 0.5rem; flex-shrink: 0; }
 

@@ -76,7 +76,7 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
 		fmt.Sprintf(`SELECT q.id, q.contributor_id, q.topic_id, q.question_type, q.text, q.explanation,
-		       q.difficulty, q.created_at, q.updated_at
+		       q.image_url, q.difficulty, q.created_at, q.updated_at
 		  FROM questions q %s
 		  ORDER BY q.created_at DESC
 		  LIMIT $%d OFFSET $%d`, where, i, i+1),
@@ -92,7 +92,7 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 		q := &domain.Question{}
 		var diff, qtype string
 		if err := rows.Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.Text, &q.Explanation,
-			&diff, &q.CreatedAt, &q.UpdatedAt); err != nil {
+			&q.ImageURL, &diff, &q.CreatedAt, &q.UpdatedAt); err != nil {
 			return nil, 0, fmt.Errorf("scan question: %w", err)
 		}
 		q.Difficulty = domain.Difficulty(diff)
@@ -119,9 +119,9 @@ func (r *QuestionRepository) Create(ctx context.Context, q *domain.Question) err
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx,
-		`INSERT INTO questions (id, contributor_id, topic_id, question_type, text, explanation, difficulty, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-		q.ID, q.ContributorID, q.TopicID, string(q.Type), q.Text, q.Explanation,
+		`INSERT INTO questions (id, contributor_id, topic_id, question_type, text, explanation, image_url, difficulty, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+		q.ID, q.ContributorID, q.TopicID, string(q.Type), q.Text, q.Explanation, q.ImageURL,
 		string(q.Difficulty), q.CreatedAt, q.UpdatedAt,
 	)
 	if err != nil {
@@ -146,10 +146,10 @@ func (r *QuestionRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	q := &domain.Question{}
 	var diff, qtype string
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, contributor_id, topic_id, question_type, text, explanation, difficulty, created_at, updated_at
+		`SELECT id, contributor_id, topic_id, question_type, text, explanation, image_url, difficulty, created_at, updated_at
 		 FROM questions WHERE id = $1`, id,
 	).Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.Text, &q.Explanation,
-		&diff, &q.CreatedAt, &q.UpdatedAt)
+		&q.ImageURL, &diff, &q.CreatedAt, &q.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound
@@ -172,9 +172,9 @@ func (r *QuestionRepository) Update(ctx context.Context, q *domain.Question) err
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	tag, err := tx.Exec(ctx,
-		`UPDATE questions SET topic_id=$1, text=$2, explanation=$3, difficulty=$4, updated_at=$5
-		 WHERE id=$6`,
-		q.TopicID, q.Text, q.Explanation, string(q.Difficulty), q.UpdatedAt, q.ID,
+		`UPDATE questions SET topic_id=$1, text=$2, explanation=$3, image_url=$4, difficulty=$5, updated_at=$6
+		 WHERE id=$7`,
+		q.TopicID, q.Text, q.Explanation, q.ImageURL, string(q.Difficulty), q.UpdatedAt, q.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("update question: %w", err)
@@ -237,7 +237,7 @@ func (r *QuestionRepository) loadOptionsAndStatements(ctx context.Context, q *do
 
 func (r *QuestionRepository) loadOptions(ctx context.Context, q *domain.Question) error {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, question_id, label, text, is_correct
+		`SELECT id, question_id, label, text, is_correct, image_url
 		 FROM question_options WHERE question_id = $1 ORDER BY label`, q.ID,
 	)
 	if err != nil {
@@ -247,7 +247,7 @@ func (r *QuestionRepository) loadOptions(ctx context.Context, q *domain.Question
 
 	for rows.Next() {
 		var opt domain.QuestionOption
-		if err := rows.Scan(&opt.ID, &opt.QuestionID, &opt.Label, &opt.Text, &opt.IsCorrect); err != nil {
+		if err := rows.Scan(&opt.ID, &opt.QuestionID, &opt.Label, &opt.Text, &opt.IsCorrect, &opt.ImageURL); err != nil {
 			return fmt.Errorf("scan option: %w", err)
 		}
 		q.Options = append(q.Options, opt)
@@ -257,7 +257,7 @@ func (r *QuestionRepository) loadOptions(ctx context.Context, q *domain.Question
 
 func (r *QuestionRepository) loadStatements(ctx context.Context, q *domain.Question) error {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, question_id, text, is_correct, position
+		`SELECT id, question_id, text, is_correct, position, image_url
 		 FROM question_statements WHERE question_id = $1 ORDER BY position`, q.ID,
 	)
 	if err != nil {
@@ -267,7 +267,7 @@ func (r *QuestionRepository) loadStatements(ctx context.Context, q *domain.Quest
 
 	for rows.Next() {
 		var s domain.QuestionStatement
-		if err := rows.Scan(&s.ID, &s.QuestionID, &s.Text, &s.IsCorrect, &s.Position); err != nil {
+		if err := rows.Scan(&s.ID, &s.QuestionID, &s.Text, &s.IsCorrect, &s.Position, &s.ImageURL); err != nil {
 			return fmt.Errorf("scan statement: %w", err)
 		}
 		q.Statements = append(q.Statements, s)
@@ -278,9 +278,9 @@ func (r *QuestionRepository) loadStatements(ctx context.Context, q *domain.Quest
 func insertOptions(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, opts []domain.QuestionOption) error {
 	for _, opt := range opts {
 		_, err := tx.Exec(ctx,
-			`INSERT INTO question_options (id, question_id, label, text, is_correct)
-			 VALUES ($1, $2, $3, $4, $5)`,
-			opt.ID, questionID, opt.Label, opt.Text, opt.IsCorrect,
+			`INSERT INTO question_options (id, question_id, label, text, is_correct, image_url)
+			 VALUES ($1, $2, $3, $4, $5, $6)`,
+			opt.ID, questionID, opt.Label, opt.Text, opt.IsCorrect, opt.ImageURL,
 		)
 		if err != nil {
 			return fmt.Errorf("insert option %s: %w", opt.Label, err)
@@ -292,9 +292,9 @@ func insertOptions(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, opts []
 func insertStatements(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, stmts []domain.QuestionStatement) error {
 	for _, s := range stmts {
 		_, err := tx.Exec(ctx,
-			`INSERT INTO question_statements (id, question_id, text, is_correct, position)
-			 VALUES ($1, $2, $3, $4, $5)`,
-			s.ID, questionID, s.Text, s.IsCorrect, s.Position,
+			`INSERT INTO question_statements (id, question_id, text, is_correct, position, image_url)
+			 VALUES ($1, $2, $3, $4, $5, $6)`,
+			s.ID, questionID, s.Text, s.IsCorrect, s.Position, s.ImageURL,
 		)
 		if err != nil {
 			return fmt.Errorf("insert statement: %w", err)

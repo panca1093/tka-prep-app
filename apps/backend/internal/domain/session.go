@@ -90,6 +90,7 @@ type ReviewOption struct {
 	Label     string
 	Text      string
 	IsCorrect bool
+	ImageURL  *string
 }
 
 type ReviewStatement struct {
@@ -97,6 +98,7 @@ type ReviewStatement struct {
 	Text          string
 	IsCorrect     bool  // correct answer
 	StudentAnswer *bool // what student picked (nil = not answered)
+	ImageURL      *string
 }
 
 type LeaderboardScope string
@@ -122,6 +124,7 @@ type ReviewItem struct {
 	OrderIndex   int
 	Text         string
 	Explanation  *string
+	ImageURL     *string
 	Difficulty   Difficulty
 	TopicID      uuid.UUID
 	TopicName    string

@@ -115,7 +115,7 @@ func toResultDetailResponse(d *domain.ResultDetail) api.ResultDetailResponse {
 func toReviewItemResponse(item domain.ReviewItem) api.ReviewItemResponse {
 	opts := make([]api.ReviewOptionResponse, len(item.Options))
 	for i, o := range item.Options {
-		opts[i] = api.ReviewOptionResponse{Id: o.ID, Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+		opts[i] = api.ReviewOptionResponse{Id: o.ID, Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageUrl: o.ImageURL}
 	}
 
 	stmts := make([]api.ReviewStatementResponse, len(item.Statements))
@@ -125,6 +125,7 @@ func toReviewItemResponse(item domain.ReviewItem) api.ReviewItemResponse {
 			Text:          s.Text,
 			IsCorrect:     s.IsCorrect,
 			StudentAnswer: s.StudentAnswer,
+			ImageUrl:      s.ImageURL,
 		}
 	}
 
@@ -149,6 +150,7 @@ func toReviewItemResponse(item domain.ReviewItem) api.ReviewItemResponse {
 		OrderIndex:        item.OrderIndex,
 		Text:              item.Text,
 		Explanation:       item.Explanation,
+		ImageUrl:          item.ImageURL,
 		Difficulty:        api.ReviewItemResponseDifficulty(item.Difficulty),
 		TopicId:           item.TopicID,
 		TopicName:         item.TopicName,

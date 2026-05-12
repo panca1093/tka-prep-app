@@ -77,16 +77,17 @@ func (s *APIServer) PostQuestions(ctx context.Context, req api.PostQuestionsRequ
 		QuestionType:  qt,
 		Text:          b.Text,
 		Explanation:   b.Explanation,
+		ImageURL:      b.ImageUrl,
 		Difficulty:    domain.Difficulty(b.Difficulty),
 	}
 	if b.Options != nil {
 		for _, o := range *b.Options {
-			in.Options = append(in.Options, question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+			in.Options = append(in.Options, question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageUrl})
 		}
 	}
 	if b.Statements != nil {
 		for _, st := range *b.Statements {
-			in.Statements = append(in.Statements, question.StatementInput{Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position})
+			in.Statements = append(in.Statements, question.StatementInput{Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageUrl})
 		}
 	}
 
@@ -132,6 +133,7 @@ func (s *APIServer) PatchQuestionsQuestionId(ctx context.Context, req api.PatchQ
 	in := question.UpdateInput{
 		Text:        b.Text,
 		Explanation: b.Explanation,
+		ImageURL:    b.ImageUrl,
 		TopicID:     b.TopicId,
 	}
 	if b.Difficulty != nil {
@@ -140,12 +142,12 @@ func (s *APIServer) PatchQuestionsQuestionId(ctx context.Context, req api.PatchQ
 	}
 	if b.Options != nil {
 		for _, o := range *b.Options {
-			in.Options = append(in.Options, question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect})
+			in.Options = append(in.Options, question.OptionInput{Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageUrl})
 		}
 	}
 	if b.Statements != nil {
 		for _, st := range *b.Statements {
-			in.Statements = append(in.Statements, question.StatementInput{Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position})
+			in.Statements = append(in.Statements, question.StatementInput{Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageUrl})
 		}
 	}
 
@@ -190,11 +192,11 @@ func (s *APIServer) DeleteQuestionsQuestionId(ctx context.Context, req api.Delet
 func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 	opts := make([]api.QuestionOptionResponse, len(q.Options))
 	for i, o := range q.Options {
-		opts[i] = api.QuestionOptionResponse{Id: o.ID, Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect}
+		opts[i] = api.QuestionOptionResponse{Id: o.ID, Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageUrl: o.ImageURL}
 	}
 	stmts := make([]api.QuestionStatementResponse, len(q.Statements))
 	for i, s := range q.Statements {
-		stmts[i] = api.QuestionStatementResponse{Id: s.ID, Text: s.Text, IsCorrect: s.IsCorrect, Position: s.Position}
+		stmts[i] = api.QuestionStatementResponse{Id: s.ID, Text: s.Text, IsCorrect: s.IsCorrect, Position: s.Position, ImageUrl: s.ImageURL}
 	}
 	return api.QuestionDetailResponse{
 		Id:            q.ID,
@@ -203,6 +205,7 @@ func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 		QuestionType:  api.QuestionDetailResponseQuestionType(q.Type),
 		Text:          q.Text,
 		Explanation:   q.Explanation,
+		ImageUrl:      q.ImageURL,
 		Difficulty:    api.QuestionDetailResponseDifficulty(q.Difficulty),
 		Options:       opts,
 		Statements:    stmts,

@@ -12,6 +12,10 @@ export function clearAccessToken() {
   _accessToken = ''
 }
 
+export function getAccessToken(): string {
+  return _accessToken
+}
+
 const authMiddleware: Middleware = {
   async onRequest({ request }) {
     if (_accessToken) {

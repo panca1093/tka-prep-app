@@ -36,6 +36,12 @@ func New(cfg *config.Config, handler *httphandler.APIServer) *Server {
 	}))
 	r.Use(middleware.Authenticate(cfg.JWTSecret))
 
+	// Upload endpoint (raw route — multipart doesn't fit strict handler pattern).
+	r.Post("/api/v1/upload", httphandler.UploadHandler(cfg.UploadDir))
+
+	// Static file serving for uploaded images.
+	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.UploadDir))))
+
 	strict := api.NewStrictHandler(handler, nil)
 	r.Mount("/api/v1", api.HandlerFromMux(strict, chi.NewRouter()))
 

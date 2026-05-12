@@ -8,14 +8,15 @@ import (
 
 // Config holds all runtime configuration loaded from environment variables.
 type Config struct {
-	Env             string
-	Port            string
-	LogLevel        string
-	DatabaseURL     string
-	JWTSecret       string
-	JWTAccessTTL    time.Duration
-	JWTRefreshTTL   time.Duration
-	AllowedOrigins  []string
+	Env            string
+	Port           string
+	LogLevel       string
+	DatabaseURL    string
+	JWTSecret      string
+	JWTAccessTTL   time.Duration
+	JWTRefreshTTL  time.Duration
+	AllowedOrigins []string
+	UploadDir      string
 }
 
 // Load reads configuration from environment variables, applying sensible defaults
@@ -29,6 +30,7 @@ func Load() (*Config, error) {
 		DatabaseURL:    getEnv("DATABASE_URL", ""),
 		JWTSecret:      getEnv("JWT_SECRET", ""),
 		AllowedOrigins: []string{getEnv("FRONTEND_ORIGIN", "http://localhost:5173")},
+		UploadDir:      getEnv("UPLOAD_DIR", "./uploads"),
 	}
 
 	accessTTL, err := time.ParseDuration(getEnv("JWT_ACCESS_TTL", "15m"))

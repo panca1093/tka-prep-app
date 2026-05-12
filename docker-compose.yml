@@ -52,8 +52,11 @@ services:
       PORT: "8080"
       LOG_LEVEL: debug
       FRONTEND_ORIGIN: http://localhost:5173
+      UPLOAD_DIR: /app/uploads
     ports:
       - "8080:8080"
+    volumes:
+      - uploads_data:/app/uploads
 
   frontend:
     build:
@@ -70,3 +73,4 @@ services:
 
 volumes:
   postgres_data:
+  uploads_data:
