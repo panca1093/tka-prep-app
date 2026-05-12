@@ -2,6 +2,7 @@ package http
 
 import (
 	"github.com/yourorg/tkaprep/apps/backend/internal/repository"
+	adminsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/admin"
 	"github.com/yourorg/tkaprep/apps/backend/internal/service/auth"
 	"github.com/yourorg/tkaprep/apps/backend/internal/service/question"
 	resultsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/result"
@@ -11,7 +12,7 @@ import (
 )
 
 // APIServer implements api.StrictServerInterface.
-// Each domain area has its methods defined in a separate file (health.go, auth.go, topics.go, questions.go, tests.go, sessions.go, results.go, leaderboard.go).
+// Each domain area has its methods defined in a separate file (health.go, auth.go, topics.go, questions.go, tests.go, sessions.go, results.go, leaderboard.go, admin.go).
 type APIServer struct {
 	authSvc         *auth.Service
 	topicSvc        *topic.Service
@@ -20,6 +21,7 @@ type APIServer struct {
 	sessionSvc      *sessionsvc.Service
 	resultSvc       *resultsvc.Service
 	leaderboardRepo repository.LeaderboardRepository
+	adminSvc        *adminsvc.Service
 }
 
 func NewAPIServer(
@@ -30,6 +32,7 @@ func NewAPIServer(
 	sessionSvc *sessionsvc.Service,
 	resultSvc *resultsvc.Service,
 	leaderboardRepo repository.LeaderboardRepository,
+	adminSvc *adminsvc.Service,
 ) *APIServer {
 	return &APIServer{
 		authSvc:         authSvc,
@@ -39,5 +42,6 @@ func NewAPIServer(
 		sessionSvc:      sessionSvc,
 		resultSvc:       resultSvc,
 		leaderboardRepo: leaderboardRepo,
+		adminSvc:        adminSvc,
 	}
 }

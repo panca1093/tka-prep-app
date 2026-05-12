@@ -17,6 +17,7 @@ import (
 	httphandler "github.com/yourorg/tkaprep/apps/backend/internal/handler/http"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/server"
 	pgstore "github.com/yourorg/tkaprep/apps/backend/internal/repository/postgres"
+	adminsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/admin"
 	authsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/auth"
 	questionsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/question"
 	resultsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/result"
@@ -58,6 +59,7 @@ func main() {
 	sessionRepo := pgstore.NewSessionRepository(pool)
 	resultRepo := pgstore.NewResultRepository(pool)
 	leaderboardRepo := pgstore.NewLeaderboardRepository(pool)
+	adminRepo := pgstore.NewAdminRepository(pool)
 
 	authSvc := authsvc.NewService(authsvc.Config{
 		JWTSecret:     cfg.JWTSecret,
@@ -69,8 +71,9 @@ func main() {
 	testService := testsvc.NewService(testRepo)
 	sessionService := sessionsvc.NewService(sessionRepo, resultRepo, testRepo, pool)
 	resultService := resultsvc.NewService(resultRepo, sessionRepo)
+	adminService := adminsvc.New(userRepo, adminRepo)
 
-	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardRepo)
+	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardRepo, adminService)
 	srv := server.New(cfg, apiHandler)
 
 	httpServer := &http.Server{

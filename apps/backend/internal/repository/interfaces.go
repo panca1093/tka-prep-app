@@ -9,10 +9,23 @@ import (
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 )
 
+// UserAdminFilter holds optional filters for the admin user listing.
+type UserAdminFilter struct {
+	Search string
+	Role   *domain.Role
+	Status *domain.Status
+	Page   int
+	Limit  int
+}
+
 type UserRepository interface {
 	Create(ctx context.Context, user *domain.User) error
 	FindByEmail(ctx context.Context, email string) (*domain.User, error)
 	FindByID(ctx context.Context, id uuid.UUID) (*domain.User, error)
+	// List returns a filtered, paginated list of users for admin views.
+	List(ctx context.Context, f UserAdminFilter) ([]*domain.User, int, error)
+	// UpdateStatus sets the account status for a user.
+	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.Status) error
 }
 
 type RefreshTokenRepository interface {
@@ -102,6 +115,13 @@ type LeaderboardRepository interface {
 	// GetMyRank returns the caller's rank and aggregate stats in the given scope.
 	// Returns apierr.ErrNotFound if the student has no results in the scope.
 	GetMyRank(ctx context.Context, studentID uuid.UUID, scope domain.LeaderboardScope) (*domain.LeaderboardEntry, error)
+}
+
+type AdminRepository interface {
+	// GetStats returns aggregate platform statistics.
+	GetStats(ctx context.Context) (*domain.PlatformStats, error)
+	// ListTestsWithAttempts returns tests with their attempt counts, ordered by attempt count desc.
+	ListTestsWithAttempts(ctx context.Context, page, limit int) ([]*domain.TestWithAttempts, int, error)
 }
 
 type ResultRepository interface {

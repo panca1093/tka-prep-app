@@ -4,14 +4,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
+	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/google/uuid"
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
+	"github.com/yourorg/tkaprep/apps/backend/internal/repository"
 )
 
 type UserRepository struct {
@@ -75,4 +77,82 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Us
 	u.Role = domain.Role(role)
 	u.Status = domain.Status(status)
 	return &u, nil
+}
+
+func (r *UserRepository) List(ctx context.Context, f repository.UserAdminFilter) ([]*domain.User, int, error) {
+	if f.Limit <= 0 {
+		f.Limit = 20
+	}
+	if f.Page <= 0 {
+		f.Page = 1
+	}
+	offset := (f.Page - 1) * f.Limit
+
+	where := []string{"1=1"}
+	args := []any{}
+	n := 1
+
+	if f.Search != "" {
+		where = append(where, fmt.Sprintf("(name ILIKE $%d OR email ILIKE $%d)", n, n+1))
+		like := "%" + f.Search + "%"
+		args = append(args, like, like)
+		n += 2
+	}
+	if f.Role != nil {
+		where = append(where, fmt.Sprintf("role = $%d", n))
+		args = append(args, string(*f.Role))
+		n++
+	}
+	if f.Status != nil {
+		where = append(where, fmt.Sprintf("status = $%d", n))
+		args = append(args, string(*f.Status))
+		n++
+	}
+
+	pred := strings.Join(where, " AND ")
+
+	var total int
+	if err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM users WHERE "+pred, args...).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count users: %w", err)
+	}
+
+	args = append(args, f.Limit, offset)
+	rows, err := r.pool.Query(ctx,
+		fmt.Sprintf(`SELECT id, name, email, password_hash, role, status, created_at, updated_at
+		             FROM users WHERE %s
+		             ORDER BY created_at DESC
+		             LIMIT $%d OFFSET $%d`, pred, n, n+1),
+		args...,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("list users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*domain.User
+	for rows.Next() {
+		var u domain.User
+		var role, status string
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.CreatedAt, &u.UpdatedAt); err != nil {
+			return nil, 0, fmt.Errorf("scan user: %w", err)
+		}
+		u.Role = domain.Role(role)
+		u.Status = domain.Status(status)
+		users = append(users, &u)
+	}
+	return users, total, rows.Err()
+}
+
+func (r *UserRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status domain.Status) error {
+	tag, err := r.pool.Exec(ctx,
+		`UPDATE users SET status = $1, updated_at = NOW() WHERE id = $2`,
+		string(status), id,
+	)
+	if err != nil {
+		return fmt.Errorf("update user status: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return apierr.ErrNotFound
+	}
+	return nil
 }
