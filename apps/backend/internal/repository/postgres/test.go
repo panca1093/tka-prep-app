@@ -162,7 +162,19 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 		t.Status = domain.TestStatus(status)
 		tests = append(tests, t)
 	}
-	return tests, total, rows.Err()
+	if err := rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	for _, t := range tests {
+		if err := r.loadQuestions(ctx, t); err != nil {
+			return nil, 0, err
+		}
+		if err := r.loadScoringConfig(ctx, t); err != nil {
+			return nil, 0, err
+		}
+	}
+	return tests, total, nil
 }
 
 func (r *TestRepository) Update(ctx context.Context, t *domain.Test) error {
