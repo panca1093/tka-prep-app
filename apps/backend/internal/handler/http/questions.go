@@ -106,7 +106,7 @@ func (s *APIServer) GetQuestionsQuestionId(ctx context.Context, req api.GetQuest
 	if !ok {
 		return api.GetQuestionsQuestionId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleStudent {
 		return api.GetQuestionsQuestionId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
