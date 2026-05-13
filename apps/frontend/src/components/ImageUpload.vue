@@ -14,11 +14,18 @@ const emit = defineEmits<{
 const isUploading = ref(false)
 const error = ref('')
 
+const MAX_SIZE = 5 * 1024 * 1024 // 5 MB
+
 async function onFileChange(evt: Event) {
   const input = evt.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
   error.value = ''
+  if (file.size > MAX_SIZE) {
+    error.value = 'File too large (max 5 MB)'
+    input.value = ''
+    return
+  }
   isUploading.value = true
   try {
     const url = await uploadImage(file)
