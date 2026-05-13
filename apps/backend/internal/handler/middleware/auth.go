@@ -8,7 +8,7 @@ import (
 	pkgjwt "github.com/yourorg/tkaprep/apps/backend/internal/pkg/jwt"
 )
 
-// publicPaths are exempt from JWT validation.
+// publicPaths are exempt from JWT validation (exact match).
 var publicPaths = map[string]bool{
 	"/api/v1/health":        true,
 	"/api/v1/auth/register": true,
@@ -16,10 +16,18 @@ var publicPaths = map[string]bool{
 	"/api/v1/auth/refresh":  true,
 }
 
+func isPublic(path string) bool {
+	if publicPaths[path] {
+		return true
+	}
+	// Uploaded images are served publicly — browser img tags can't send Bearer tokens.
+	return strings.HasPrefix(path, "/uploads/")
+}
+
 func Authenticate(jwtSecret string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			if publicPaths[r.URL.Path] {
+			if isPublic(r.URL.Path) {
 				next.ServeHTTP(w, r)
 				return
 			}

@@ -19,6 +19,9 @@ RUN apk add --no-cache ca-certificates tzdata && \
 WORKDIR /app
 COPY --from=builder /out/server ./server
 
+# Create uploads dir owned by app so the named volume initialises with correct ownership.
+RUN mkdir -p /app/uploads && chown -R app:app /app/uploads
+
 USER app
 EXPOSE 8080
 

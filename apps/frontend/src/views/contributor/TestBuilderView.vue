@@ -64,7 +64,7 @@ async function createTest() {
 async function openQSelector(t: Test) {
   selectorTestId.value = t.id
   selectorTestTitle.value = t.title
-  selectorSelectedIds.value = new Set(t.questions.map((q) => q.id))
+  selectorSelectedIds.value = new Set(t.questions.map((q) => q.question_id))
   selectorSearch.value = ''
   selectorTopic.value = ''
   selectorDifficulty.value = ''
