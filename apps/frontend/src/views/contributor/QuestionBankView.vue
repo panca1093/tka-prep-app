@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
 import ImageUpload from '@/components/ImageUpload.vue'
+import RichTextEditor from '@/components/editor/RichTextEditor.vue'
+import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
@@ -139,7 +141,8 @@ function toggleStatementCorrect(idx: number) {
 async function saveQuestion() {
   formError.value = ''
   if (!form.value.topic_id) { formError.value = 'Please select a topic.'; return }
-  if (!form.value.text.trim()) { formError.value = 'Question text is required.'; return }
+  const plainText = form.value.text.replace(/<[^>]*>/g, '').trim()
+  if (!plainText) { formError.value = 'Question text is required.'; return }
 
   let body: CreateReq
 
@@ -170,7 +173,7 @@ async function saveQuestion() {
   } else {
     const stmts = form.value.statements
     if (stmts.length < 2) { formError.value = 'Add at least 2 statements.'; return }
-    if (stmts.some(s => !s.text.trim())) { formError.value = 'All statement texts are required.'; return }
+    if (stmts.some(s => !s.text.replace(/<[^>]*>/g, '').trim())) { formError.value = 'All statement texts are required.'; return }
     body = {
       question_type: 'true_false',
       topic_id: form.value.topic_id,
@@ -262,7 +265,7 @@ const typeColor: Record<string, string> = {
             <button class="icon-btn" @click="deleteQuestion(q.id)">🗑</button>
           </div>
         </div>
-        <p class="q-text">{{ q.text }}</p>
+        <div class="q-text"><RichTextViewer :html="q.text" /></div>
         <!-- Options summary for MCQ / PGK -->
         <div v-if="q.question_type !== 'true_false'" class="q-options">
           <span
@@ -317,7 +320,7 @@ const typeColor: Record<string, string> = {
 
         <div class="field">
           <label>Question Text</label>
-          <textarea v-model="form.text" rows="3" class="text-area" placeholder="Enter question…" />
+          <RichTextEditor v-model="form.text" />
         </div>
 
         <ImageUpload v-model="form.image_url" label="Question image (optional)" />
@@ -337,7 +340,7 @@ const typeColor: Record<string, string> = {
                   :class="{ active: opt.is_correct, pgk: isMultiCorrect }"
                   @click="isMultiCorrect ? toggleCorrectPGK(i) : setCorrectMCQ(i)"
                 >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
-                <input v-model="opt.text" class="opt-text-input" :placeholder="`Option ${opt.label}`" />
+                <RichTextEditor v-model="opt.text" class="opt-text-input" />
               </div>
               <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
             </div>
@@ -351,7 +354,7 @@ const typeColor: Record<string, string> = {
             <div v-for="(stmt, i) in form.statements" :key="i" class="stmt-input-block">
               <div class="stmt-input-row">
                 <span class="stmt-idx">{{ i + 1 }}</span>
-                <input v-model="stmt.text" class="opt-text-input" :placeholder="`Pernyataan ${i + 1}`" />
+                <RichTextEditor v-model="stmt.text" class="opt-text-input" />
                 <button
                   class="bs-toggle"
                   :class="{ benar: stmt.is_correct, salah: !stmt.is_correct }"
@@ -369,7 +372,7 @@ const typeColor: Record<string, string> = {
 
         <div class="field">
           <label>Explanation (optional)</label>
-          <textarea v-model="form.explanation" rows="2" class="text-area" placeholder="Explain the correct answer…" />
+          <RichTextEditor v-model="form.explanation" />
         </div>
 
         <p v-if="formError" class="error-msg">{{ formError }}</p>

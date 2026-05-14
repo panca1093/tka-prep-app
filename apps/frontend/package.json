@@ -11,6 +11,12 @@
     "lint": "eslint . --ext .vue,.ts,.tsx --fix"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.23.4",
+    "@tiptap/extension-underline": "^3.23.4",
+    "@tiptap/starter-kit": "^3.23.4",
+    "@tiptap/vue-3": "^3.23.4",
+    "dompurify": "^3.4.3",
+    "katex": "^0.16.46",
     "openapi-fetch": "^0.13.0",
     "pinia": "^2.2.0",
     "vue": "^3.5.0",
