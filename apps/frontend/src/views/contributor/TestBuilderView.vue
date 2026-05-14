@@ -14,7 +14,7 @@ const actionError = ref('')
 // Create form
 const showCreate = ref(false)
 const creating = ref(false)
-const createForm = ref({ title: '', description: '', category: 'tka_saintek' as 'tka_saintek' | 'tka_soshum' | 'smbt', duration_minutes: 90, difficulty: 'medium' as 'easy' | 'medium' | 'hard' })
+const createForm = ref({ title: '', description: '', category: 'tka_saintek' as 'tka_saintek' | 'tka_soshum' | 'smbt', duration_minutes: 90, difficulty: 'medium' as 'easy' | 'medium' | 'hard', education_level: '' as '' | 'sd' | 'smp' | 'sma' | 'smk' })
 
 // Question selector
 const showQSelector = ref(false)
@@ -53,7 +53,8 @@ async function fetchTests() {
 
 async function createTest() {
   creating.value = true
-  const { error } = await client.POST('/tests', { body: { ...createForm.value, scoring_config: { correct_points: 4, wrong_points: 0, blank_points: 0 } } })
+  const el = createForm.value.education_level || undefined
+  const { error } = await client.POST('/tests', { body: { ...createForm.value, education_level: el as 'sd' | 'smp' | 'sma' | 'smk' | undefined, scoring_config: { correct_points: 4, wrong_points: 0, blank_points: 0 } } })
   creating.value = false
   if (error) { actionError.value = 'Failed to create test.'; return }
   showCreate.value = false
@@ -195,6 +196,16 @@ onMounted(async () => { await fetchTests(); isLoading.value = false })
         <div class="field">
           <label>Duration (minutes)</label>
           <input v-model.number="createForm.duration_minutes" type="number" class="form-input" min="5" max="300" />
+        </div>
+        <div class="field">
+          <label>Education Level</label>
+          <select v-model="createForm.education_level" class="form-select">
+            <option value="">All Levels</option>
+            <option value="sd">SD</option>
+            <option value="smp">SMP</option>
+            <option value="sma">SMA</option>
+            <option value="smk">SMK</option>
+          </select>
         </div>
         <div class="modal-actions">
           <button class="btn-cancel" @click="showCreate = false">Cancel</button>

@@ -11,6 +11,7 @@ const name = ref('')
 const email = ref('')
 const password = ref('')
 const role = ref<'student' | 'contributor'>('student')
+const educationLevel = ref<'sd' | 'smp' | 'sma' | 'smk' | ''>('')
 const isLoading = ref(false)
 const errorMsg = ref('')
 const isPending = ref(false)
@@ -19,7 +20,8 @@ async function handleSubmit() {
   errorMsg.value = ''
   isLoading.value = true
   try {
-    const result = await auth.register({ name: name.value, email: email.value, password: password.value, role: role.value })
+    const el = educationLevel.value ? educationLevel.value : undefined
+    const result = await auth.register({ name: name.value, email: email.value, password: password.value, role: role.value, education_level: el })
     if (result.isPending) {
       isPending.value = true
     } else {
@@ -68,6 +70,17 @@ async function handleSubmit() {
           <label>Password</label>
           <input v-model="password" type="password" autocomplete="new-password" placeholder="min. 8 characters" required minlength="8" maxlength="72" />
         </div>
+        <div v-if="role === 'student'" class="field">
+          <label>Education Level</label>
+          <select v-model="educationLevel" class="edu-select">
+            <option value="">Select your level</option>
+            <option value="sd">SD — Sekolah Dasar</option>
+            <option value="smp">SMP — Sekolah Menengah Pertama</option>
+            <option value="sma">SMA — Sekolah Menengah Atas</option>
+            <option value="smk">SMK — Sekolah Menengah Kejuruan</option>
+          </select>
+        </div>
+
         <div class="field">
           <label>I am a…</label>
           <div class="role-group">
@@ -120,6 +133,16 @@ async function handleSubmit() {
   transition: border-color 0.15s;
 }
 .field input:focus { border-color: #4f8ef7; }
+.edu-select {
+  padding: 0.65rem 0.875rem;
+  border-radius: 8px;
+  border: 1px solid #1e2a45;
+  background: #0d1424;
+  color: #f1f5f9;
+  font-size: 0.9rem;
+  outline: none;
+}
+.edu-select:focus { border-color: #4f8ef7; }
 
 .role-group { display: flex; gap: 0.75rem; }
 .role-option {

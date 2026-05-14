@@ -33,6 +33,7 @@ const router = createRouter({
         { path: 'results/:resultId', name: 'result', component: () => import('@/views/student/ResultView.vue'), meta: { role: 'student' } },
         { path: 'results/:resultId/review', name: 'review', component: () => import('@/views/student/ReviewView.vue'), meta: { role: 'student' } },
         { path: 'leaderboard', name: 'leaderboard', component: () => import('@/views/student/LeaderboardView.vue'), meta: { role: 'student' } },
+        { path: 'profile', name: 'student-profile', component: () => import('@/views/student/ProfileView.vue'), meta: { role: 'student' } },
 
         // Contributor
         { path: 'contrib', redirect: { name: 'contrib-dashboard' } },

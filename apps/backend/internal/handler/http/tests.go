@@ -45,6 +45,11 @@ func (s *APIServer) GetTests(ctx context.Context, req api.GetTestsRequestObject)
 	if claims.Role == domain.RoleStudent {
 		published := domain.TestStatusPublished
 		f.Status = &published
+		// Filter tests by student's education level.
+		user, err := s.authSvc.Me(ctx, claims.UserID)
+		if err == nil && user.EducationLevel != nil {
+			f.EducationLevel = user.EducationLevel
+		}
 	} else if claims.Role == domain.RoleContributor && f.ContributorID == nil {
 		f.ContributorID = &claims.UserID
 	}
@@ -83,6 +88,10 @@ func (s *APIServer) PostTests(ctx context.Context, req api.PostTestsRequestObjec
 		DurationMinutes: req.Body.DurationMinutes,
 		Difficulty:      domain.Difficulty(req.Body.Difficulty),
 	}
+	if req.Body.EducationLevel != nil {
+		el := domain.EducationLevel(string(*req.Body.EducationLevel))
+		in.EducationLevel = &el
+	}
 	if req.Body.ScoringConfig != nil {
 		in.ScoringConfig = &testsvc.ScoringConfigInput{
 			CorrectPoints: req.Body.ScoringConfig.CorrectPoints,
@@ -119,6 +128,13 @@ func (s *APIServer) GetTestsTestId(ctx context.Context, req api.GetTestsTestIdRe
 	if claims.Role == domain.RoleStudent && t.Status != domain.TestStatusPublished {
 		return api.GetTestsTestId404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
 	}
+	// Students cannot access tests outside their education level.
+	if claims.Role == domain.RoleStudent && t.EducationLevel != nil {
+		user, err := s.authSvc.Me(ctx, claims.UserID)
+		if err == nil && user.EducationLevel != nil && *t.EducationLevel != *user.EducationLevel {
+			return api.GetTestsTestId403JSONResponse(errBody("FORBIDDEN", "this test is not available for your education level")), nil
+		}
+	}
 	// Contributors can only see their own drafts.
 	if claims.Role == domain.RoleContributor && t.Status == domain.TestStatusDraft && t.ContributorID != claims.UserID {
 		return api.GetTestsTestId403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
@@ -150,6 +166,10 @@ func (s *APIServer) PatchTestsTestId(ctx context.Context, req api.PatchTestsTest
 	if req.Body.Difficulty != nil {
 		d := domain.Difficulty(*req.Body.Difficulty)
 		in.Difficulty = &d
+	}
+	if req.Body.EducationLevel != nil {
+		el := domain.EducationLevel(string(*req.Body.EducationLevel))
+		in.EducationLevel = &el
 	}
 
 	t, err := s.testSvc.Update(ctx, req.TestId, claims.UserID, claims.Role, in)
@@ -316,6 +336,10 @@ func toTestDetailResponse(t *domain.Test) api.TestDetailResponse {
 		CreatedAt:       t.CreatedAt,
 		PublishedAt:     t.PublishedAt,
 		Questions:       qs,
+	}
+	if t.EducationLevel != nil {
+		el := api.TestDetailResponseEducationLevel(string(*t.EducationLevel))
+		resp.EducationLevel = &el
 	}
 
 	if t.ScoringConfig != nil {

@@ -29,8 +29,8 @@ func (s *Service) GetStats(ctx context.Context) (*domain.PlatformStats, error) {
 	return s.adminRepo.GetStats(ctx)
 }
 
-func (s *Service) ListTestsWithAttempts(ctx context.Context, page, limit int) ([]*domain.TestWithAttempts, int, error) {
-	return s.adminRepo.ListTestsWithAttempts(ctx, page, limit)
+func (s *Service) ListTestsWithAttempts(ctx context.Context, page, limit int, educationLevel *domain.EducationLevel) ([]*domain.TestWithAttempts, int, error) {
+	return s.adminRepo.ListTestsWithAttempts(ctx, page, limit, educationLevel)
 }
 
 func (s *Service) ApproveContributor(ctx context.Context, userID uuid.UUID) error {

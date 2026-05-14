@@ -191,7 +191,13 @@ func (s *APIServer) ListAdminTests(ctx context.Context, req api.ListAdminTestsRe
 	page := derefInt(req.Params.Page, 1)
 	limit := derefInt(req.Params.Limit, 20)
 
-	tests, total, err := s.adminSvc.ListTestsWithAttempts(ctx, page, limit)
+	var eduLevel *domain.EducationLevel
+	if req.Params.EducationLevel != nil {
+		el := domain.EducationLevel(string(*req.Params.EducationLevel))
+		eduLevel = &el
+	}
+
+	tests, total, err := s.adminSvc.ListTestsWithAttempts(ctx, page, limit, eduLevel)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +215,7 @@ func (s *APIServer) ListAdminTests(ctx context.Context, req api.ListAdminTestsRe
 }
 
 func toAdminTestResponse(t *domain.TestWithAttempts) api.AdminTestResponse {
-	return api.AdminTestResponse{
+	resp := api.AdminTestResponse{
 		Id:              t.ID,
 		ContributorId:   t.ContributorID,
 		Title:           t.Title,
@@ -220,6 +226,11 @@ func toAdminTestResponse(t *domain.TestWithAttempts) api.AdminTestResponse {
 		CreatedAt:       t.CreatedAt,
 		AttemptCount:    t.AttemptCount,
 	}
+	if t.EducationLevel != nil {
+		el := api.AdminTestResponseEducationLevel(string(*t.EducationLevel))
+		resp.EducationLevel = &el
+	}
+	return resp
 }
 
 func derefInt(p *int, def int) int {

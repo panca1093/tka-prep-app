@@ -43,6 +43,13 @@ const difficultyColor: Record<string, string> = {
   medium: '#f59e0b',
   hard: '#ef4444',
 }
+
+const levelLabel: Record<string, string> = {
+  sd: 'SD',
+  smp: 'SMP',
+  sma: 'SMA',
+  smk: 'SMK',
+}
 </script>
 
 <template>
@@ -73,6 +80,7 @@ const difficultyColor: Record<string, string> = {
       <div v-for="t in filtered()" :key="t.id" class="test-card">
         <div class="test-header">
           <span class="test-category">{{ categoryLabel[t.category] }}</span>
+          <span v-if="t.education_level" class="test-level">{{ levelLabel[t.education_level] ?? t.education_level }}</span>
           <span class="test-difficulty" :style="{ color: difficultyColor[t.difficulty] }">
             {{ t.difficulty }}
           </span>
@@ -151,6 +159,14 @@ const difficultyColor: Record<string, string> = {
 .test-header { display: flex; align-items: center; justify-content: space-between; }
 .test-category { font-size: 0.72rem; font-weight: 600; color: #4f8ef7; text-transform: uppercase; letter-spacing: 0.05em; }
 .test-difficulty { font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
+.test-level {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #a78bfa;
+  background: #2e1a5c;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+}
 
 .test-title { margin: 0; font-size: 1rem; font-weight: 700; color: #f1f5f9; line-height: 1.4; }
 .test-desc { margin: 0; font-size: 0.825rem; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

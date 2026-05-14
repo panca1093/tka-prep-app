@@ -6,6 +6,15 @@ import (
 	"github.com/google/uuid"
 )
 
+type EducationLevel string
+
+const (
+	EducationLevelSD  EducationLevel = "sd"
+	EducationLevelSMP EducationLevel = "smp"
+	EducationLevelSMA EducationLevel = "sma"
+	EducationLevelSMK EducationLevel = "smk"
+)
+
 type Role string
 
 const (
@@ -24,14 +33,15 @@ const (
 )
 
 type User struct {
-	ID           uuid.UUID
-	Name         string
-	Email        string
-	PasswordHash string
-	Role         Role
-	Status       Status
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	ID             uuid.UUID
+	Name           string
+	Email          string
+	PasswordHash   string
+	Role           Role
+	Status         Status
+	EducationLevel *EducationLevel
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type RefreshToken struct {

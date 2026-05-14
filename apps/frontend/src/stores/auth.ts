@@ -58,6 +58,7 @@ export const useAuthStore = defineStore('auth', () => {
     email: string
     password: string
     role: 'student' | 'contributor'
+    education_level?: 'sd' | 'smp' | 'sma' | 'smk'
   }): Promise<{ user: User; isPending: boolean }> {
     const { data, error } = await client.POST('/auth/register', { body: payload })
     if (error) {
