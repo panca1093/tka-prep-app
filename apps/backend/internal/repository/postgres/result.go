@@ -37,9 +37,11 @@ func (r *ResultRepository) Create(ctx context.Context, res *domain.TestResult) e
 func (r *ResultRepository) FindBySessionID(ctx context.Context, sessionID uuid.UUID) (*domain.TestResult, error) {
 	res := &domain.TestResult{}
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at
-		 FROM test_results WHERE session_id = $1`, sessionID,
-	).Scan(&res.ID, &res.SessionID, &res.StudentID, &res.TestID,
+		`SELECT tr.id, tr.session_id, tr.student_id, tr.test_id, t.title,
+		        tr.total_score, tr.correct_count, tr.wrong_count, tr.blank_count, tr.completed_at
+		 FROM test_results tr JOIN tests t ON t.id = tr.test_id
+		 WHERE tr.session_id = $1`, sessionID,
+	).Scan(&res.ID, &res.SessionID, &res.StudentID, &res.TestID, &res.TestTitle,
 		&res.TotalScore, &res.CorrectCount, &res.WrongCount, &res.BlankCount, &res.CompletedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -52,8 +54,10 @@ func (r *ResultRepository) FindBySessionID(ctx context.Context, sessionID uuid.U
 
 func (r *ResultRepository) ListByStudent(ctx context.Context, studentID uuid.UUID) ([]*domain.TestResult, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at
-		 FROM test_results WHERE student_id = $1 ORDER BY completed_at DESC`, studentID,
+		`SELECT tr.id, tr.session_id, tr.student_id, tr.test_id, t.title,
+		        tr.total_score, tr.correct_count, tr.wrong_count, tr.blank_count, tr.completed_at
+		 FROM test_results tr JOIN tests t ON t.id = tr.test_id
+		 WHERE tr.student_id = $1 ORDER BY tr.completed_at DESC`, studentID,
 	)
 	if err != nil {
 		return nil, fmt.Errorf("list results: %w", err)
@@ -63,7 +67,7 @@ func (r *ResultRepository) ListByStudent(ctx context.Context, studentID uuid.UUI
 	var results []*domain.TestResult
 	for rows.Next() {
 		res := &domain.TestResult{}
-		if err := rows.Scan(&res.ID, &res.SessionID, &res.StudentID, &res.TestID,
+		if err := rows.Scan(&res.ID, &res.SessionID, &res.StudentID, &res.TestID, &res.TestTitle,
 			&res.TotalScore, &res.CorrectCount, &res.WrongCount, &res.BlankCount, &res.CompletedAt); err != nil {
 			return nil, fmt.Errorf("scan result: %w", err)
 		}
@@ -97,9 +101,11 @@ func (r *ResultRepository) ListAll(ctx context.Context) ([]*domain.TestResult, e
 func (r *ResultRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.TestResult, error) {
 	res := &domain.TestResult{}
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at
-		 FROM test_results WHERE id = $1`, id,
-	).Scan(&res.ID, &res.SessionID, &res.StudentID, &res.TestID,
+		`SELECT tr.id, tr.session_id, tr.student_id, tr.test_id, t.title,
+		        tr.total_score, tr.correct_count, tr.wrong_count, tr.blank_count, tr.completed_at
+		 FROM test_results tr JOIN tests t ON t.id = tr.test_id
+		 WHERE tr.id = $1`, id,
+	).Scan(&res.ID, &res.SessionID, &res.StudentID, &res.TestID, &res.TestTitle,
 		&res.TotalScore, &res.CorrectCount, &res.WrongCount, &res.BlankCount, &res.CompletedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

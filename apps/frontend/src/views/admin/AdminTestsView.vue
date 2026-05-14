@@ -8,6 +8,7 @@ type AdminTest = components['schemas']['AdminTestResponse']
 const tests = ref<AdminTest[]>([])
 const total = ref(0)
 const page = ref(1)
+const pageSize = 20
 const isLoading = ref(false)
 const actionError = ref('')
 
@@ -61,6 +62,12 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
         </tbody>
       </table>
     </div>
+
+    <div v-if="total > pageSize" class="pagination">
+      <button class="page-btn" :disabled="page === 1" @click="page--; fetchTests()">← Prev</button>
+      <span class="page-info">Page {{ page }} of {{ Math.ceil(total / pageSize) }}</span>
+      <button class="page-btn" :disabled="page >= Math.ceil(total / pageSize)" @click="page++; fetchTests()">Next →</button>
+    </div>
   </div>
 </template>
 
@@ -82,4 +89,10 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 .status-badge.draft { background: rgba(148,163,184,0.1); color: #94a3b8; }
 .btn-action { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: transparent; border: 1px solid #f59e0b; color: #f59e0b; transition: background 0.15s; }
 .btn-action:hover { background: rgba(245,158,11,0.1); }
+
+.pagination { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; justify-content: flex-end; }
+.page-btn { padding: 0.4rem 0.875rem; border-radius: 6px; border: 1px solid #1e2a45; background: #141c2e; color: #94a3b8; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+.page-btn:hover:not(:disabled) { border-color: #4f8ef7; color: #4f8ef7; }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-info { font-size: 0.8rem; color: #64748b; }
 </style>

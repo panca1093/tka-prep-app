@@ -76,9 +76,10 @@ function formatDate(iso: string) {
           <div v-for="r in results.slice(0, 5)" :key="r.id" class="result-row">
             <div class="result-meta">
               <span class="result-score">{{ r.total_score.toFixed(1) }}</span>
-              <span class="result-counts">
-                ✓ {{ r.correct_count }} &nbsp;✗ {{ r.wrong_count }} &nbsp;— {{ r.blank_count }}
-              </span>
+              <div class="result-info">
+                <span class="result-title">{{ r.test_title }}</span>
+                <span class="result-counts">✓ {{ r.correct_count }} &nbsp;✗ {{ r.wrong_count }} &nbsp;— {{ r.blank_count }}</span>
+              </div>
             </div>
             <div class="result-date">{{ formatDate(r.completed_at) }}</div>
             <RouterLink :to="`/results/${r.id}`" class="result-link">Details →</RouterLink>
@@ -146,8 +147,10 @@ function formatDate(iso: string) {
   border-radius: 10px;
 }
 
-.result-meta { flex: 1; display: flex; align-items: center; gap: 1rem; }
-.result-score { font-size: 1.25rem; font-weight: 700; color: #4f8ef7; min-width: 4rem; }
+.result-meta { flex: 1; display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.result-score { font-size: 1.25rem; font-weight: 700; color: #4f8ef7; min-width: 4rem; flex-shrink: 0; }
+.result-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.result-title { font-size: 0.875rem; font-weight: 600; color: #e2e8f0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .result-counts { font-size: 0.8rem; color: #94a3b8; }
 .result-date { font-size: 0.8rem; color: #64748b; }
 .result-link { font-size: 0.8rem; color: #4f8ef7; white-space: nowrap; }

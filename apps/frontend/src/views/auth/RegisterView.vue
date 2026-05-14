@@ -23,7 +23,10 @@ async function handleSubmit() {
     if (result.isPending) {
       isPending.value = true
     } else {
-      router.push({ name: 'student-dashboard' })
+      const home = auth.role === 'contributor' ? 'contrib-dashboard'
+                 : auth.role === 'admin'        ? 'admin-dashboard'
+                 : 'student-dashboard'
+      router.push({ name: home })
     }
   } catch (e) {
     const code = e instanceof Error ? e.message : ''

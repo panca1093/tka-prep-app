@@ -2350,7 +2350,7 @@ components:
 
     TestResultResponse:
       type: object
-      required: [id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at]
+      required: [id, session_id, student_id, test_id, test_title, total_score, correct_count, wrong_count, blank_count, completed_at]
       properties:
         id:
           type: string
@@ -2364,6 +2364,8 @@ components:
         test_id:
           type: string
           format: uuid
+        test_title:
+          type: string
         total_score:
           type: number
           format: double
@@ -2449,7 +2451,7 @@ components:
 
     ResultDetailResponse:
       type: object
-      required: [id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at, percentage, topic_breakdown]
+      required: [id, session_id, student_id, test_id, test_title, total_score, correct_count, wrong_count, blank_count, completed_at, percentage, topic_breakdown]
       properties:
         id:
           type: string
@@ -2463,6 +2465,8 @@ components:
         test_id:
           type: string
           format: uuid
+        test_title:
+          type: string
         total_score:
           type: number
           format: double

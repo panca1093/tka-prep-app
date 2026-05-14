@@ -29,6 +29,7 @@ const scoreColor = (pct: number) =>
 
   <div v-else class="result-page">
     <div class="result-hero">
+      <div class="test-title-label">{{ result.test_title }}</div>
       <div class="score-ring">
         <div class="score-value" :style="{ color: scoreColor(result.percentage) }">
           {{ result.total_score.toFixed(1) }}
@@ -91,6 +92,8 @@ const scoreColor = (pct: number) =>
   align-items: center;
   gap: 0.5rem;
 }
+
+.test-title-label { font-size: 1rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
 
 .score-ring {
   width: 140px; height: 140px;

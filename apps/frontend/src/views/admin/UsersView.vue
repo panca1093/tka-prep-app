@@ -8,6 +8,7 @@ type User = components['schemas']['UserResponse']
 const users = ref<User[]>([])
 const total = ref(0)
 const page = ref(1)
+const pageSize = 20
 const isLoading = ref(false)
 const search = ref('')
 const roleFilter = ref('')
@@ -90,12 +91,18 @@ const statusColor: Record<string, string> = {
               <span class="status-badge" :style="{ color: statusColor[u.status] }">{{ u.status }}</span>
             </td>
             <td class="action-cell">
-              <button v-if="u.status !== 'suspended'" class="btn-action suspend" @click="updateStatus(u.id, 'suspended')">Suspend</button>
-              <button v-if="u.status === 'suspended'" class="btn-action activate" @click="updateStatus(u.id, 'active')">Activate</button>
+              <button v-if="u.status !== 'suspended' && u.role !== 'admin'" class="btn-action suspend" @click="updateStatus(u.id, 'suspended')">Suspend</button>
+              <button v-if="u.status === 'suspended' && u.role !== 'admin'" class="btn-action activate" @click="updateStatus(u.id, 'active')">Activate</button>
             </td>
           </tr>
         </tbody>
       </table>
+    </div>
+
+    <div v-if="total > pageSize" class="pagination">
+      <button class="page-btn" :disabled="page === 1" @click="page--; fetchUsers()">← Prev</button>
+      <span class="page-info">Page {{ page }} of {{ Math.ceil(total / pageSize) }}</span>
+      <button class="page-btn" :disabled="page >= Math.ceil(total / pageSize)" @click="page++; fetchUsers()">Next →</button>
     </div>
   </div>
 </template>
@@ -125,4 +132,10 @@ const statusColor: Record<string, string> = {
 .btn-action.suspend:hover { background: rgba(239,68,68,0.1); }
 .btn-action.activate { background: transparent; border: 1px solid #22c55e; color: #22c55e; }
 .btn-action.activate:hover { background: rgba(34,197,94,0.1); }
+
+.pagination { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; justify-content: flex-end; }
+.page-btn { padding: 0.4rem 0.875rem; border-radius: 6px; border: 1px solid #1e2a45; background: #141c2e; color: #94a3b8; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+.page-btn:hover:not(:disabled) { border-color: #4f8ef7; color: #4f8ef7; }
+.page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.page-info { font-size: 0.8rem; color: #64748b; }
 </style>

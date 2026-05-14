@@ -41,7 +41,12 @@ const timerColor = computed(() =>
 )
 
 async function autoSubmit() {
-  try { await doSubmit() } catch {}
+  try {
+    await doSubmit()
+  } catch {
+    submitError.value = 'Time is up! Auto-submit failed. Please click Submit now.'
+    showSubmitModal.value = true
+  }
 }
 
 // ─── Question navigation ──────────────────────────────────────────────────────

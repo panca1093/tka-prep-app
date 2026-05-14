@@ -175,6 +175,7 @@ func toTestResultResponse(r *domain.TestResult) api.TestResultResponse {
 		SessionId:    r.SessionID,
 		StudentId:    r.StudentID,
 		TestId:       r.TestID,
+		TestTitle:    r.TestTitle,
 		TotalScore:   r.TotalScore,
 		CorrectCount: r.CorrectCount,
 		WrongCount:   r.WrongCount,

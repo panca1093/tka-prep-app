@@ -102,6 +102,7 @@ func toResultDetailResponse(d *domain.ResultDetail) api.ResultDetailResponse {
 		SessionId:      d.SessionID,
 		StudentId:      d.StudentID,
 		TestId:         d.TestID,
+		TestTitle:      d.TestTitle,
 		TotalScore:     d.TotalScore,
 		CorrectCount:   d.CorrectCount,
 		WrongCount:     d.WrongCount,

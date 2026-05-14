@@ -87,6 +87,26 @@ function openCreate() {
   showForm.value = true
 }
 
+function openEdit(q: Question) {
+  editTarget.value = q
+  form.value = {
+    question_type: q.question_type as QuestionType,
+    topic_id: q.topic_id,
+    text: q.text,
+    explanation: q.explanation ?? '',
+    image_url: q.image_url ?? null,
+    difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
+    options: q.question_type !== 'true_false'
+      ? q.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? null }))
+      : 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+    statements: q.question_type === 'true_false'
+      ? q.statements.map(s => ({ text: s.text, is_correct: s.is_correct, image_url: s.image_url ?? null }))
+      : [{ text: '', is_correct: true, image_url: null }, { text: '', is_correct: false, image_url: null }],
+  }
+  formError.value = ''
+  showForm.value = true
+}
+
 function onTypeChange() {
   formError.value = ''
 }
@@ -238,6 +258,7 @@ const typeColor: Record<string, string> = {
           <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
           <span class="q-topic">{{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}</span>
           <div class="q-actions">
+            <button class="icon-btn" @click="openEdit(q)">✏️</button>
             <button class="icon-btn" @click="deleteQuestion(q.id)">🗑</button>
           </div>
         </div>

@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { RouterView, RouterLink, useRouter } from 'vue-router'
+import { RouterView, RouterLink, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
+const route = useRoute()
+const isFullScreen = computed(() => !!route.meta.fullScreen)
 
 interface NavItem { label: string; to: string; icon: string }
 
@@ -64,7 +66,7 @@ async function handleLogout() {
         <button class="logout-btn" @click="handleLogout">Sign out</button>
       </div>
     </nav>
-    <main class="content">
+    <main :class="['content', { 'content--full': isFullScreen }]">
       <RouterView />
     </main>
   </div>
@@ -162,5 +164,11 @@ async function handleLogout() {
   padding: 2rem;
   overflow-y: auto;
   max-width: 1100px;
+}
+
+.content--full {
+  padding: 0;
+  max-width: unset;
+  overflow: hidden;
 }
 </style>

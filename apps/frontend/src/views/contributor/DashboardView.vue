@@ -27,11 +27,11 @@ onMounted(async () => {
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-value">{{ questionCount }}</div>
-          <div class="stat-label">Questions</div>
+          <div class="stat-label">Questions in Bank</div>
         </div>
         <div class="stat-card">
           <div class="stat-value">{{ testCount }}</div>
-          <div class="stat-label">Tests</div>
+          <div class="stat-label">Tests on Platform</div>
         </div>
       </div>
 

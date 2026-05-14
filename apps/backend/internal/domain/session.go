@@ -55,6 +55,7 @@ type TestResult struct {
 	SessionID    uuid.UUID
 	StudentID    uuid.UUID
 	TestID       uuid.UUID
+	TestTitle    string
 	TotalScore   float64
 	CorrectCount int
 	WrongCount   int

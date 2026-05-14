@@ -24,12 +24,12 @@ const router = createRouter({
       component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
-        { path: '', redirect: { name: 'student-dashboard' } },
+        { path: '', redirect: () => { const auth = useAuthStore(); return roleHome(auth.role) } },
 
         // Student
         { path: 'dashboard', name: 'student-dashboard', component: () => import('@/views/student/DashboardView.vue'), meta: { role: 'student' } },
         { path: 'tests', name: 'test-list', component: () => import('@/views/student/TestListView.vue'), meta: { role: 'student' } },
-        { path: 'sessions/:sessionId', name: 'test-session', component: () => import('@/views/student/TestSessionView.vue'), meta: { role: 'student' } },
+        { path: 'sessions/:sessionId', name: 'test-session', component: () => import('@/views/student/TestSessionView.vue'), meta: { role: 'student', fullScreen: true } },
         { path: 'results/:resultId', name: 'result', component: () => import('@/views/student/ResultView.vue'), meta: { role: 'student' } },
         { path: 'results/:resultId/review', name: 'review', component: () => import('@/views/student/ReviewView.vue'), meta: { role: 'student' } },
         { path: 'leaderboard', name: 'leaderboard', component: () => import('@/views/student/LeaderboardView.vue'), meta: { role: 'student' } },
