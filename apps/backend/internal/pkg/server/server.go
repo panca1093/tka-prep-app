@@ -35,6 +35,7 @@ func New(cfg *config.Config, handler *httphandler.APIServer) *Server {
 		MaxAge:           300,
 	}))
 	r.Use(middleware.Authenticate(cfg.JWTSecret))
+	r.Use(middleware.RateLimit)
 
 	// Upload endpoint (raw route — multipart doesn't fit strict handler pattern).
 	r.Post("/api/v1/upload", httphandler.UploadHandler(cfg.UploadDir))

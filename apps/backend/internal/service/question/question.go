@@ -20,10 +20,11 @@ import (
 
 type Service struct {
 	questions repository.QuestionRepository
+	uploadDir string
 }
 
-func NewService(questions repository.QuestionRepository) *Service {
-	return &Service{questions: questions}
+func NewService(questions repository.QuestionRepository, uploadDir string) *Service {
+	return &Service{questions: questions, uploadDir: uploadDir}
 }
 
 type OptionInput struct {
@@ -212,7 +213,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	}
 
 	// Clean up orphan images from editing.
-	cleanupOrphanImages("", oldContent, collectAllText(q))
+	cleanupOrphanImages(s.uploadDir, oldContent, collectAllText(q))
 	return q, nil
 }
 

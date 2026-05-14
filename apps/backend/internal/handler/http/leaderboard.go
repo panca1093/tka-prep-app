@@ -17,7 +17,7 @@ func (s *APIServer) GetLeaderboard(ctx context.Context, req api.GetLeaderboardRe
 	}
 
 	scope := resolveScope((*string)(req.Params.Scope))
-	entries, err := s.leaderboardRepo.List(ctx, scope)
+	entries, err := s.leaderboardSvc.List(ctx, scope)
 	if err != nil {
 		return nil, err
 	}
@@ -39,7 +39,7 @@ func (s *APIServer) GetLeaderboardMe(ctx context.Context, req api.GetLeaderboard
 	}
 
 	scope := resolveScope((*string)(req.Params.Scope))
-	entry, err := s.leaderboardRepo.GetMyRank(ctx, claims.UserID, scope)
+	entry, err := s.leaderboardSvc.GetMyRank(ctx, claims.UserID, scope)
 	if err != nil {
 		if errors.Is(err, apierr.ErrNotFound) {
 			return api.GetLeaderboardMe404JSONResponse(errBody("NOT_FOUND", "no results found for this scope")), nil

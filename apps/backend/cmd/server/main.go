@@ -19,6 +19,7 @@ import (
 	pgstore "github.com/yourorg/tkaprep/apps/backend/internal/repository/postgres"
 	adminsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/admin"
 	authsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/auth"
+	leadersvc "github.com/yourorg/tkaprep/apps/backend/internal/service/leaderboard"
 	questionsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/question"
 	resultsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/result"
 	sessionsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/session"
@@ -59,6 +60,7 @@ func main() {
 	sessionRepo := pgstore.NewSessionRepository(pool)
 	resultRepo := pgstore.NewResultRepository(pool)
 	leaderboardRepo := pgstore.NewLeaderboardRepository(pool)
+	leaderboardSvc := leadersvc.NewService(leaderboardRepo)
 	adminRepo := pgstore.NewAdminRepository(pool)
 
 	authSvc := authsvc.NewService(authsvc.Config{
@@ -67,13 +69,13 @@ func main() {
 		JWTRefreshTTL: cfg.JWTRefreshTTL,
 	}, userRepo, tokenRepo)
 	topicService := topicsvc.NewService(topicRepo)
-	questionService := questionsvc.NewService(questionRepo)
+	questionService := questionsvc.NewService(questionRepo, cfg.UploadDir)
 	testService := testsvc.NewService(testRepo)
 	sessionService := sessionsvc.NewService(sessionRepo, resultRepo, testRepo, pool)
 	resultService := resultsvc.NewService(resultRepo, sessionRepo)
 	adminService := adminsvc.New(userRepo, adminRepo)
 
-	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardRepo, adminService)
+	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardSvc, adminService)
 	srv := server.New(cfg, apiHandler)
 
 	httpServer := &http.Server{

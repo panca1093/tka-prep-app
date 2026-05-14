@@ -9,6 +9,7 @@ build/
 .specify
 CLAUDE.md
 spec.md
+/specs
 
 # Env files
 .env

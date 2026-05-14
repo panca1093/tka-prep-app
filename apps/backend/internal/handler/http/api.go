@@ -1,9 +1,9 @@
 package http
 
 import (
-	"github.com/yourorg/tkaprep/apps/backend/internal/repository"
 	adminsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/admin"
 	"github.com/yourorg/tkaprep/apps/backend/internal/service/auth"
+	leadersvc "github.com/yourorg/tkaprep/apps/backend/internal/service/leaderboard"
 	"github.com/yourorg/tkaprep/apps/backend/internal/service/question"
 	resultsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/result"
 	sessionsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/session"
@@ -14,14 +14,14 @@ import (
 // APIServer implements api.StrictServerInterface.
 // Each domain area has its methods defined in a separate file (health.go, auth.go, topics.go, questions.go, tests.go, sessions.go, results.go, leaderboard.go, admin.go).
 type APIServer struct {
-	authSvc         *auth.Service
-	topicSvc        *topic.Service
-	questionSvc     *question.Service
-	testSvc         *testsvc.Service
-	sessionSvc      *sessionsvc.Service
-	resultSvc       *resultsvc.Service
-	leaderboardRepo repository.LeaderboardRepository
-	adminSvc        *adminsvc.Service
+	authSvc        *auth.Service
+	topicSvc       *topic.Service
+	questionSvc    *question.Service
+	testSvc        *testsvc.Service
+	sessionSvc     *sessionsvc.Service
+	resultSvc      *resultsvc.Service
+	leaderboardSvc *leadersvc.Service
+	adminSvc       *adminsvc.Service
 }
 
 func NewAPIServer(
@@ -31,17 +31,17 @@ func NewAPIServer(
 	testSvc *testsvc.Service,
 	sessionSvc *sessionsvc.Service,
 	resultSvc *resultsvc.Service,
-	leaderboardRepo repository.LeaderboardRepository,
+	leaderboardSvc *leadersvc.Service,
 	adminSvc *adminsvc.Service,
 ) *APIServer {
 	return &APIServer{
-		authSvc:         authSvc,
-		topicSvc:        topicSvc,
-		questionSvc:     questionSvc,
-		testSvc:         testSvc,
-		sessionSvc:      sessionSvc,
-		resultSvc:       resultSvc,
-		leaderboardRepo: leaderboardRepo,
-		adminSvc:        adminSvc,
+		authSvc:        authSvc,
+		topicSvc:       topicSvc,
+		questionSvc:    questionSvc,
+		testSvc:        testSvc,
+		sessionSvc:     sessionSvc,
+		resultSvc:      resultSvc,
+		leaderboardSvc: leaderboardSvc,
+		adminSvc:       adminSvc,
 	}
 }

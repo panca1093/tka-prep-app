@@ -120,23 +120,34 @@ func (r *fakeSessionRepo) UpsertAnswer(_ context.Context, a *domain.SessionAnswe
 	return nil
 }
 
-func (r *fakeSessionRepo) UpsertFlag(_ context.Context, sessionID, questionID uuid.UUID, flagged bool) error {
-	r.flags = append(r.flags, flagUpdate{sessionID: sessionID, questionID: questionID, flagged: flagged})
-	if sess, ok := r.byID[sessionID]; ok {
-		for i, a := range sess.Answers {
-			if a.QuestionID == questionID {
-				sess.Answers[i].IsFlagged = flagged
-				return nil
-			}
-		}
-		sess.Answers = append(sess.Answers, domain.SessionAnswer{
-			ID:         uuid.New(),
-			SessionID:  sessionID,
-			QuestionID: questionID,
-			IsFlagged:  flagged,
-			AnsweredAt: time.Now().UTC(),
+func (r *fakeSessionRepo) SaveMCQAnswer(_ context.Context, sessionID, questionID uuid.UUID, optionID *uuid.UUID, _ time.Time) error {
+	optID := uuid.Nil
+	if optionID != nil {
+		optID = *optionID
+	}
+	r.answers = append(r.answers, &domain.SessionAnswer{
+		ID: uuid.New(), SessionID: sessionID, QuestionID: questionID,
+		SelectedOptionID: &optID, AnsweredAt: time.Now().UTC(),
+	})
+	return nil
+}
+
+func (r *fakeSessionRepo) SavePGKAnswers(_ context.Context, sessionID, questionID uuid.UUID, optionIDs []uuid.UUID, _ time.Time) error {
+	for _, oid := range optionIDs {
+		r.answers = append(r.answers, &domain.SessionAnswer{
+			ID: uuid.New(), SessionID: sessionID, QuestionID: questionID,
+			SelectedOptionID: &oid, AnsweredAt: time.Now().UTC(),
 		})
 	}
+	return nil
+}
+
+func (r *fakeSessionRepo) SaveBSAnswers(_ context.Context, _ uuid.UUID, _ uuid.UUID, _ []domain.StatementAnswerInput, _ time.Time) error {
+	return nil
+}
+
+func (r *fakeSessionRepo) UpsertFlag(_ context.Context, sessionID, questionID uuid.UUID, flagged bool) error {
+	r.flags = append(r.flags, flagUpdate{sessionID: sessionID, questionID: questionID, flagged: flagged})
 	return nil
 }
 
