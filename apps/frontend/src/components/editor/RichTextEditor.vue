@@ -6,6 +6,7 @@ import Underline from '@tiptap/extension-underline'
 import { Node } from '@tiptap/core'
 import katex from 'katex'
 import { getAccessToken } from '@/api/client'
+import { resolveUrl } from '@/utils/url'
 
 const props = defineProps<{ modelValue: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
@@ -128,7 +129,7 @@ function handleImageUpload() {
     }
     try {
       const url = await uploadImage(file)
-      editor.value?.chain().focus().setImage({ src: url }).run()
+      editor.value?.chain().focus().setImage({ src: resolveUrl(url) }).run()
     } catch (e: any) {
       alert(e.message || 'Upload failed')
     }
@@ -150,7 +151,7 @@ function handlePaste(_view: any, event: ClipboardEvent) {
         return true
       }
       uploadImage(file).then(url => {
-        editor.value?.chain().focus().setImage({ src: url }).run()
+        editor.value?.chain().focus().setImage({ src: resolveUrl(url) }).run()
       }).catch(e => alert(e.message || 'Upload failed'))
       return true
     }

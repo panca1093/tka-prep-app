@@ -2,17 +2,20 @@
 import { computed, onMounted, onUpdated, useTemplateRef } from 'vue'
 import DOMPurify from 'dompurify'
 import katex from 'katex'
+import { resolveUrl } from '@/utils/url'
 
 const props = defineProps<{ html: string }>()
 
 const sanitized = computed(() => {
   if (!props.html) return ''
-  return DOMPurify.sanitize(props.html, {
+  const clean = DOMPurify.sanitize(props.html, {
     ALLOWED_TAGS: ['b', 'i', 'u', 'strong', 'em', 'p', 'br', 'ul', 'ol', 'li', 'img', 'span', 'sup', 'sub'],
     ALLOWED_ATTR: ['src', 'alt', 'data-formula', 'class'],
     ALLOW_DATA_ATTR: true,
-    ALLOWED_URI_REGEXP: /^(\/uploads\/[a-f0-9-]+\.(png|jpe?g|gif|webp)|http:\/\/localhost(:\d+)?\/uploads\/.+)$/i,
+    ALLOWED_URI_REGEXP: /^(https?:\/\/|\/uploads\/)/i,
   })
+  // Rewrite relative /uploads/ src to absolute URL so the broken Vite proxy is bypassed
+  return clean.replace(/src="(\/uploads\/[^"]+)"/g, (_, path) => `src="${resolveUrl(path)}"`)
 })
 
 const viewerRef = useTemplateRef<HTMLElement>('viewerRef')

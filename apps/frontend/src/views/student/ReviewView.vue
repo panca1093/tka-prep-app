@@ -3,6 +3,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
+import RichTextViewer from '@/components/editor/RichTextViewer.vue'
+import { resolveUrl } from '@/utils/url'
 
 type ReviewItem = components['schemas']['ReviewItemResponse']
 type ResultDetail = components['schemas']['ResultDetailResponse']
@@ -99,8 +101,8 @@ const typeColor: Record<string, string> = {
           </div>
 
           <div class="q-text-block">
-            <p class="q-text">{{ item.text }}</p>
-            <img v-if="item.image_url" :src="item.image_url" class="q-img" alt="" />
+            <RichTextViewer :html="item.text" class="q-text" />
+            <img v-if="item.image_url" :src="resolveUrl(item.image_url)" class="q-img" alt="" />
           </div>
 
           <!-- MCQ: single select review -->
@@ -116,8 +118,8 @@ const typeColor: Record<string, string> = {
             >
               <span class="opt-label">{{ opt.label }}</span>
               <div class="opt-body">
-                <span class="opt-text">{{ opt.text }}</span>
-                <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+                <span class="opt-text"><RichTextViewer :html="opt.text" /></span>
+                <img v-if="opt.image_url" :src="resolveUrl(opt.image_url)" class="opt-img" alt="" />
               </div>
               <span v-if="opt.is_correct" class="opt-badge correct-badge">Jawaban Benar</span>
               <span v-if="opt.id === item.selected_option_id && !opt.is_correct" class="opt-badge wrong-badge">Jawaban Kamu</span>
@@ -145,8 +147,8 @@ const typeColor: Record<string, string> = {
                 {{ isPGKSelected(item, opt.id) ? '✓' : opt.label }}
               </span>
               <div class="opt-body">
-                <span class="opt-text">{{ opt.text }}</span>
-                <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+                <span class="opt-text"><RichTextViewer :html="opt.text" /></span>
+                <img v-if="opt.image_url" :src="resolveUrl(opt.image_url)" class="opt-img" alt="" />
               </div>
               <div class="pgk-badges">
                 <span v-if="isPGKCorrect(item, opt.id)" class="opt-badge correct-badge">Benar</span>
@@ -169,8 +171,8 @@ const typeColor: Record<string, string> = {
             >
               <div class="stmt-num">{{ idx + 1 }}</div>
               <div class="stmt-body">
-                <div class="stmt-text">{{ stmt.text }}</div>
-                <img v-if="stmt.image_url" :src="stmt.image_url" class="stmt-img" alt="" />
+                <div class="stmt-text"><RichTextViewer :html="stmt.text" /></div>
+                <img v-if="stmt.image_url" :src="resolveUrl(stmt.image_url)" class="stmt-img" alt="" />
               </div>
               <div class="stmt-answers">
                 <div class="answer-row">
@@ -194,7 +196,7 @@ const typeColor: Record<string, string> = {
           </div>
 
           <div v-if="item.explanation" class="explanation">
-            <span class="exp-label">Explanation:</span> {{ item.explanation }}
+            <span class="exp-label">Explanation:</span> <RichTextViewer :html="item.explanation ?? ''" />
           </div>
         </div>
       </div>

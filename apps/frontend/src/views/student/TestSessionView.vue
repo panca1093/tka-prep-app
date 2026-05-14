@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '@/stores/session'
+import RichTextViewer from '@/components/editor/RichTextViewer.vue'
+import { resolveUrl } from '@/utils/url'
 
 const route = useRoute()
 const router = useRouter()
@@ -168,8 +170,8 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
         </div>
 
         <div class="question-text">
-          <div>{{ currentQ?.text }}</div>
-          <img v-if="currentQ?.image_url" :src="currentQ.image_url" class="q-img" alt="" />
+          <RichTextViewer :html="currentQ?.text ?? ''" />
+          <img v-if="currentQ?.image_url" :src="resolveUrl(currentQ.image_url)" class="q-img" alt="" />
         </div>
 
         <!-- MCQ: single select -->
@@ -183,8 +185,8 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
           >
             <span class="opt-label">{{ opt.label }}</span>
             <div class="opt-body">
-              <span class="opt-text">{{ opt.text }}</span>
-              <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+              <span class="opt-text"><RichTextViewer :html="opt.text" /></span>
+              <img v-if="opt.image_url" :src="resolveUrl(opt.image_url)" class="opt-img" alt="" />
             </div>
           </button>
         </div>
@@ -203,8 +205,8 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
               {{ isPGKSelected(opt.id) ? '✓' : opt.label }}
             </span>
             <div class="opt-body">
-              <span class="opt-text">{{ opt.text }}</span>
-              <img v-if="opt.image_url" :src="opt.image_url" class="opt-img" alt="" />
+              <span class="opt-text"><RichTextViewer :html="opt.text" /></span>
+              <img v-if="opt.image_url" :src="resolveUrl(opt.image_url)" class="opt-img" alt="" />
             </div>
           </button>
         </div>
@@ -223,8 +225,8 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
           >
             <div class="stmt-num">{{ idx + 1 }}</div>
             <div class="stmt-body">
-              <div class="stmt-text">{{ stmt.text }}</div>
-              <img v-if="stmt.image_url" :src="stmt.image_url" class="stmt-img" alt="" />
+              <div class="stmt-text"><RichTextViewer :html="stmt.text" /></div>
+              <img v-if="stmt.image_url" :src="resolveUrl(stmt.image_url)" class="stmt-img" alt="" />
             </div>
             <div class="bs-btns">
               <button
