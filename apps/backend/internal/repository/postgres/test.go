@@ -32,11 +32,11 @@ func (r *TestRepository) Create(ctx context.Context, t *domain.Test) error {
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx,
-		`INSERT INTO tests (id, contributor_id, title, description, category, duration_minutes, difficulty, status, created_at)
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+		`INSERT INTO tests (id, contributor_id, title, description, category, duration_minutes, difficulty, status, education_level, created_at)
+		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
 		t.ID, t.ContributorID, t.Title, t.Description,
 		string(t.Category), t.DurationMinutes, string(t.Difficulty),
-		string(t.Status), t.CreatedAt,
+		string(t.Status), t.EducationLevel, t.CreatedAt,
 	)
 	if err != nil {
 		return fmt.Errorf("insert test: %w", err)
@@ -66,12 +66,13 @@ func (r *TestRepository) Create(ctx context.Context, t *domain.Test) error {
 func (r *TestRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Test, error) {
 	t := &domain.Test{}
 	var cat, diff, status string
+	var edulevel *string
 	err := r.pool.QueryRow(ctx,
 		`SELECT id, contributor_id, title, description, category, duration_minutes, difficulty,
-		        status, created_at, published_at
+		        status, education_level, created_at, published_at
 		 FROM tests WHERE id = $1`, id,
 	).Scan(&t.ID, &t.ContributorID, &t.Title, &t.Description, &cat, &t.DurationMinutes,
-		&diff, &status, &t.CreatedAt, &t.PublishedAt)
+		&diff, &status, &edulevel, &t.CreatedAt, &t.PublishedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound
@@ -81,6 +82,10 @@ func (r *TestRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Te
 	t.Category = domain.TestCategory(cat)
 	t.Difficulty = domain.Difficulty(diff)
 	t.Status = domain.TestStatus(status)
+	if edulevel != nil {
+		el := domain.EducationLevel(*edulevel)
+		t.EducationLevel = &el
+	}
 
 	if err := r.loadQuestions(ctx, t); err != nil {
 		return nil, err
@@ -124,6 +129,11 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 		args = append(args, string(*f.Status))
 		i++
 	}
+	if f.EducationLevel != nil {
+		conds = append(conds, fmt.Sprintf("(education_level IS NULL OR education_level = $%d)", i))
+		args = append(args, string(*f.EducationLevel))
+		i++
+	}
 
 	where := buildWhere(conds)
 	countArgs := make([]any, len(args))
@@ -139,7 +149,7 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
 		fmt.Sprintf(`SELECT id, contributor_id, title, description, category, duration_minutes,
-		             difficulty, status, created_at, published_at
+		             difficulty, status, education_level, created_at, published_at
 		             FROM tests %s ORDER BY created_at DESC LIMIT $%d OFFSET $%d`,
 			where, i, i+1),
 		args...,
@@ -153,13 +163,18 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 	for rows.Next() {
 		t := &domain.Test{}
 		var cat, diff, status string
+		var edulevel *string
 		if err := rows.Scan(&t.ID, &t.ContributorID, &t.Title, &t.Description, &cat,
-			&t.DurationMinutes, &diff, &status, &t.CreatedAt, &t.PublishedAt); err != nil {
+			&t.DurationMinutes, &diff, &status, &edulevel, &t.CreatedAt, &t.PublishedAt); err != nil {
 			return nil, 0, fmt.Errorf("scan test: %w", err)
 		}
 		t.Category = domain.TestCategory(cat)
 		t.Difficulty = domain.Difficulty(diff)
 		t.Status = domain.TestStatus(status)
+		if edulevel != nil {
+			el := domain.EducationLevel(*edulevel)
+			t.EducationLevel = &el
+		}
 		tests = append(tests, t)
 	}
 	if err := rows.Err(); err != nil {
@@ -179,9 +194,9 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 
 func (r *TestRepository) Update(ctx context.Context, t *domain.Test) error {
 	tag, err := r.pool.Exec(ctx,
-		`UPDATE tests SET title=$1, description=$2, category=$3, duration_minutes=$4, difficulty=$5
-		 WHERE id=$6`,
-		t.Title, t.Description, string(t.Category), t.DurationMinutes, string(t.Difficulty), t.ID,
+		`UPDATE tests SET title=$1, description=$2, category=$3, duration_minutes=$4, difficulty=$5, education_level=$6
+		 WHERE id=$7`,
+		t.Title, t.Description, string(t.Category), t.DurationMinutes, string(t.Difficulty), t.EducationLevel, t.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("update test: %w", err)

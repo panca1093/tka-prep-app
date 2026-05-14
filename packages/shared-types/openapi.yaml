@@ -179,6 +179,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    patch:
+      tags: [Auth]
+      summary: Update current user's profile
+      operationId: patchAuthMe
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Updated user profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Validation error
+        '401':
+          description: Unauthorized
 
   /topics:
     get:
@@ -1722,6 +1745,11 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - name: education_level
+          in: query
+          schema:
+            type: string
+            enum: [sd, smp, sma, smk]
       responses:
         '200':
           description: Paginated list of tests with attempt counts
@@ -1813,6 +1841,10 @@ components:
           type: string
           enum: [student, contributor]
           example: student
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          description: Optional education level; only applied for role=student
 
     LoginRequest:
       type: object
@@ -1840,6 +1872,17 @@ components:
         refresh_token:
           type: string
 
+    UpdateProfileRequest:
+      type: object
+      properties:
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          nullable: true
+          description: >
+            Education level for student users. Null clears the level.
+            Ignored for non-student roles.
+
     UserResponse:
       type: object
       required: [id, name, email, role, status, created_at]
@@ -1861,6 +1904,10 @@ components:
         status:
           type: string
           enum: [active, inactive, suspended, pending]
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          nullable: true
         created_at:
           type: string
           format: date-time
@@ -2178,6 +2225,11 @@ components:
         status:
           type: string
           enum: [draft, published]
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          nullable: true
+          description: Null means the test is available to all education levels
         created_at:
           type: string
           format: date-time
@@ -2228,6 +2280,10 @@ components:
         difficulty:
           type: string
           enum: [easy, medium, hard]
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          nullable: true
         scoring_config:
           $ref: '#/components/schemas/UpdateScoringConfigRequest'
 
@@ -2251,6 +2307,10 @@ components:
         difficulty:
           type: string
           enum: [easy, medium, hard]
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          nullable: true
 
     SetQuestionsRequest:
       type: object
@@ -2679,6 +2739,10 @@ components:
           enum: [draft, published]
         duration_minutes:
           type: integer
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+          nullable: true
         created_at:
           type: string
           format: date-time

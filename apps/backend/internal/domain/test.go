@@ -30,6 +30,7 @@ type Test struct {
 	DurationMinutes int
 	Difficulty      Difficulty
 	Status          TestStatus
+	EducationLevel  *EducationLevel
 	CreatedAt       time.Time
 	PublishedAt     *time.Time
 	Questions       []TestQuestion

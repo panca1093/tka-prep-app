@@ -16,6 +16,7 @@ const nav = computed((): NavItem[] => {
       { label: 'Dashboard', to: '/dashboard', icon: '⊞' },
       { label: 'Tests', to: '/tests', icon: '📄' },
       { label: 'Leaderboard', to: '/leaderboard', icon: '🏆' },
+      { label: 'Profile', to: '/profile', icon: '👤' },
     ]
   }
   if (auth.role === 'contributor') {

@@ -29,6 +29,7 @@ type CreateInput struct {
 	Category        domain.TestCategory
 	DurationMinutes int
 	Difficulty      domain.Difficulty
+	EducationLevel  *domain.EducationLevel
 	ScoringConfig   *ScoringConfigInput
 }
 
@@ -44,6 +45,7 @@ type UpdateInput struct {
 	Category        *domain.TestCategory
 	DurationMinutes *int
 	Difficulty      *domain.Difficulty
+	EducationLevel  *domain.EducationLevel
 }
 
 type SetQuestionsInput struct {
@@ -51,12 +53,13 @@ type SetQuestionsInput struct {
 }
 
 type ListFilter struct {
-	ContributorID *uuid.UUID
-	Category      *domain.TestCategory
-	Difficulty    *domain.Difficulty
-	Status        *domain.TestStatus
-	Page          int
-	Limit         int
+	ContributorID  *uuid.UUID
+	Category       *domain.TestCategory
+	Difficulty     *domain.Difficulty
+	Status         *domain.TestStatus
+	EducationLevel *domain.EducationLevel
+	Page           int
+	Limit          int
 }
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Test, error) {
@@ -77,6 +80,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Test, err
 		Category:        in.Category,
 		DurationMinutes: in.DurationMinutes,
 		Difficulty:      in.Difficulty,
+		EducationLevel:  in.EducationLevel,
 		Status:          domain.TestStatusDraft,
 		CreatedAt:       now,
 	}
@@ -111,12 +115,13 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (*domain.Test, error) {
 
 func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Test, int, error) {
 	return s.tests.List(ctx, repository.TestFilter{
-		ContributorID: f.ContributorID,
-		Category:      f.Category,
-		Difficulty:    f.Difficulty,
-		Status:        f.Status,
-		Page:          f.Page,
-		Limit:         f.Limit,
+		ContributorID:  f.ContributorID,
+		Category:       f.Category,
+		Difficulty:     f.Difficulty,
+		Status:         f.Status,
+		EducationLevel: f.EducationLevel,
+		Page:           f.Page,
+		Limit:          f.Limit,
 	})
 }
 
@@ -154,6 +159,9 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	}
 	if in.Difficulty != nil {
 		t.Difficulty = *in.Difficulty
+	}
+	if in.EducationLevel != nil {
+		t.EducationLevel = in.EducationLevel
 	}
 
 	if err := s.tests.Update(ctx, t); err != nil {

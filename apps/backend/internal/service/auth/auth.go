@@ -36,10 +36,11 @@ func NewService(cfg Config, users repository.UserRepository, tokens repository.R
 }
 
 type RegisterInput struct {
-	Name     string
-	Email    string
-	Password string
-	Role     domain.Role
+	Name           string
+	Email          string
+	Password       string
+	Role           domain.Role
+	EducationLevel *domain.EducationLevel
 }
 
 type TokenPair struct {
@@ -63,15 +64,21 @@ func (s *Service) Register(ctx context.Context, in RegisterInput) (*domain.User,
 		status = domain.StatusPending
 	}
 
+	var el *domain.EducationLevel
+	if in.Role == domain.RoleStudent && in.EducationLevel != nil {
+		el = in.EducationLevel
+	}
+
 	user := &domain.User{
-		ID:           uuid.New(),
-		Name:         strings.TrimSpace(in.Name),
-		Email:        strings.ToLower(strings.TrimSpace(in.Email)),
-		PasswordHash: string(hash),
-		Role:         in.Role,
-		Status:       status,
-		CreatedAt:    now,
-		UpdatedAt:    now,
+		ID:             uuid.New(),
+		Name:           strings.TrimSpace(in.Name),
+		Email:          strings.ToLower(strings.TrimSpace(in.Email)),
+		PasswordHash:   string(hash),
+		Role:           in.Role,
+		Status:         status,
+		EducationLevel: el,
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	if err := s.users.Create(ctx, user); err != nil {
@@ -163,6 +170,33 @@ func (s *Service) Logout(ctx context.Context, rawToken string) error {
 		return fmt.Errorf("logout: %w", err)
 	}
 	return nil
+}
+
+type UpdateProfileInput struct {
+	EducationLevel *domain.EducationLevel
+}
+
+func (s *Service) UpdateProfile(ctx context.Context, userID uuid.UUID, in UpdateProfileInput) (*domain.User, error) {
+	user, err := s.users.FindByID(ctx, userID)
+	if err != nil {
+		if errors.Is(err, apierr.ErrNotFound) {
+			return nil, apierr.ErrNotFound
+		}
+		return nil, fmt.Errorf("find user for profile update: %w", err)
+	}
+
+	// Education level only applies to students.
+	if user.Role != domain.RoleStudent && in.EducationLevel != nil {
+		return nil, fmt.Errorf("%w: education_level is only applicable for student role", apierr.ErrValidation)
+	}
+
+	user.EducationLevel = in.EducationLevel
+
+	// Use a dedicated update for profile fields.
+	if err := s.users.UpdateEducationLevel(ctx, userID, user.EducationLevel); err != nil {
+		return nil, fmt.Errorf("update profile: %w", err)
+	}
+	return user, nil
 }
 
 func (s *Service) Me(ctx context.Context, userID uuid.UUID) (*domain.User, error) {

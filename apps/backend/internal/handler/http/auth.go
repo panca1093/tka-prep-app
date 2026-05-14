@@ -20,6 +20,10 @@ func (s *APIServer) PostAuthRegister(ctx context.Context, req api.PostAuthRegist
 		Password: req.Body.Password,
 		Role:     domain.Role(req.Body.Role),
 	}
+	if req.Body.EducationLevel != nil {
+		el := domain.EducationLevel(string(*req.Body.EducationLevel))
+		in.EducationLevel = &el
+	}
 
 	user, pair, err := s.authSvc.Register(ctx, in)
 	if err != nil {
@@ -100,9 +104,35 @@ func (s *APIServer) GetAuthMe(ctx context.Context, _ api.GetAuthMeRequestObject)
 	return api.GetAuthMe200JSONResponse(toUserResponse(user)), nil
 }
 
+func (s *APIServer) PatchAuthMe(ctx context.Context, req api.PatchAuthMeRequestObject) (api.PatchAuthMeResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.PatchAuthMe401Response{}, nil
+	}
+
+	in := auth.UpdateProfileInput{}
+	if req.Body.EducationLevel != nil {
+		el := domain.EducationLevel(string(*req.Body.EducationLevel))
+		in.EducationLevel = &el
+	}
+
+	user, err := s.authSvc.UpdateProfile(ctx, claims.UserID, in)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return nil, apierr.ErrNotFound
+		case errors.Is(err, apierr.ErrValidation):
+			return api.PatchAuthMe400Response{}, nil
+		}
+		return nil, err
+	}
+
+	return api.PatchAuthMe200JSONResponse(toUserResponse(user)), nil
+}
+
 // toUserResponse maps a domain User to the generated API type.
 func toUserResponse(u *domain.User) api.UserResponse {
-	return api.UserResponse{
+	resp := api.UserResponse{
 		Id:        u.ID,
 		Name:      u.Name,
 		Email:     openapi_types.Email(u.Email),
@@ -110,6 +140,11 @@ func toUserResponse(u *domain.User) api.UserResponse {
 		Status:    api.UserResponseStatus(u.Status),
 		CreatedAt: u.CreatedAt,
 	}
+	if u.EducationLevel != nil {
+		el := api.UserResponseEducationLevel(string(*u.EducationLevel))
+		resp.EducationLevel = &el
+	}
+	return resp
 }
 
 // errBody builds a typed ErrorResponse value for use as a response body.

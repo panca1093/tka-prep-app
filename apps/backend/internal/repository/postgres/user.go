@@ -26,10 +26,10 @@ func NewUserRepository(pool *pgxpool.Pool) *UserRepository {
 
 func (r *UserRepository) Create(ctx context.Context, user *domain.User) error {
 	_, err := r.pool.Exec(ctx,
-		`INSERT INTO users (id, name, email, password_hash, role, status, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+		`INSERT INTO users (id, name, email, password_hash, role, status, education_level, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 		user.ID, user.Name, user.Email, user.PasswordHash,
-		string(user.Role), string(user.Status), user.CreatedAt, user.UpdatedAt,
+		string(user.Role), string(user.Status), user.EducationLevel, user.CreatedAt, user.UpdatedAt,
 	)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -45,10 +45,10 @@ func (r *UserRepository) FindByEmail(ctx context.Context, email string) (*domain
 	var u domain.User
 	var role, status string
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, name, email, password_hash, role, status, created_at, updated_at
+		`SELECT id, name, email, password_hash, role, status, education_level, created_at, updated_at
 		 FROM users WHERE email = $1`,
 		email,
-	).Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.CreatedAt, &u.UpdatedAt)
+	).Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.EducationLevel, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound
@@ -64,10 +64,10 @@ func (r *UserRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Us
 	var u domain.User
 	var role, status string
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, name, email, password_hash, role, status, created_at, updated_at
+		`SELECT id, name, email, password_hash, role, status, education_level, created_at, updated_at
 		 FROM users WHERE id = $1`,
 		id,
-	).Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.CreatedAt, &u.UpdatedAt)
+	).Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.EducationLevel, &u.CreatedAt, &u.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound
@@ -118,7 +118,7 @@ func (r *UserRepository) List(ctx context.Context, f repository.UserAdminFilter)
 
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
-		fmt.Sprintf(`SELECT id, name, email, password_hash, role, status, created_at, updated_at
+		fmt.Sprintf(`SELECT id, name, email, password_hash, role, status, education_level, created_at, updated_at
 		             FROM users WHERE %s
 		             ORDER BY created_at DESC
 		             LIMIT $%d OFFSET $%d`, pred, n, n+1),
@@ -133,7 +133,7 @@ func (r *UserRepository) List(ctx context.Context, f repository.UserAdminFilter)
 	for rows.Next() {
 		var u domain.User
 		var role, status string
-		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.CreatedAt, &u.UpdatedAt); err != nil {
+		if err := rows.Scan(&u.ID, &u.Name, &u.Email, &u.PasswordHash, &role, &status, &u.EducationLevel, &u.CreatedAt, &u.UpdatedAt); err != nil {
 			return nil, 0, fmt.Errorf("scan user: %w", err)
 		}
 		u.Role = domain.Role(role)
@@ -141,6 +141,20 @@ func (r *UserRepository) List(ctx context.Context, f repository.UserAdminFilter)
 		users = append(users, &u)
 	}
 	return users, total, rows.Err()
+}
+
+func (r *UserRepository) UpdateEducationLevel(ctx context.Context, id uuid.UUID, level *domain.EducationLevel) error {
+	tag, err := r.pool.Exec(ctx,
+		`UPDATE users SET education_level = $1, updated_at = NOW() WHERE id = $2`,
+		level, id,
+	)
+	if err != nil {
+		return fmt.Errorf("update education level: %w", err)
+	}
+	if tag.RowsAffected() == 0 {
+		return apierr.ErrNotFound
+	}
+	return nil
 }
 
 func (r *UserRepository) UpdateStatus(ctx context.Context, id uuid.UUID, status domain.Status) error {

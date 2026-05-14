@@ -26,6 +26,8 @@ type UserRepository interface {
 	List(ctx context.Context, f UserAdminFilter) ([]*domain.User, int, error)
 	// UpdateStatus sets the account status for a user.
 	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.Status) error
+	// UpdateEducationLevel sets the education level for a user (students only).
+	UpdateEducationLevel(ctx context.Context, id uuid.UUID, level *domain.EducationLevel) error
 }
 
 type RefreshTokenRepository interface {
@@ -67,12 +69,13 @@ type QuestionRepository interface {
 
 // TestFilter holds optional filters for listing tests.
 type TestFilter struct {
-	ContributorID *uuid.UUID
-	Category      *domain.TestCategory
-	Difficulty    *domain.Difficulty
-	Status        *domain.TestStatus
-	Page          int
-	Limit         int
+	ContributorID  *uuid.UUID
+	Category       *domain.TestCategory
+	Difficulty     *domain.Difficulty
+	Status         *domain.TestStatus
+	EducationLevel *domain.EducationLevel
+	Page           int
+	Limit          int
 }
 
 type TestRepository interface {
@@ -116,7 +119,7 @@ type AdminRepository interface {
 	// GetStats returns aggregate platform statistics.
 	GetStats(ctx context.Context) (*domain.PlatformStats, error)
 	// ListTestsWithAttempts returns tests with their attempt counts, ordered by attempt count desc.
-	ListTestsWithAttempts(ctx context.Context, page, limit int) ([]*domain.TestWithAttempts, int, error)
+	ListTestsWithAttempts(ctx context.Context, page, limit int, educationLevel *domain.EducationLevel) ([]*domain.TestWithAttempts, int, error)
 }
 
 type ResultRepository interface {
