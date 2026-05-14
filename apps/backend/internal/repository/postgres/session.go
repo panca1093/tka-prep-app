@@ -104,7 +104,10 @@ func (r *SessionRepository) SaveMCQAnswer(ctx context.Context, sessionID, questi
 		 DO UPDATE SET answered_at = EXCLUDED.answered_at`,
 		uuid.New(), sessionID, questionID, optionID, now,
 	)
-	return fmt.Errorf("save mcq answer: %w", err)
+	if err != nil {
+		return fmt.Errorf("save mcq answer: %w", err)
+	}
+	return nil
 }
 
 // SavePGKAnswers replaces the selected-option set for a multi_correct question.
