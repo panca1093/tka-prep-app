@@ -10,10 +10,11 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	pkgjwt "github.com/yourorg/tkaprep/apps/backend/internal/pkg/jwt"
 )
 
-const maxUploadSize = 5 << 20 // 5 MB
+const maxUploadSize = 2 << 20 // 2 MB
 
 var allowedMIME = map[string]string{
 	"image/jpeg": ".jpg",
@@ -30,15 +31,19 @@ func UploadHandler(uploadDir string) http.HandlerFunc {
 		panic(fmt.Sprintf("failed to create upload dir: %v", err))
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		_, ok := pkgjwt.FromContext(r.Context())
+		claims, ok := pkgjwt.FromContext(r.Context())
 		if !ok {
 			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "not authenticated"})
+			return
+		}
+		if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+			writeJSON(w, http.StatusForbidden, map[string]string{"error": "contributor role required"})
 			return
 		}
 
 		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file too large (max 5 MB)"})
+			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file too large (max 2 MB)"})
 			return
 		}
 

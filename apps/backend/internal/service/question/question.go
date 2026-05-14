@@ -4,10 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/microcosm-cc/bluemonday"
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
@@ -95,8 +99,8 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 		ContributorID: in.ContributorID,
 		TopicID:       in.TopicID,
 		Type:          qt,
-		Text:          in.Text,
-		Explanation:   in.Explanation,
+		Text:          SanitizeHTML(in.Text),
+		Explanation:   sanitizeOptional(in.Explanation),
 		ImageURL:      in.ImageURL,
 		Difficulty:    in.Difficulty,
 		CreatedAt:     now,
@@ -109,21 +113,21 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 			return nil, err
 		}
 		for _, o := range in.Options {
-			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL})
+			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: SanitizeHTML(o.Text), IsCorrect: o.IsCorrect, ImageURL: o.ImageURL})
 		}
 	case domain.QuestionTypeMultiCorrect:
 		if err := validatePGKOptions(in.Options); err != nil {
 			return nil, err
 		}
 		for _, o := range in.Options {
-			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL})
+			q.Options = append(q.Options, domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: SanitizeHTML(o.Text), IsCorrect: o.IsCorrect, ImageURL: o.ImageURL})
 		}
 	case domain.QuestionTypeTrueFalse:
 		if err := validateStatements(in.Statements); err != nil {
 			return nil, err
 		}
 		for _, st := range in.Statements {
-			q.Statements = append(q.Statements, domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageURL})
+			q.Statements = append(q.Statements, domain.QuestionStatement{ID: uuid.New(), Text: SanitizeHTML(st.Text), IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageURL})
 		}
 	}
 
@@ -146,18 +150,21 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 		return nil, apierr.ErrForbidden
 	}
 
+	// Capture old text content for orphan image cleanup.
+	oldContent := collectAllText(q)
+
 	if in.Text != nil {
 		text := strings.TrimSpace(*in.Text)
 		if text == "" {
 			return nil, fmt.Errorf("%w: question text cannot be empty", apierr.ErrValidation)
 		}
-		q.Text = text
+		q.Text = SanitizeHTML(text)
 	}
 	if in.TopicID != nil {
 		q.TopicID = *in.TopicID
 	}
 	if in.Explanation != nil {
-		q.Explanation = in.Explanation
+		q.Explanation = sanitizeOptional(in.Explanation)
 	}
 	if in.ImageURL != nil {
 		q.ImageURL = in.ImageURL
@@ -174,7 +181,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 			}
 			q.Options = make([]domain.QuestionOption, len(in.Options))
 			for i, o := range in.Options {
-				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL}
+				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: SanitizeHTML(o.Text), IsCorrect: o.IsCorrect, ImageURL: o.ImageURL}
 			}
 		}
 	case domain.QuestionTypeMultiCorrect:
@@ -184,7 +191,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 			}
 			q.Options = make([]domain.QuestionOption, len(in.Options))
 			for i, o := range in.Options {
-				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: o.Text, IsCorrect: o.IsCorrect, ImageURL: o.ImageURL}
+				q.Options[i] = domain.QuestionOption{ID: uuid.New(), Label: o.Label, Text: SanitizeHTML(o.Text), IsCorrect: o.IsCorrect, ImageURL: o.ImageURL}
 			}
 		}
 	case domain.QuestionTypeTrueFalse:
@@ -194,7 +201,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 			}
 			q.Statements = make([]domain.QuestionStatement, len(in.Statements))
 			for i, st := range in.Statements {
-				q.Statements[i] = domain.QuestionStatement{ID: uuid.New(), Text: st.Text, IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageURL}
+				q.Statements[i] = domain.QuestionStatement{ID: uuid.New(), Text: SanitizeHTML(st.Text), IsCorrect: st.IsCorrect, Position: st.Position, ImageURL: st.ImageURL}
 			}
 		}
 	}
@@ -203,6 +210,9 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if err := s.questions.Update(ctx, q); err != nil {
 		return nil, fmt.Errorf("update question: %w", err)
 	}
+
+	// Clean up orphan images from editing.
+	cleanupOrphanImages("", oldContent, collectAllText(q))
 	return q, nil
 }
 
@@ -298,4 +308,93 @@ func EnsureContributorActive(status domain.Status) error {
 		return errors.New("contributor account is not active")
 	}
 	return nil
+}
+
+var (
+	htmlPolicy     *bluemonday.Policy
+	uploadURLRegex = regexp.MustCompile(`/uploads/[a-f0-9-]+\.(png|jpe?g|gif|webp)`)
+)
+
+func init() {
+	htmlPolicy = bluemonday.NewPolicy()
+	htmlPolicy.AllowElements("b", "i", "u", "p", "br", "ul", "ol", "li")
+	htmlPolicy.AllowAttrs("src").Matching(regexp.MustCompile(`^/uploads/[a-f0-9-]+\.(png|jpe?g|gif|webp)$`)).OnElements("img")
+	htmlPolicy.AllowAttrs("data-formula").OnElements("span")
+	htmlPolicy.AllowAttrs("class").OnElements("span")
+	htmlPolicy.AllowNoAttrs().OnElements("sup", "sub")
+}
+
+// SanitizeHTML sanitizes rich text HTML input, allowing only safe formatting,
+// formula spans, and uploads images.
+func SanitizeHTML(raw string) string {
+	return htmlPolicy.Sanitize(raw)
+}
+
+func sanitizeOptional(s *string) *string {
+	if s == nil {
+		return nil
+	}
+	clean := SanitizeHTML(*s)
+	return &clean
+}
+
+// sanitize text fields within question data.
+func sanitizeQuestion(q *domain.Question) {
+	q.Text = htmlPolicy.Sanitize(q.Text)
+	if q.Explanation != nil {
+		clean := htmlPolicy.Sanitize(*q.Explanation)
+		q.Explanation = &clean
+	}
+	for i := range q.Options {
+		q.Options[i].Text = htmlPolicy.Sanitize(q.Options[i].Text)
+	}
+	for i := range q.Statements {
+		q.Statements[i].Text = htmlPolicy.Sanitize(q.Statements[i].Text)
+	}
+}
+
+// extractUploadURLs finds all /uploads/... paths in an HTML string.
+func extractUploadURLs(html string) []string {
+	return uploadURLRegex.FindAllString(html, -1)
+}
+
+// collectAllText gathers all text fields from a question into a single string
+// for URL extraction.
+func collectAllText(q *domain.Question) string {
+	var b strings.Builder
+	b.WriteString(q.Text)
+	if q.Explanation != nil {
+		b.WriteString(*q.Explanation)
+	}
+	for _, o := range q.Options {
+		b.WriteString(o.Text)
+	}
+	for _, s := range q.Statements {
+		b.WriteString(s.Text)
+	}
+	return b.String()
+}
+
+// cleanupOrphanImages deletes image files that are in the old set but not the new set.
+func cleanupOrphanImages(uploadDir string, oldHTML, newHTML string) {
+	if uploadDir == "" {
+		return
+	}
+	oldURLs := makeSet(extractUploadURLs(oldHTML))
+	newURLs := makeSet(extractUploadURLs(newHTML))
+	for url := range oldURLs {
+		if newURLs[url] {
+			continue
+		}
+		filename := filepath.Base(url)
+		_ = os.Remove(filepath.Join(uploadDir, filename))
+	}
+}
+
+func makeSet(urls []string) map[string]bool {
+	s := make(map[string]bool, len(urls))
+	for _, u := range urls {
+		s[u] = true
+	}
+	return s
 }
