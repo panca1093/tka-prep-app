@@ -53,25 +53,25 @@ onMounted(async () => {
 
 <style scoped>
 .page-title { margin: 0 0 2rem; font-size: 1.5rem; font-weight: 800; }
-.loading { color: #94a3b8; }
+.loading { color: var(--text-muted); }
 
 .stats-row { display: flex; gap: 1rem; margin-bottom: 2rem; }
 .stat-card {
   flex: 1; max-width: 160px;
-  background: #141c2e; border: 1px solid #1e2a45; border-radius: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1.25rem 1.5rem;
 }
-.stat-value { font-size: 2rem; font-weight: 800; color: #4f8ef7; }
-.stat-label { font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem; }
+.stat-value { font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
 
 .quick-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; max-width: 480px; }
 .action-card {
-  background: #141c2e; border: 1px solid #1e2a45; border-radius: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1.5rem; text-decoration: none; display: flex; flex-direction: column; gap: 0.375rem;
   transition: border-color 0.15s;
 }
-.action-card:hover { border-color: #4f8ef7; }
+.action-card:hover { border-color: var(--accent); }
 .action-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
-.action-label { font-size: 0.95rem; font-weight: 700; color: #f1f5f9; }
-.action-sub { font-size: 0.8rem; color: #94a3b8; }
+.action-label { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
+.action-sub { font-size: 0.8rem; color: var(--text-muted); }
 </style>

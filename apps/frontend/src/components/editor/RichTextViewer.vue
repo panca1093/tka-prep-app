@@ -42,7 +42,7 @@ onUpdated(renderFormulas)
 
 <style scoped>
 .richtext-viewer {
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-size: 0.9rem;
   line-height: 1.6;
 }

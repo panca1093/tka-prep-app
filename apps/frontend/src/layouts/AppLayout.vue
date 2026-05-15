@@ -2,6 +2,8 @@
 import { computed } from 'vue'
 import { RouterView, RouterLink, useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import MasukelasLogo from '@/components/MasukelasLogo.vue'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const auth = useAuthStore()
 const router = useRouter()
@@ -47,19 +49,19 @@ async function handleLogout() {
     <nav class="sidebar">
       <div class="sidebar-top">
         <div class="brand">
-          <span class="brand-mark">✦</span>
-          <span class="brand-name">TKAPrep</span>
+          <MasukelasLogo />
         </div>
         <ul class="nav-list">
           <li v-for="item in nav" :key="item.to">
             <RouterLink :to="item.to" class="nav-item" active-class="nav-item--active">
               <span class="nav-icon">{{ item.icon }}</span>
-              {{ item.label }}
+              <span class="nav-label">{{ item.label }}</span>
             </RouterLink>
           </li>
         </ul>
       </div>
       <div class="sidebar-bottom">
+        <ThemeToggle />
         <div class="user-info">
           <div class="user-name">{{ auth.user?.name }}</div>
           <div class="user-role">{{ auth.user?.role }}</div>
@@ -70,6 +72,20 @@ async function handleLogout() {
     <main :class="['content', { 'content--full': isFullScreen }]">
       <RouterView />
     </main>
+
+    <!-- Mobile bottom nav -->
+    <nav class="bottom-nav">
+      <RouterLink
+        v-for="item in nav"
+        :key="item.to"
+        :to="item.to"
+        class="bottom-nav-item"
+        active-class="bottom-nav-item--active"
+      >
+        <span class="bottom-nav-icon">{{ item.icon }}</span>
+        <span class="bottom-nav-label">{{ item.label }}</span>
+      </RouterLink>
+    </nav>
   </div>
 </template>
 
@@ -82,8 +98,8 @@ async function handleLogout() {
 .sidebar {
   width: 220px;
   flex-shrink: 0;
-  background: #0d1424;
-  border-right: 1px solid #1e2a45;
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   padding: 1.5rem 1rem;
@@ -103,9 +119,6 @@ async function handleLogout() {
   padding: 0 0.5rem;
 }
 
-.brand-mark { font-size: 1.1rem; color: #4f8ef7; }
-.brand-name { font-size: 1rem; font-weight: 800; color: #f1f5f9; }
-
 .nav-list {
   list-style: none;
   margin: 0;
@@ -121,27 +134,27 @@ async function handleLogout() {
   gap: 0.625rem;
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.875rem;
   font-weight: 500;
   transition: background 0.15s, color 0.15s;
   text-decoration: none;
 }
 
-.nav-item:hover { background: #1e2a45; color: #f1f5f9; }
-.nav-item--active { background: #1a2f5c; color: #4f8ef7; }
+.nav-item:hover { background: var(--border); color: var(--text-primary); }
+.nav-item--active { background: var(--bg-active-nav); color: var(--text-active-nav); }
 .nav-icon { font-size: 1rem; width: 1.25rem; text-align: center; }
 
 .user-info {
   padding: 0.75rem;
-  border-top: 1px solid #1e2a45;
+  border-top: 1px solid var(--border);
   margin-bottom: 0.5rem;
 }
 
-.user-name { font-size: 0.875rem; font-weight: 600; color: #f1f5f9; }
+.user-name { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
 .user-role {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--text-muted);
   text-transform: capitalize;
   margin-top: 2px;
 }
@@ -150,15 +163,15 @@ async function handleLogout() {
   width: 100%;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
-  border: 1px solid #1e2a45;
+  border: 1px solid var(--border);
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.8rem;
   cursor: pointer;
   transition: background 0.15s, color 0.15s;
 }
 
-.logout-btn:hover { background: #1e2a45; color: #ef4444; }
+.logout-btn:hover { background: var(--border); color: var(--danger); }
 
 .content {
   flex: 1;
@@ -171,5 +184,70 @@ async function handleLogout() {
   padding: 0;
   max-width: unset;
   overflow: hidden;
+}
+
+/* Bottom navigation (mobile) */
+.bottom-nav {
+  display: none;
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0.5rem 0.25rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: color 0.15s;
+}
+
+.bottom-nav-item--active {
+  color: var(--text-active-nav);
+}
+
+.bottom-nav-icon {
+  font-size: 1.2rem;
+}
+
+.bottom-nav-label {
+  font-size: 0.65rem;
+}
+
+/* Tablet: icon-only sidebar */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .sidebar {
+    width: 60px;
+    padding: 1rem 0.5rem;
+  }
+  .nav-label { display: none; }
+  .brand :deep(.logo-text) { display: none; }
+  .user-info { display: none; }
+}
+
+/* Mobile: bottom nav, hide sidebar */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .bottom-nav {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
+    z-index: 100;
+  }
+  .content {
+    padding: 1rem;
+    padding-bottom: 76px;
+    max-width: 100%;
+  }
 }
 </style>

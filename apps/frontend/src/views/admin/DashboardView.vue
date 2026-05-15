@@ -91,36 +91,36 @@ onMounted(fetchData)
 
 <style scoped>
 .page-title { margin: 0 0 2rem; font-size: 1.5rem; font-weight: 800; }
-.loading { color: #94a3b8; }
+.loading { color: var(--text-muted); }
 
 .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 2.5rem; }
-.stat-card { background: #141c2e; border: 1px solid #1e2a45; border-radius: 12px; padding: 1.25rem 1.5rem; }
-.stat-card.highlight { border-color: #f59e0b; }
-.stat-value { font-size: 2rem; font-weight: 800; color: #4f8ef7; }
-.stat-card.highlight .stat-value { color: #f59e0b; }
-.stat-label { font-size: 0.8rem; color: #94a3b8; margin-top: 0.25rem; }
+.stat-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.25rem 1.5rem; }
+.stat-card.highlight { border-color: var(--warning); }
+.stat-value { font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-card.highlight .stat-value { color: var(--warning); }
+.stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
 
 .section { margin-bottom: 2rem; }
 .section h2 { font-size: 1rem; font-weight: 700; margin: 0 0 1rem; }
-.error-msg { padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fca5a5; font-size: 0.825rem; margin-bottom: 0.75rem; }
-.empty-state { color: #94a3b8; font-size: 0.875rem; padding: 1rem 0; }
+.error-msg { padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--danger-bg); color: var(--danger-text); font-size: 0.825rem; margin-bottom: 0.75rem; }
+.empty-state { color: var(--text-muted); font-size: 0.875rem; padding: 1rem 0; }
 
 .pending-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .pending-row {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0.875rem 1rem; background: #141c2e; border: 1px solid #1e2a45;
+  padding: 0.875rem 1rem; background: var(--bg-surface); border: 1px solid var(--border);
   border-radius: 10px;
 }
 .pending-name { font-weight: 600; font-size: 0.9rem; }
-.pending-email { font-size: 0.8rem; color: #94a3b8; margin-top: 2px; }
+.pending-email { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 .pending-actions { display: flex; gap: 0.5rem; }
 
 .btn-approve, .btn-reject {
   padding: 0.4rem 0.875rem; border-radius: 6px; font-size: 0.8rem; font-weight: 600;
   cursor: pointer; border: none; transition: opacity 0.15s;
 }
-.btn-approve { background: #22c55e; color: #000; }
+.btn-approve { background: var(--success); color: #000; }
 .btn-approve:hover { opacity: 0.85; }
-.btn-reject { background: #1e2a45; color: #ef4444; border: 1px solid #ef4444; background: transparent; }
+.btn-reject { background: var(--border); color: var(--danger); border: 1px solid var(--danger); background: transparent; }
 .btn-reject:hover { background: rgba(239,68,68,0.1); }
 </style>

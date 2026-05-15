@@ -19,7 +19,7 @@ onMounted(async () => {
 })
 
 const scoreColor = (pct: number) =>
-  pct >= 75 ? '#22c55e' : pct >= 50 ? '#f59e0b' : '#ef4444'
+  pct >= 75 ? 'var(--success)' : pct >= 50 ? 'var(--warning)' : 'var(--danger)'
 </script>
 
 <template>
@@ -80,7 +80,7 @@ const scoreColor = (pct: number) =>
 </template>
 
 <style scoped>
-.loading, .error { color: #94a3b8; padding: 2rem; }
+.loading, .error { color: var(--text-muted); padding: 2rem; }
 
 .result-page { max-width: 640px; margin: 0 auto; }
 
@@ -93,33 +93,33 @@ const scoreColor = (pct: number) =>
   gap: 0.5rem;
 }
 
-.test-title-label { font-size: 1rem; font-weight: 700; color: #f1f5f9; margin-bottom: 0.5rem; }
+.test-title-label { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
 
 .score-ring {
   width: 140px; height: 140px;
   border-radius: 50%;
-  border: 6px solid #1e2a45;
+  border: 6px solid var(--border);
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  background: #141c2e;
+  background: var(--bg-surface);
 }
 
 .score-value { font-size: 2rem; font-weight: 900; line-height: 1; }
-.score-label { font-size: 0.72rem; color: #94a3b8; margin-top: 4px; }
+.score-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; }
 .score-pct { font-size: 1.1rem; font-weight: 700; }
 
 .counts-row { display: flex; gap: 1rem; margin-bottom: 2rem; }
 
 .count-card {
   flex: 1; text-align: center;
-  background: #141c2e; border: 1px solid #1e2a45; border-radius: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1rem;
 }
 .count-val { font-size: 1.75rem; font-weight: 800; }
-.count-label { font-size: 0.75rem; color: #94a3b8; margin-top: 4px; }
-.count-card.correct .count-val { color: #22c55e; }
-.count-card.wrong .count-val { color: #ef4444; }
-.count-card.blank .count-val { color: #94a3b8; }
+.count-label { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
+.count-card.correct .count-val { color: var(--success); }
+.count-card.wrong .count-val { color: var(--danger); }
+.count-card.blank .count-val { color: var(--text-muted); }
 
 .section { margin-bottom: 2rem; }
 .section h2 { font-size: 1rem; font-weight: 700; margin: 0 0 1rem; }
@@ -129,30 +129,31 @@ const scoreColor = (pct: number) =>
   display: grid; grid-template-columns: 180px 1fr 60px;
   align-items: center; gap: 0.75rem;
   padding: 0.625rem 0.875rem;
-  background: #141c2e; border: 1px solid #1e2a45; border-radius: 8px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 8px;
 }
 .tb-topic { font-size: 0.825rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.tb-bar-wrap { background: #1e2a45; border-radius: 4px; height: 6px; overflow: hidden; }
-.tb-bar { height: 100%; background: #4f8ef7; border-radius: 4px; transition: width 0.3s; }
-.tb-counts { font-size: 0.78rem; color: #94a3b8; text-align: right; }
+.tb-bar-wrap { background: var(--border); border-radius: 4px; height: 6px; overflow: hidden; }
+.tb-bar { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.3s; }
+.tb-counts { font-size: 0.78rem; color: var(--text-muted); text-align: right; }
 
 .actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
 .btn-review {
   padding: 0.65rem 1.5rem; border-radius: 8px;
-  background: #4f8ef7; color: #fff;
+  background: var(--accent); color: var(--text-on-accent);
   font-size: 0.875rem; font-weight: 600;
   text-decoration: none;
   transition: background 0.15s;
 }
-.btn-review:hover { background: #3b7be8; }
+.btn-review:hover { background: var(--accent-hover); }
 
 .btn-secondary {
   padding: 0.65rem 1.5rem; border-radius: 8px;
-  border: 1px solid #1e2a45; color: #94a3b8;
+  border: 1px solid var(--border); color: var(--text-muted);
   font-size: 0.875rem;
   text-decoration: none;
   transition: all 0.15s;
 }
-.btn-secondary:hover { border-color: #4f8ef7; color: #f1f5f9; }
+.btn-secondary:hover { border-color: var(--accent); color: var(--text-primary); }
 </style>
+@media (max-width: 768px) { .stats-row { grid-template-columns: 1fr; } }

@@ -65,30 +65,30 @@ async function handleSubmit() {
 
 <style scoped>
 .page-title { margin: 0 0 0.25rem; font-size: 1.5rem; font-weight: 700; }
-.page-sub { margin: 0 0 1.75rem; color: #94a3b8; font-size: 0.875rem; }
+.page-sub { margin: 0 0 1.75rem; color: var(--text-muted); font-size: 0.875rem; }
 
 .form { display: flex; flex-direction: column; gap: 1rem; }
 
 .field { display: flex; flex-direction: column; gap: 0.375rem; }
-.field label { font-size: 0.8rem; font-weight: 600; color: #94a3b8; }
+.field label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
 .field input {
   padding: 0.65rem 0.875rem;
   border-radius: 8px;
-  border: 1px solid #1e2a45;
-  background: #0d1424;
-  color: #f1f5f9;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 0.9rem;
   outline: none;
   transition: border-color 0.15s;
 }
-.field input:focus { border-color: #4f8ef7; }
+.field input:focus { border-color: var(--accent); }
 
 .error-msg {
   margin: 0;
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  background: #450a0a;
-  color: #fca5a5;
+  background: var(--danger);
+  color: var(--danger-text);
   font-size: 0.825rem;
 }
 
@@ -97,15 +97,15 @@ async function handleSubmit() {
   padding: 0.7rem;
   border-radius: 8px;
   border: none;
-  background: #4f8ef7;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-on-accent);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 }
-.btn-primary:hover { background: #3b7be8; }
+.btn-primary:hover { background: var(--accent-hover); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
-.footer-link { margin: 1.5rem 0 0; text-align: center; font-size: 0.85rem; color: #94a3b8; }
+.footer-link { margin: 1.5rem 0 0; text-align: center; font-size: 0.85rem; color: var(--text-muted); }
 </style>

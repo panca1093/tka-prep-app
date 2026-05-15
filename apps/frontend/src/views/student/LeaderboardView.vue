@@ -25,7 +25,7 @@ onMounted(fetchData)
 watch(scope, fetchData)
 
 const medalColor = (rank: number) =>
-  rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : '#94a3b8'
+  rank === 1 ? '#FFD700' : rank === 2 ? '#C0C0C0' : rank === 3 ? '#CD7F32' : 'var(--text-muted)'
 </script>
 
 <template>
@@ -77,25 +77,25 @@ const medalColor = (rank: number) =>
 .scope-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
 .scope-btn {
   padding: 0.4rem 1rem; border-radius: 20px;
-  border: 1px solid #1e2a45; background: transparent;
-  color: #94a3b8; font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.15s;
 }
-.scope-btn:hover { border-color: #4f8ef7; color: #f1f5f9; }
-.scope-btn.active { background: #1a2f5c; border-color: #4f8ef7; color: #4f8ef7; }
+.scope-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.scope-btn.active { background: var(--bg-active-nav); border-color: var(--accent); color: var(--accent); }
 
 .my-rank-card {
   display: flex; align-items: center; gap: 1rem;
   padding: 0.875rem 1.25rem; margin-bottom: 1.25rem;
-  background: rgba(79,142,247,0.08); border: 1px solid #1a2f5c; border-radius: 10px;
+  background: rgba(79,142,247,0.08); border: 1px solid var(--bg-active-nav); border-radius: 10px;
 }
-.my-rank-label { font-size: 0.8rem; color: #94a3b8; }
-.my-rank-val { font-size: 1.25rem; font-weight: 800; color: #4f8ef7; }
-.my-rank-score { margin-left: auto; font-size: 0.875rem; color: #94a3b8; }
+.my-rank-label { font-size: 0.8rem; color: var(--text-muted); }
+.my-rank-val { font-size: 1.25rem; font-weight: 800; color: var(--accent); }
+.my-rank-score { margin-left: auto; font-size: 0.875rem; color: var(--text-muted); }
 
-.loading { color: #94a3b8; }
+.loading { color: var(--text-muted); }
 
 .board {
-  background: #141c2e; border: 1px solid #1e2a45; border-radius: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px;
   overflow: hidden;
 }
 
@@ -105,13 +105,14 @@ const medalColor = (rank: number) =>
   padding: 0.75rem 1rem;
   font-size: 0.85rem;
 }
-.board-header { color: #64748b; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #1e2a45; }
-.board-row { border-bottom: 1px solid #0d1424; transition: background 0.1s; }
+.board-header { color: var(--text-muted); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.board-row { border-bottom: 1px solid var(--bg-input); transition: background 0.1s; }
 .board-row:last-child { border-bottom: none; }
-.board-row:hover { background: #1a2535; }
+.board-row:hover { background: var(--border); }
 
 .rank-cell { font-weight: 700; }
 .name-cell { font-weight: 500; }
-.meta-cell { color: #94a3b8; }
-.score-cell { font-weight: 700; color: #4f8ef7; text-align: right; }
+.meta-cell { color: var(--text-muted); }
+.score-cell { font-weight: 700; color: var(--accent); text-align: right; }
 </style>
+@media (max-width: 768px) { .leaderboard-table { overflow-x: auto; display: block; } }
