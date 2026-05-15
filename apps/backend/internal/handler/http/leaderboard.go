@@ -63,8 +63,27 @@ func resolveScope(s *string) domain.LeaderboardScope {
 }
 
 func (s *APIServer) GetTestsTestIdLeaderboard(ctx context.Context, req api.GetTestsTestIdLeaderboardRequestObject) (api.GetTestsTestIdLeaderboardResponseObject, error) {
-	// TODO: implement in Phase 6
-	return api.GetTestsTestIdLeaderboard200JSONResponse{Data: &[]api.TestLeaderboardEntry{}}, nil
+	limit := 100
+	if req.Params.Limit != nil {
+		limit = *req.Params.Limit
+	}
+
+	entries, err := s.leaderboardSvc.ListByTest(ctx, req.TestId, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]api.TestLeaderboardEntry, len(entries))
+	for i, e := range entries {
+		data[i] = api.TestLeaderboardEntry{
+			Rank:        int(e.Rank),
+			StudentId:   e.StudentID,
+			StudentName: e.StudentName,
+			TotalScore:  e.TotalScore,
+			CompletedAt: e.CompletedAt,
+		}
+	}
+	return api.GetTestsTestIdLeaderboard200JSONResponse{Data: &data}, nil
 }
 
 func toLeaderboardEntryResponse(e domain.LeaderboardEntry) api.LeaderboardEntryResponse {

@@ -119,6 +119,14 @@ type LeaderboardEntry struct {
 	TestCount   int
 }
 
+type TestLeaderboardEntry struct {
+	Rank        int64
+	StudentID   uuid.UUID
+	StudentName string
+	TotalScore  float64
+	CompletedAt time.Time
+}
+
 type ReviewItem struct {
 	QuestionID   uuid.UUID
 	QuestionType QuestionType

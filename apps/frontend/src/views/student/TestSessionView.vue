@@ -118,16 +118,31 @@ async function doSubmit() {
   }
 }
 
+// ─── Tab-switch detection ──────────────────────────────────────────────────────
+const tabSwitchWarning = ref(false)
+let tabWarningTimer: ReturnType<typeof setTimeout> | null = null
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible' && store.session?.status === 'in_progress') {
+    tabSwitchWarning.value = true
+    if (tabWarningTimer) clearTimeout(tabWarningTimer)
+    tabWarningTimer = setTimeout(() => { tabSwitchWarning.value = false }, 5000)
+  }
+}
+
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   await store.load(sessionId)
   if (store.session) {
     startTimer(store.session.time_remaining_seconds)
   }
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
 onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
+  if (tabWarningTimer) clearTimeout(tabWarningTimer)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
 const answeredCount = computed(() => store.answeredCount())
@@ -141,12 +156,20 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   <div v-else-if="store.error" class="error-screen">{{ store.error }}</div>
 
   <div v-else-if="store.session && store.questions.length" class="session-shell">
+    <!-- Watermark -->
+    <div class="session-watermark" aria-hidden="true">{{ store.test?.title }} · {{ sessionId }}</div>
+
     <!-- Top bar -->
     <header class="session-header">
       <div class="test-name">{{ store.test?.title }}</div>
       <div class="timer" :style="{ color: timerColor }">⏱ {{ timerDisplay }}</div>
       <button class="btn-submit-header" @click="openSubmitModal">Submit</button>
     </header>
+
+    <!-- Tab-switch warning -->
+    <div v-if="tabSwitchWarning" class="tab-warning">
+      Kami mendeteksi kamu beralih tab. Aktivitas ini dicatat.
+    </div>
 
     <div class="session-body">
       <!-- Question area -->
@@ -202,7 +225,7 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
             @click="togglePGKOption(opt.id)"
           >
             <span class="opt-label pgk" :class="{ checked: isPGKSelected(opt.id) }">
-              {{ isPGKSelected(opt.id) ? '✓' : opt.label }}
+              {{ isPGKSelected(opt.id) ? '✓' : '' }}
             </span>
             <div class="opt-body">
               <span class="opt-text"><RichTextViewer :html="opt.text" /></span>
@@ -294,6 +317,26 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
 </template>
 
 <style scoped>
+.tab-warning {
+  background: color-mix(in srgb, var(--warning) 20%, var(--bg-input));
+  border-bottom: 1px solid var(--warning);
+  color: var(--text-primary);
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  animation: fadeIn 0.3s ease;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.session-watermark {
+  position: fixed; inset: 0; pointer-events: none; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; font-weight: 700; color: var(--text-primary);
+  opacity: 0.06; transform: rotate(-30deg); user-select: none;
+  white-space: nowrap; overflow: hidden;
+}
+
 .loading-screen, .error-screen {
   display: flex;
   align-items: center;
@@ -432,8 +475,8 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   font-weight: 700;
   flex-shrink: 0;
 }
-.opt-label.pgk { border-radius: 5px; }
-.opt-label.pgk.checked { background: var(--accent); }
+.opt-label.pgk { border-radius: 4px; border: 2px solid var(--border); background: transparent; color: transparent; }
+.opt-label.pgk.checked { background: var(--accent); border-color: var(--accent); color: #fff; }
 .option-btn.selected .opt-label:not(.pgk) { background: var(--accent); }
 .opt-body { display: flex; flex-direction: column; gap: 0.5rem; flex: 1; }
 .opt-text { font-size: 0.9rem; line-height: 1.5; padding-top: 0.15rem; }

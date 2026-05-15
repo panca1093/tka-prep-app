@@ -44,7 +44,7 @@ const emptyForm = (): FormState => ({
   explanation: '',
   image_url: null,
   difficulty: 'medium',
-  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+  options: 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
   statements: [
     { text: '', is_correct: true, image_url: null },
     { text: '', is_correct: false, image_url: null },
@@ -100,7 +100,7 @@ function openEdit(q: Question) {
     difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
     options: q.question_type !== 'true_false'
       ? q.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? null }))
-      : 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+      : 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
     statements: q.question_type === 'true_false'
       ? q.statements.map(s => ({ text: s.text, is_correct: s.is_correct, image_url: s.image_url ?? null }))
       : [{ text: '', is_correct: true, image_url: null }, { text: '', is_correct: false, image_url: null }],
@@ -136,6 +136,16 @@ function removeStatement(idx: number) {
 
 function toggleStatementCorrect(idx: number) {
   form.value.statements[idx].is_correct = !form.value.statements[idx].is_correct
+}
+
+function addOption() {
+  const labels = "ABCDEFGHIJ"
+  form.value.options.push({
+    label: labels[form.value.options.length] ?? String(form.value.options.length + 1),
+    text: "",
+    is_correct: false,
+    image_url: null,
+  })
 }
 
 async function saveQuestion() {
@@ -344,6 +354,12 @@ const typeColor: Record<string, string> = {
               </div>
               <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
             </div>
+            <button
+              v-if="!isTrueFalse"
+              type="button"
+              class="add-option-btn"
+              @click="addOption()"
+            >+ Add option</button>
           </div>
         </div>
 
@@ -524,3 +540,6 @@ const typeColor: Record<string, string> = {
 .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
 </style>
 @media (max-width: 768px) { .modal { width: 100%; max-width: 100%; } .form-row { flex-direction: column; } }
+
+.add-option-btn { margin-top: 0.25rem; padding: 0.5rem; border-radius: 8px; border: 1px dashed var(--border); background: transparent; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; width: 100%; transition: all 0.15s; }
+.add-option-btn:hover { border-color: var(--accent); color: var(--accent); }

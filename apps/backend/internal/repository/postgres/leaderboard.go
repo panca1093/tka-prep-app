@@ -53,6 +53,39 @@ func (r *LeaderboardRepository) GetMyRank(ctx context.Context, studentID uuid.UU
 	return e, nil
 }
 
+func (r *LeaderboardRepository) FindByTest(ctx context.Context, testID uuid.UUID, limit int) ([]domain.TestLeaderboardEntry, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 100
+	}
+	rows, err := r.pool.Query(ctx, `
+		SELECT
+			RANK() OVER (ORDER BY tr.total_score DESC) AS rank,
+			tr.student_id,
+			u.name AS student_name,
+			tr.total_score,
+			tr.completed_at
+		FROM test_results tr
+		JOIN users u ON u.id = tr.student_id
+		WHERE tr.test_id = $1
+		ORDER BY rank
+		LIMIT $2
+	`, testID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("leaderboard by test: %w", err)
+	}
+	defer rows.Close()
+
+	var entries []domain.TestLeaderboardEntry
+	for rows.Next() {
+		var e domain.TestLeaderboardEntry
+		if err := rows.Scan(&e.Rank, &e.StudentID, &e.StudentName, &e.TotalScore, &e.CompletedAt); err != nil {
+			return nil, fmt.Errorf("scan test leaderboard entry: %w", err)
+		}
+		entries = append(entries, e)
+	}
+	return entries, rows.Err()
+}
+
 // leaderboardQuery builds the SQL and args for both the list and my-rank queries.
 // When forStudent is true, a CTE wraps the ranking and filters to the given studentID.
 func leaderboardQuery(scope domain.LeaderboardScope, studentID uuid.UUID, forStudent bool) (string, []interface{}) {

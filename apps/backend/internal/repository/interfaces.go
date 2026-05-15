@@ -114,6 +114,8 @@ type LeaderboardRepository interface {
 	// GetMyRank returns the caller's rank and aggregate stats in the given scope.
 	// Returns apierr.ErrNotFound if the student has no results in the scope.
 	GetMyRank(ctx context.Context, studentID uuid.UUID, scope domain.LeaderboardScope) (*domain.LeaderboardEntry, error)
+	// FindByTest returns ranked results for a specific test, up to limit.
+	FindByTest(ctx context.Context, testID uuid.UUID, limit int) ([]domain.TestLeaderboardEntry, error)
 }
 
 type AdminRepository interface {
