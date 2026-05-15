@@ -123,4 +123,11 @@ onMounted(fetchData)
 .btn-approve:hover { opacity: 0.85; }
 .btn-reject { background: var(--border); color: var(--danger); border: 1px solid var(--danger); background: transparent; }
 .btn-reject:hover { background: rgba(239,68,68,0.1); }
+
+@media (max-width: 768px) {
+  h1 { font-size: 1.25rem; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .pending-row { flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+  .pending-actions { width: 100%; justify-content: flex-end; }
+}
 </style>
