@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
@@ -27,7 +26,7 @@ func (s *APIServer) PostTestsTestIdSessions(ctx context.Context, req api.PostTes
 		case errors.Is(err, apierr.ErrNotFound):
 			return api.PostTestsTestIdSessions404JSONResponse(errBody("NOT_FOUND", "test not found or not published")), nil
 		case errors.Is(err, apierr.ErrConflict):
-			return nil, fmt.Errorf("ALREADY_COMPLETED: %w", err)
+			return api.PostTestsTestIdSessions409JSONResponse(errBody("ALREADY_COMPLETED", "you have already completed this test")), nil
 		}
 		return nil, err
 	}

@@ -32,6 +32,7 @@ interface FormState {
   text: string
   explanation: string
   image_url: string | null
+  education_level: string
   difficulty: 'easy' | 'medium' | 'hard'
   options: { label: string; text: string; is_correct: boolean; image_url: string | null }[]
   statements: { text: string; is_correct: boolean; image_url: string | null }[]
@@ -44,6 +45,7 @@ const emptyForm = (): FormState => ({
   explanation: '',
   image_url: null,
   difficulty: 'medium',
+  education_level: '',
   options: 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
   statements: [
     { text: '', is_correct: true, image_url: null },
@@ -98,6 +100,7 @@ function openEdit(q: Question) {
     explanation: q.explanation ?? '',
     image_url: q.image_url ?? null,
     difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
+    education_level: (q as any).education_level ?? '',
     options: q.question_type !== 'true_false'
       ? q.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? null }))
       : 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
@@ -166,6 +169,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
+      education_level: form.value.education_level || undefined,
       options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else if (form.value.question_type === 'multi_correct') {
@@ -178,6 +182,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
+      education_level: form.value.education_level || undefined,
       options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else {
@@ -191,6 +196,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
+      education_level: form.value.education_level || undefined,
       statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
     }
   }
@@ -325,6 +331,16 @@ const typeColor: Record<string, string> = {
             <option value="easy">Easy</option>
             <option value="medium">Medium</option>
             <option value="hard">Hard</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Education Level</label>
+          <select v-model="form.education_level" class="filter-select">
+            <option value="">All Levels</option>
+            <option value="sd">SD</option>
+            <option value="smp">SMP</option>
+            <option value="sma">SMA</option>
           </select>
         </div>
 

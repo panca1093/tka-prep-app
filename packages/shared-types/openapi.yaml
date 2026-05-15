@@ -383,6 +383,13 @@ paths:
           schema:
             type: string
             enum: [easy, medium, hard]
+        - name: education_level
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [sd, smp, sma]
+          description: Filter by education level. Omit to return all (including untagged).
         - name: page
           in: query
           schema:
@@ -1103,6 +1110,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Test not found or not published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Student has already completed this test
           content:
             application/json:
               schema:
@@ -2144,6 +2157,10 @@ components:
         question_type:
           type: string
           enum: [mcq, true_false, multi_correct]
+        education_level:
+          type: string
+          enum: [sd, smp, sma]
+          nullable: true
         text:
           type: string
           minLength: 1
@@ -2174,6 +2191,10 @@ components:
         topic_id:
           type: string
           format: uuid
+        education_level:
+          type: string
+          enum: [sd, smp, sma]
+          nullable: true
         text:
           type: string
           minLength: 1

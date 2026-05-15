@@ -30,18 +30,19 @@ type Topic struct {
 }
 
 type Question struct {
-	ID            uuid.UUID
-	ContributorID uuid.UUID
-	TopicID       uuid.UUID
-	Type          QuestionType
-	Text          string
-	Explanation   *string
-	ImageURL      *string
-	Difficulty    Difficulty
-	Options       []QuestionOption    // MCQ and multi_correct
-	Statements    []QuestionStatement // true_false only
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID             uuid.UUID
+	ContributorID  uuid.UUID
+	TopicID        uuid.UUID
+	Type           QuestionType
+	EducationLevel *string
+	Text           string
+	Explanation    *string
+	ImageURL       *string
+	Difficulty     Difficulty
+	Options        []QuestionOption    // MCQ and multi_correct
+	Statements     []QuestionStatement // true_false only
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
 }
 
 type QuestionOption struct {

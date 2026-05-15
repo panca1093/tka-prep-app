@@ -49,12 +49,13 @@ type TopicRepository interface {
 
 // QuestionFilter holds optional filters for listing questions.
 type QuestionFilter struct {
-	Search       string
-	TopicID      *uuid.UUID
-	Difficulty   *domain.Difficulty
-	QuestionType *domain.QuestionType
-	Page         int
-	Limit        int
+	Search         string
+	TopicID        *uuid.UUID
+	Difficulty     *domain.Difficulty
+	QuestionType   *domain.QuestionType
+	EducationLevel *string
+	Page           int
+	Limit          int
 }
 
 type QuestionRepository interface {
