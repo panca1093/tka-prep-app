@@ -233,9 +233,9 @@ onBeforeUnmount(() => editor.value?.destroy())
 
 <style scoped>
 .rich-editor-wrapper {
-  border: 1px solid #1e2a45;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #141c2e;
+  background: var(--bg-surface);
   overflow: hidden;
 }
 
@@ -244,8 +244,8 @@ onBeforeUnmount(() => editor.value?.destroy())
   align-items: center;
   gap: 2px;
   padding: 0.35rem 0.5rem;
-  border-bottom: 1px solid #1e2a45;
-  background: #0f1626;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-input);
   flex-wrap: wrap;
 }
 
@@ -255,17 +255,17 @@ onBeforeUnmount(() => editor.value?.destroy())
   border: none;
   border-radius: 4px;
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.875rem;
 }
-.tb-btn:hover { background: #1e2a45; color: #f1f5f9; }
-.tb-btn.active { background: #4f8ef722; color: #4f8ef7; }
+.tb-btn:hover { background: var(--border); color: var(--text-primary); }
+.tb-btn.active { background: color-mix(in srgb, var(--accent) 13%, transparent); color: var(--accent); }
 .tb-formula { font-family: 'Times New Roman', serif; font-style: italic; font-weight: 600; }
-.tb-sep { width: 1px; height: 18px; background: #1e2a45; margin: 0 2px; }
+.tb-sep { width: 1px; height: 18px; background: var(--border); margin: 0 2px; }
 
 .editor-content {
   padding: 0.6rem 0.75rem;
@@ -275,7 +275,7 @@ onBeforeUnmount(() => editor.value?.destroy())
 .editor-content :deep(.ProseMirror) {
   outline: none;
   min-height: 60px;
-  color: #f1f5f9;
+  color: var(--text-primary);
   font-size: 0.9rem;
   line-height: 1.6;
 }
@@ -294,16 +294,16 @@ onBeforeUnmount(() => editor.value?.destroy())
   z-index: 1000;
 }
 .formula-dialog {
-  background: #1a2035; border: 1px solid #1e2a45; border-radius: 12px;
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px;
   padding: 1.25rem; width: 420px; max-width: 90vw;
 }
-.formula-dialog h3 { margin: 0 0 0.25rem; font-size: 1rem; color: #f1f5f9; }
-.formula-hint { font-size: 0.8rem; color: #94a3b8; margin: 0 0 0.6rem; }
-.formula-hint code { background: #0f1626; padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; }
+.formula-dialog h3 { margin: 0 0 0.25rem; font-size: 1rem; color: var(--text-primary); }
+.formula-hint { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 0.6rem; }
+.formula-hint code { background: var(--bg-input); padding: 1px 4px; border-radius: 3px; font-size: 0.8rem; }
 .formula-input {
   width: 100%; padding: 0.5rem; border-radius: 8px;
-  border: 1px solid #1e2a45; background: #141c2e; color: #f1f5f9;
+  border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary);
 }
-.formula-preview { margin-top: 0.5rem; padding: 0.5rem; background: #141c2e; border-radius: 6px; min-height: 30px; color: #f1f5f9; font-size: 1.1rem; }
+.formula-preview { margin-top: 0.5rem; padding: 0.5rem; background: var(--bg-surface); border-radius: 6px; min-height: 30px; color: var(--text-primary); font-size: 1.1rem; }
 .formula-actions { display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.75rem; }
 </style>

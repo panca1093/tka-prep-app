@@ -47,50 +47,50 @@ onMounted(async () => {
 h1 {
   font-size: 2rem;
   font-weight: 800;
-  color: #4f8ef7;
+  color: var(--accent);
   margin: 0 0 0.5rem;
 }
 .subtitle {
-  color: #94a3b8;
+  color: var(--text-muted);
   margin: 0 0 2rem;
 }
 .card {
-  background: #141c2e;
-  border: 1px solid #1e2a45;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
 }
 .card h2 {
   font-size: 1rem;
   margin: 0 0 1rem;
-  color: #cbd5e1;
+  color: var(--text-primary);
 }
 .row {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #1e2a45;
+  border-bottom: 1px solid var(--border);
 }
 .row:last-child {
   border-bottom: none;
 }
 .label {
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 .value {
   font-weight: 600;
-  color: #f1f5f9;
+  color: var(--text-primary);
 }
-.value--ok { color: #22c55e; }
-.value--error { color: #ef4444; }
-.value--checking\u2026 { color: #f59e0b; }
+.value--ok { color: var(--success); }
+.value--error { color: var(--danger); }
+.value--checking\u2026 { color: var(--warning); }
 .error {
   margin-top: 1rem;
   padding: 0.75rem;
-  background: #450a0a;
+  background: var(--danger-bg);
   border-radius: 6px;
-  color: #fca5a5;
+  color: var(--danger-text);
   font-size: 0.875rem;
 }
 </style>

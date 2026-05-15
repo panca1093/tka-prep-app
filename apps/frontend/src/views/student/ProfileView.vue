@@ -97,8 +97,8 @@ h1 {
   gap: 1rem;
   padding: 1.5rem;
   border-radius: 12px;
-  border: 1px solid #1e2a45;
-  background: #0d1424;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
 }
 .field {
   display: flex;
@@ -108,57 +108,57 @@ h1 {
 .field > label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 .readonly {
   padding: 0.65rem 0.875rem;
   border-radius: 8px;
-  border: 1px solid #1e2a45;
-  background: #060c18;
-  color: #94a3b8;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-muted);
   font-size: 0.9rem;
 }
 .help-text {
   margin: 0;
   font-size: 0.75rem;
-  color: #64748b;
+  color: var(--text-muted);
 }
 .edu-select {
   padding: 0.65rem 0.875rem;
   border-radius: 8px;
-  border: 1px solid #1e2a45;
-  background: #0d1424;
-  color: #f1f5f9;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
   font-size: 0.9rem;
   outline: none;
 }
 .edu-select:focus {
-  border-color: #4f8ef7;
+  border-color: var(--accent);
 }
 .msg {
   margin: 0;
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
   font-size: 0.825rem;
-  background: #052e16;
-  color: #86efac;
+  background: var(--success-bg);
+  color: var(--success);
 }
 .msg.error {
-  background: #450a0a;
-  color: #fca5a5;
+  background: var(--danger-bg);
+  color: var(--danger-text);
 }
 .btn-primary {
   margin-top: 0.5rem;
   padding: 0.7rem;
   border-radius: 8px;
   border: none;
-  background: #4f8ef7;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-on-accent);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-primary:hover { background: #3b7be8; }
+.btn-primary:hover { background: var(--accent-hover); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

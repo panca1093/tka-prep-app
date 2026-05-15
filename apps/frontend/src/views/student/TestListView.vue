@@ -39,9 +39,9 @@ const categoryLabel: Record<string, string> = {
 }
 
 const difficultyColor: Record<string, string> = {
-  easy: '#22c55e',
-  medium: '#f59e0b',
-  hard: '#ef4444',
+  easy: 'var(--success)',
+  medium: 'var(--warning)',
+  hard: 'var(--danger)',
 }
 
 const levelLabel: Record<string, string> = {
@@ -110,43 +110,43 @@ const levelLabel: Record<string, string> = {
 .filter-btn {
   padding: 0.4rem 1rem;
   border-radius: 20px;
-  border: 1px solid #1e2a45;
+  border: 1px solid var(--border);
   background: transparent;
-  color: #94a3b8;
+  color: var(--text-muted);
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.15s;
 }
-.filter-btn:hover { border-color: #4f8ef7; color: #f1f5f9; }
-.filter-btn.active { background: #1a2f5c; border-color: #4f8ef7; color: #4f8ef7; }
+.filter-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+.filter-btn.active { background: var(--bg-active-nav); border-color: var(--accent); color: var(--accent); }
 
 .error-msg {
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  background: #450a0a;
-  color: #fca5a5;
+  background: color-mix(in srgb, var(--danger) 15%, var(--bg-surface));
+  color: var(--danger);
   font-size: 0.825rem;
   margin-bottom: 1rem;
 }
 
 .loading, .empty-state {
-  color: #94a3b8;
+  color: var(--text-muted);
   padding: 2rem;
   text-align: center;
-  background: #141c2e;
-  border: 1px solid #1e2a45;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
 }
 
 .test-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
 }
 
 .test-card {
-  background: #141c2e;
-  border: 1px solid #1e2a45;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.25rem;
   display: flex;
@@ -154,37 +154,40 @@ const levelLabel: Record<string, string> = {
   gap: 0.5rem;
   transition: border-color 0.15s;
 }
-.test-card:hover { border-color: #2d3f64; }
+.test-card:hover { border-color: var(--border); }
 
 .test-header { display: flex; align-items: center; justify-content: space-between; }
-.test-category { font-size: 0.72rem; font-weight: 600; color: #4f8ef7; text-transform: uppercase; letter-spacing: 0.05em; }
+.test-category { font-size: 0.72rem; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: 0.05em; }
 .test-difficulty { font-size: 0.75rem; font-weight: 600; text-transform: capitalize; }
 .test-level {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #a78bfa;
-  background: #2e1a5c;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--bg-surface));
   padding: 0.15rem 0.5rem;
   border-radius: 4px;
 }
 
-.test-title { margin: 0; font-size: 1rem; font-weight: 700; color: #f1f5f9; line-height: 1.4; }
-.test-desc { margin: 0; font-size: 0.825rem; color: #94a3b8; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.test-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-primary); line-height: 1.4; }
+.test-desc { margin: 0; font-size: 0.825rem; color: var(--text-muted); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
-.test-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid #1e2a45; }
-.test-meta { font-size: 0.78rem; color: #64748b; }
+.test-footer { display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.test-meta { font-size: 0.78rem; color: var(--text-muted); }
 
 .btn-start {
   padding: 0.45rem 1.1rem;
   border-radius: 8px;
   border: none;
-  background: #4f8ef7;
-  color: #fff;
+  background: var(--accent);
+  color: var(--text-on-accent);
   font-size: 0.825rem;
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, opacity 0.15s;
 }
-.btn-start:hover { background: #3b7be8; }
+.btn-start:hover { background: var(--accent-hover); }
 .btn-start:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (min-width: 769px) and (max-width: 1024px) { .test-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 768px) { .test-grid { grid-template-columns: 1fr; } .btn-start { min-height: 44px; } }
 </style>

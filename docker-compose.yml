@@ -62,17 +62,14 @@ services:
     build:
       context: .
       dockerfile: apps/frontend/Dockerfile
+      args:
+        VITE_API_BASE_URL: http://localhost:8080/api/v1
     container_name: tkaprep-frontend
     restart: unless-stopped
     depends_on:
       - backend
-    environment:
-      VITE_API_BASE_URL: http://localhost:8080/api/v1
     ports:
-      - "5173:5173"
-    volumes:
-      - ./apps/frontend/src:/app/apps/frontend/src
-      - ./apps/frontend/index.html:/app/apps/frontend/index.html
+      - "5173:80"
 
 volumes:
   postgres_data:

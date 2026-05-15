@@ -61,7 +61,7 @@ function remove() {
 
 <style scoped>
 .img-upload { display: flex; flex-direction: column; gap: 0.375rem; }
-.img-upload-label { font-size: 0.72rem; color: #94a3b8; font-weight: 600; }
+.img-upload-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; }
 
 .img-preview {
   position: relative;
@@ -72,7 +72,7 @@ function remove() {
   max-width: 100%;
   max-height: 200px;
   border-radius: 8px;
-  border: 1px solid #1e2a45;
+  border: 1px solid var(--border);
   display: block;
 }
 .remove-btn {
@@ -84,7 +84,7 @@ function remove() {
   border-radius: 50%;
   background: rgba(0,0,0,0.65);
   border: none;
-  color: #fff;
+  color: var(--text-on-accent);
   font-size: 0.7rem;
   cursor: pointer;
   display: flex;
@@ -99,17 +99,17 @@ function remove() {
   gap: 0.375rem;
   padding: 0.4rem 0.875rem;
   border-radius: 8px;
-  border: 1px dashed #1e2a45;
+  border: 1px dashed var(--border);
   background: transparent;
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.15s;
 }
-.upload-zone:hover:not(.uploading) { border-color: #4f8ef7; color: #4f8ef7; }
+.upload-zone:hover:not(.uploading) { border-color: var(--accent); color: var(--accent); }
 .upload-zone.uploading { opacity: 0.6; cursor: wait; }
 
 .file-input { display: none; }
 
-.upload-error { font-size: 0.75rem; color: #ef4444; margin: 0; }
+.upload-error { font-size: 0.75rem; color: var(--danger); margin: 0; }
 </style>

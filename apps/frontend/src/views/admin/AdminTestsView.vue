@@ -29,7 +29,7 @@ async function unpublish(testId: string) {
 onMounted(fetchTests)
 
 const categoryLabel: Record<string, string> = { tka_saintek: 'TKA Saintek', tka_soshum: 'TKA Soshum', smbt: 'SMBT' }
-const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', hard: '#ef4444' }
+const diffColor: Record<string, string> = { easy: 'var(--success)', medium: 'var(--warning)', hard: 'var(--danger)' }
 </script>
 
 <template>
@@ -73,26 +73,27 @@ const diffColor: Record<string, string> = { easy: '#22c55e', medium: '#f59e0b', 
 
 <style scoped>
 .page-title { margin: 0 0 1.5rem; font-size: 1.5rem; font-weight: 800; }
-.loading { color: #94a3b8; }
-.error-msg { padding: 0.6rem 0.75rem; border-radius: 8px; background: #450a0a; color: #fca5a5; font-size: 0.825rem; margin-bottom: 0.75rem; }
+.loading { color: var(--text-muted); }
+.error-msg { padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--danger-bg); color: var(--danger-text); font-size: 0.825rem; margin-bottom: 0.75rem; }
 
-.table-wrap { background: #141c2e; border: 1px solid #1e2a45; border-radius: 12px; overflow: auto; }
+.table-wrap { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; overflow: auto; }
 .test-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-.test-table th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; border-bottom: 1px solid #1e2a45; }
-.test-table td { padding: 0.75rem 1rem; border-bottom: 1px solid #0d1424; vertical-align: middle; }
+.test-table th { padding: 0.75rem 1rem; text-align: left; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; border-bottom: 1px solid var(--border); }
+.test-table td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--bg-input); vertical-align: middle; }
 .test-table tbody tr:last-child td { border-bottom: none; }
 .test-table tbody tr:hover td { background: #1a2535; }
 .title-cell { font-weight: 600; max-width: 260px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.attempts-cell { color: #4f8ef7; font-weight: 700; }
+.attempts-cell { color: var(--accent); font-weight: 700; }
 .status-badge { font-size: 0.75rem; font-weight: 700; padding: 0.2rem 0.5rem; border-radius: 4px; text-transform: capitalize; }
-.status-badge.published { background: rgba(34,197,94,0.15); color: #22c55e; }
-.status-badge.draft { background: rgba(148,163,184,0.1); color: #94a3b8; }
-.btn-action { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: transparent; border: 1px solid #f59e0b; color: #f59e0b; transition: background 0.15s; }
+.status-badge.published { background: rgba(34,197,94,0.15); color: var(--success); }
+.status-badge.draft { background: rgba(148,163,184,0.1); color: var(--text-muted); }
+.btn-action { padding: 0.3rem 0.75rem; border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer; background: transparent; border: 1px solid var(--warning); color: var(--warning); transition: background 0.15s; }
 .btn-action:hover { background: rgba(245,158,11,0.1); }
 
 .pagination { display: flex; align-items: center; gap: 1rem; margin-top: 1rem; justify-content: flex-end; }
-.page-btn { padding: 0.4rem 0.875rem; border-radius: 6px; border: 1px solid #1e2a45; background: #141c2e; color: #94a3b8; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
-.page-btn:hover:not(:disabled) { border-color: #4f8ef7; color: #4f8ef7; }
+.page-btn { padding: 0.4rem 0.875rem; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-muted); font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+.page-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.page-info { font-size: 0.8rem; color: #64748b; }
+.page-info { font-size: 0.8rem; color: var(--text-muted); }
 </style>
+@media (max-width: 768px) { .table-wrap { overflow-x: auto; } }
