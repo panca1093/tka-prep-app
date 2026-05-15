@@ -50,6 +50,7 @@ func (s *APIServer) GetTests(ctx context.Context, req api.GetTestsRequestObject)
 		if err == nil && user.EducationLevel != nil {
 			f.EducationLevel = user.EducationLevel
 		}
+		f.StudentID = &claims.UserID
 	} else if claims.Role == domain.RoleContributor && f.ContributorID == nil {
 		f.ContributorID = &claims.UserID
 	}
@@ -76,7 +77,7 @@ func (s *APIServer) PostTests(ctx context.Context, req api.PostTestsRequestObjec
 	if !ok {
 		return api.PostTests401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
 		return api.PostTests403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -148,7 +149,7 @@ func (s *APIServer) PatchTestsTestId(ctx context.Context, req api.PatchTestsTest
 	if !ok {
 		return api.PatchTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
 		return api.PatchTestsTestId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -194,7 +195,7 @@ func (s *APIServer) DeleteTestsTestId(ctx context.Context, req api.DeleteTestsTe
 	if !ok {
 		return api.DeleteTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
 		return api.DeleteTestsTestId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -217,7 +218,7 @@ func (s *APIServer) PostTestsTestIdPublish(ctx context.Context, req api.PostTest
 	if !ok {
 		return api.PostTestsTestIdPublish401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
 		return api.PostTestsTestIdPublish403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -244,15 +245,17 @@ func (s *APIServer) PostTestsTestIdUnpublish(ctx context.Context, req api.PostTe
 		return api.PostTestsTestIdUnpublish401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
 	// Only admin can unpublish.
-	if claims.Role != domain.RoleAdmin {
-		return api.PostTestsTestIdUnpublish403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	if claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+		return api.PostTestsTestIdUnpublish403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
-	t, err := s.testSvc.Unpublish(ctx, req.TestId)
+	t, err := s.testSvc.Unpublish(ctx, req.TestId, claims.UserID, claims.Role)
 	if err != nil {
 		switch {
 		case errors.Is(err, apierr.ErrNotFound):
 			return api.PostTestsTestIdUnpublish404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.PostTestsTestIdUnpublish403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
 		case errors.Is(err, apierr.ErrConflict):
 			return api.PostTestsTestIdUnpublish409JSONResponse(errBody("CONFLICT", err.Error())), nil
 		}
@@ -266,7 +269,7 @@ func (s *APIServer) PutTestsTestIdQuestions(ctx context.Context, req api.PutTest
 	if !ok {
 		return api.PutTestsTestIdQuestions401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
 		return api.PutTestsTestIdQuestions403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -290,7 +293,7 @@ func (s *APIServer) PatchTestsTestIdScoring(ctx context.Context, req api.PatchTe
 	if !ok {
 		return api.PatchTestsTestIdScoring401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
 		return api.PatchTestsTestIdScoring403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -340,6 +343,13 @@ func toTestDetailResponse(t *domain.Test) api.TestDetailResponse {
 	if t.EducationLevel != nil {
 		el := api.TestDetailResponseEducationLevel(string(*t.EducationLevel))
 		resp.EducationLevel = &el
+	}
+	if t.StudentStatus != "" {
+		st := api.TestDetailResponseStudentStatus(t.StudentStatus)
+		resp.StudentStatus = &st
+		if t.ResultID != nil {
+			resp.ResultId = t.ResultID
+		}
 	}
 
 	if t.ScoringConfig != nil {

@@ -181,6 +181,30 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 		return nil, 0, err
 	}
 
+	// Compute per-test student status if caller is a student.
+	if f.StudentID != nil {
+		for _, t := range tests {
+			var resultID *uuid.UUID
+			_ = r.pool.QueryRow(ctx,
+				`SELECT id FROM test_results WHERE student_id = $1 AND test_id = $2`,
+				*f.StudentID, t.ID,
+			).Scan(resultID) // may be pgx.ErrNoRows → nil
+			var inProgress bool
+			_ = r.pool.QueryRow(ctx,
+				`SELECT EXISTS(SELECT 1 FROM test_sessions WHERE student_id = $1 AND test_id = $2 AND status = 'in_progress')`,
+				*f.StudentID, t.ID,
+			).Scan(&inProgress)
+			if resultID != nil {
+				t.StudentStatus = "completed"
+				t.ResultID = resultID
+			} else if inProgress {
+				t.StudentStatus = "in_progress"
+			} else {
+				t.StudentStatus = "not_started"
+			}
+		}
+	}
+
 	for _, t := range tests {
 		if err := r.loadQuestions(ctx, t); err != nil {
 			return nil, 0, err

@@ -62,6 +62,11 @@ func resolveScope(s *string) domain.LeaderboardScope {
 	}
 }
 
+func (s *APIServer) GetTestsTestIdLeaderboard(ctx context.Context, req api.GetTestsTestIdLeaderboardRequestObject) (api.GetTestsTestIdLeaderboardResponseObject, error) {
+	// TODO: implement in Phase 6
+	return api.GetTestsTestIdLeaderboard200JSONResponse{Data: &[]api.TestLeaderboardEntry{}}, nil
+}
+
 func toLeaderboardEntryResponse(e domain.LeaderboardEntry) api.LeaderboardEntryResponse {
 	return api.LeaderboardEntryResponse{
 		Rank:        e.Rank,

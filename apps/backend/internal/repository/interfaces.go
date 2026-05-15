@@ -74,6 +74,7 @@ type TestFilter struct {
 	Difficulty     *domain.Difficulty
 	Status         *domain.TestStatus
 	EducationLevel *domain.EducationLevel
+	StudentID      *uuid.UUID // if set, compute student_status + result_id per test
 	Page           int
 	Limit          int
 }

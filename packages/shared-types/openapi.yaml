@@ -924,6 +924,46 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /tests/{testId}/leaderboard:
+    get:
+      summary: Get leaderboard for a specific test
+      tags: [Leaderboard]
+      operationId: getTestsTestIdLeaderboard
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            maximum: 100
+      responses:
+        '200':
+          description: Ranked list of results for this test
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TestLeaderboardEntry'
+        '404':
+          description: Test not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /tests/{testId}/questions:
     put:
       tags: [Tests]
@@ -2013,6 +2053,10 @@ components:
         topic_id:
           type: string
           format: uuid
+        education_level:
+          type: string
+          enum: [sd, smp, sma]
+          nullable: true
         question_type:
           type: string
           enum: [mcq, true_false, multi_correct]
@@ -2230,6 +2274,15 @@ components:
           enum: [sd, smp, sma, smk]
           nullable: true
           description: Null means the test is available to all education levels
+        student_status:
+          type: string
+          enum: [not_started, in_progress, completed]
+          description: Only populated for authenticated student callers.
+        result_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: UUID of the student's completed result. Populated when student_status=completed.
         created_at:
           type: string
           format: date-time
@@ -2244,6 +2297,25 @@ components:
         scoring_config:
           $ref: '#/components/schemas/ScoringConfigResponse'
           nullable: true
+
+
+    TestLeaderboardEntry:
+      type: object
+      required: [rank, student_id, student_name, total_score, completed_at]
+      properties:
+        rank:
+          type: integer
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        total_score:
+          type: number
+          format: double
+        completed_at:
+          type: string
+          format: date-time
 
     TestListResponse:
       type: object
