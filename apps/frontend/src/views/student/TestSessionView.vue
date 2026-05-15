@@ -589,5 +589,37 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
 .btn-confirm:hover { background: var(--accent-hover); }
 .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
 
-@media (max-width: 768px) { .q-option { min-height: 52px; } .q-text { font-size: clamp(0.95rem, 2vw, 1.1rem); } }
+/* Mobile */
+@media (max-width: 768px) {
+  .session-shell { height: 100dvh; }
+  .session-header { padding: 0.6rem 0.75rem; flex-wrap: wrap; gap: 0.5rem; }
+  .test-name { font-size: 0.8rem; flex: auto; }
+  .timer { font-size: 0.95rem; padding: 0 0.25rem; font-weight: 700; }
+  .btn-submit-header { padding: 0.35rem 0.65rem; font-size: 0.75rem; }
+
+  .session-body { flex-direction: column; overflow-y: auto; }
+
+  .question-area { padding: 0.75rem; gap: 0.75rem; overflow-y: visible; }
+  .question-text { padding: 0.75rem; font-size: clamp(0.9rem, 2.2vw, 1rem); }
+  .question-meta { flex-wrap: wrap; gap: 0.375rem; font-size: 0.75rem; }
+
+  .option-btn { padding: 0.65rem 0.75rem; min-height: 52px; }
+  .opt-label { width: 1.75rem; height: 1.75rem; }
+  .opt-text { font-size: 0.85rem; }
+
+  .stmt-row { padding: 0.65rem 0.75rem; flex-wrap: wrap; }
+  .bs-btns { width: 100%; margin-top: 0.5rem; }
+  .bs-btn { flex: 1; padding: 0.5rem; min-height: 44px; }
+
+  .side-panel { width: 100%; border-left: none; border-top: 1px solid var(--border); padding: 0.625rem 0.75rem; max-height: 200px; }
+  .q-grid { grid-template-columns: repeat(8, 1fr); }
+  .panel-title { display: none; }
+  .legend { flex-direction: row; gap: 0.75rem; margin-top: 0.25rem; }
+
+  .nav-arrows { gap: 0.5rem; }
+  .arrow-btn { padding: 0.55rem 0.75rem; min-height: 44px; font-size: 0.8rem; }
+
+  .modal { width: calc(100vw - 2rem); margin: 0 1rem; }
+  .modal-stats { gap: 0.5rem; }
+}
 </style>

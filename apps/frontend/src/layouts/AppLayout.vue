@@ -73,8 +73,8 @@ async function handleLogout() {
       <RouterView />
     </main>
 
-    <!-- Mobile bottom nav -->
-    <nav class="bottom-nav">
+    <!-- Mobile bottom nav (hidden during full-screen test sessions) -->
+    <nav v-if="!isFullScreen" class="bottom-nav">
       <RouterLink
         v-for="item in nav"
         :key="item.to"
