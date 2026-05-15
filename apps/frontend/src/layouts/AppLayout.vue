@@ -85,6 +85,10 @@ async function handleLogout() {
         <span class="bottom-nav-icon">{{ item.icon }}</span>
         <span class="bottom-nav-label">{{ item.label }}</span>
       </RouterLink>
+      <button class="bottom-nav-item logout-nav-item" @click="handleLogout">
+        <span class="bottom-nav-icon">⏻</span>
+        <span class="bottom-nav-label">Sign out</span>
+      </button>
     </nav>
   </div>
 </template>
@@ -209,6 +213,16 @@ async function handleLogout() {
   color: var(--text-active-nav);
 }
 
+.logout-nav-item {
+  background: transparent;
+  border: none;
+  padding: 0.5rem 0.25rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+}
+.logout-nav-item:hover { color: var(--danger); }
+
 .bottom-nav-icon {
   font-size: 1.2rem;
 }
@@ -226,6 +240,8 @@ async function handleLogout() {
   .nav-label { display: none; }
   .brand :deep(.logo-text) { display: none; }
   .user-info { display: none; }
+  .logout-btn { padding: 0.4rem; font-size: 0; }
+  .logout-btn::before { content: '⏻'; font-size: 1rem; }
 }
 
 /* Mobile: bottom nav, hide sidebar */
