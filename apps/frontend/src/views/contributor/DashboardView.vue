@@ -74,4 +74,10 @@ onMounted(async () => {
 .action-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
 .action-label { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); }
 .action-sub { font-size: 0.8rem; color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  h1 { font-size: 1.25rem; }
+  .stats-row { grid-template-columns: 1fr; }
+  .quick-actions { grid-template-columns: 1fr; }
+}
 </style>

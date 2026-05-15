@@ -319,4 +319,15 @@ const typeClass: Record<string, string> = {
   background: var(--bg-input); border-radius: 8px; padding: 0.75rem;
 }
 .exp-label { font-weight: 600; color: var(--text-muted); }
+
+@media (max-width: 768px) {
+  .page-header { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+  .review-card { padding: 1rem; }
+  .review-header { gap: 0.375rem; }
+  .opt-row { flex-wrap: wrap; padding: 0.625rem; }
+  .opt-badge { margin-top: 0.25rem; }
+  .stmt-review-row { flex-direction: column; gap: 0.5rem; }
+  .stmt-answers { min-width: unset; width: 100%; }
+  .pgk-badges { flex-direction: column; align-items: flex-end; }
+}
 </style>
