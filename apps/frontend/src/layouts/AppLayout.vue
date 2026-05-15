@@ -85,10 +85,6 @@ async function handleLogout() {
         <span class="bottom-nav-icon">{{ item.icon }}</span>
         <span class="bottom-nav-label">{{ item.label }}</span>
       </RouterLink>
-      <button class="bottom-nav-item logout-nav-item" @click="handleLogout">
-        <span class="bottom-nav-icon">⏻</span>
-        <span class="bottom-nav-label">Sign out</span>
-      </button>
     </nav>
   </div>
 </template>
