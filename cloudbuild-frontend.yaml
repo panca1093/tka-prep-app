@@ -1,4 +1,5 @@
 steps:
+  # Step 1: Build the frontend Docker image from repo root (build context needed for packages/shared-types)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -13,12 +14,14 @@ steps:
       - '.'
     timeout: '600s'
 
+  # Step 2: Push image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '--all-tags'
       - 'asia-southeast2-docker.pkg.dev/$PROJECT_ID/masukelas/frontend'
 
+  # Step 3: Deploy to Cloud Run
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: gcloud
     args:
