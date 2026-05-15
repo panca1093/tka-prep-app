@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -29,7 +30,7 @@ func Load() (*Config, error) {
 		LogLevel:       getEnv("LOG_LEVEL", "info"),
 		DatabaseURL:    getEnv("DATABASE_URL", ""),
 		JWTSecret:      getEnv("JWT_SECRET", ""),
-		AllowedOrigins: []string{getEnv("FRONTEND_ORIGIN", "http://localhost:5173")},
+		AllowedOrigins: strings.Split(getEnv("FRONTEND_ORIGIN", "http://localhost:5173"), ","),
 		UploadDir:      getEnv("UPLOAD_DIR", "./uploads"),
 	}
 
