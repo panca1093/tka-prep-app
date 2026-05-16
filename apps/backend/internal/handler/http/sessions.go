@@ -25,6 +25,8 @@ func (s *APIServer) PostTestsTestIdSessions(ctx context.Context, req api.PostTes
 		switch {
 		case errors.Is(err, apierr.ErrNotFound):
 			return api.PostTestsTestIdSessions404JSONResponse(errBody("NOT_FOUND", "test not found or not published")), nil
+		case errors.Is(err, apierr.ErrConflict):
+			return api.PostTestsTestIdSessions409JSONResponse(errBody("ALREADY_COMPLETED", "you have already completed this test")), nil
 		}
 		return nil, err
 	}

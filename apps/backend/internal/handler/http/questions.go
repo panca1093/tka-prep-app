@@ -38,6 +38,10 @@ func (s *APIServer) GetQuestions(ctx context.Context, req api.GetQuestionsReques
 		d := domain.Difficulty(*p.Difficulty)
 		f.Difficulty = &d
 	}
+	if p.EducationLevel != nil {
+		el := string(*p.EducationLevel)
+		f.EducationLevel = &el
+	}
 
 	qs, total, err := s.questionSvc.List(ctx, f)
 	if err != nil {
@@ -71,14 +75,20 @@ func (s *APIServer) PostQuestions(ctx context.Context, req api.PostQuestionsRequ
 		qt = domain.QuestionType(b.QuestionType)
 	}
 
+	var educationLevel *string
+	if b.EducationLevel != nil {
+		el := string(*b.EducationLevel)
+		educationLevel = &el
+	}
 	in := question.CreateInput{
-		ContributorID: claims.UserID,
-		TopicID:       b.TopicId,
-		QuestionType:  qt,
-		Text:          b.Text,
-		Explanation:   b.Explanation,
-		ImageURL:      b.ImageUrl,
-		Difficulty:    domain.Difficulty(b.Difficulty),
+		ContributorID:  claims.UserID,
+		TopicID:        b.TopicId,
+		QuestionType:   qt,
+		EducationLevel: educationLevel,
+		Text:           b.Text,
+		Explanation:    b.Explanation,
+		ImageURL:       b.ImageUrl,
+		Difficulty:     domain.Difficulty(b.Difficulty),
 	}
 	if b.Options != nil {
 		for _, o := range *b.Options {
@@ -135,6 +145,10 @@ func (s *APIServer) PatchQuestionsQuestionId(ctx context.Context, req api.PatchQ
 		Explanation: b.Explanation,
 		ImageURL:    b.ImageUrl,
 		TopicID:     b.TopicId,
+	}
+	if b.EducationLevel != nil {
+		el := string(*b.EducationLevel)
+		in.EducationLevel = &el
 	}
 	if b.Difficulty != nil {
 		d := domain.Difficulty(*b.Difficulty)
@@ -198,7 +212,7 @@ func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 	for i, s := range q.Statements {
 		stmts[i] = api.QuestionStatementResponse{Id: s.ID, Text: s.Text, IsCorrect: s.IsCorrect, Position: s.Position, ImageUrl: s.ImageURL}
 	}
-	return api.QuestionDetailResponse{
+	resp := api.QuestionDetailResponse{
 		Id:            q.ID,
 		ContributorId: q.ContributorID,
 		TopicId:       q.TopicID,
@@ -212,4 +226,9 @@ func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 		CreatedAt:     q.CreatedAt,
 		UpdatedAt:     q.UpdatedAt,
 	}
+	if q.EducationLevel != nil {
+		el := api.QuestionDetailResponseEducationLevel(*q.EducationLevel)
+		resp.EducationLevel = &el
+	}
+	return resp
 }

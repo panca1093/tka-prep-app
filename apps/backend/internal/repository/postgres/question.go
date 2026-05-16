@@ -56,6 +56,11 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 		args = append(args, string(*f.QuestionType))
 		i++
 	}
+	if f.EducationLevel != nil {
+		conds = append(conds, fmt.Sprintf("q.education_level = $%d", i))
+		args = append(args, *f.EducationLevel)
+		i++
+	}
 
 	where := ""
 	if len(conds) > 0 {
@@ -75,7 +80,7 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
-		fmt.Sprintf(`SELECT q.id, q.contributor_id, q.topic_id, q.question_type, q.text, q.explanation,
+		fmt.Sprintf(`SELECT q.id, q.contributor_id, q.topic_id, q.question_type, q.education_level, q.text, q.explanation,
 		       q.image_url, q.difficulty, q.created_at, q.updated_at
 		  FROM questions q %s
 		  ORDER BY q.created_at DESC
@@ -91,7 +96,7 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 	for rows.Next() {
 		q := &domain.Question{}
 		var diff, qtype string
-		if err := rows.Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.Text, &q.Explanation,
+		if err := rows.Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.EducationLevel, &q.Text, &q.Explanation,
 			&q.ImageURL, &diff, &q.CreatedAt, &q.UpdatedAt); err != nil {
 			return nil, 0, fmt.Errorf("scan question: %w", err)
 		}
@@ -119,9 +124,9 @@ func (r *QuestionRepository) Create(ctx context.Context, q *domain.Question) err
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	_, err = tx.Exec(ctx,
-		`INSERT INTO questions (id, contributor_id, topic_id, question_type, text, explanation, image_url, difficulty, created_at, updated_at)
-		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-		q.ID, q.ContributorID, q.TopicID, string(q.Type), q.Text, q.Explanation, q.ImageURL,
+		`INSERT INTO questions (id, contributor_id, topic_id, question_type, education_level, text, explanation, image_url, difficulty, created_at, updated_at)
+		 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+		q.ID, q.ContributorID, q.TopicID, string(q.Type), q.EducationLevel, q.Text, q.Explanation, q.ImageURL,
 		string(q.Difficulty), q.CreatedAt, q.UpdatedAt,
 	)
 	if err != nil {
@@ -146,9 +151,9 @@ func (r *QuestionRepository) FindByID(ctx context.Context, id uuid.UUID) (*domai
 	q := &domain.Question{}
 	var diff, qtype string
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, contributor_id, topic_id, question_type, text, explanation, image_url, difficulty, created_at, updated_at
+		`SELECT id, contributor_id, topic_id, question_type, education_level, text, explanation, image_url, difficulty, created_at, updated_at
 		 FROM questions WHERE id = $1`, id,
-	).Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.Text, &q.Explanation,
+	).Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.EducationLevel, &q.Text, &q.Explanation,
 		&q.ImageURL, &diff, &q.CreatedAt, &q.UpdatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -172,9 +177,9 @@ func (r *QuestionRepository) Update(ctx context.Context, q *domain.Question) err
 	defer tx.Rollback(ctx) //nolint:errcheck
 
 	tag, err := tx.Exec(ctx,
-		`UPDATE questions SET topic_id=$1, text=$2, explanation=$3, image_url=$4, difficulty=$5, updated_at=$6
-		 WHERE id=$7`,
-		q.TopicID, q.Text, q.Explanation, q.ImageURL, string(q.Difficulty), q.UpdatedAt, q.ID,
+		`UPDATE questions SET topic_id=$1, education_level=$2, text=$3, explanation=$4, image_url=$5, difficulty=$6, updated_at=$7
+		 WHERE id=$8`,
+		q.TopicID, q.EducationLevel, q.Text, q.Explanation, q.ImageURL, string(q.Difficulty), q.UpdatedAt, q.ID,
 	)
 	if err != nil {
 		return fmt.Errorf("update question: %w", err)

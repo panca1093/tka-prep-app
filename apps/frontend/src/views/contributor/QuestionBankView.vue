@@ -24,6 +24,7 @@ const searchText = ref('')
 const topicFilter = ref('')
 const difficultyFilter = ref('')
 const typeFilter = ref('')
+const eduLevelFilter = ref('')
 
 // Form state
 interface FormState {
@@ -32,6 +33,7 @@ interface FormState {
   text: string
   explanation: string
   image_url: string | null
+  education_level: string
   difficulty: 'easy' | 'medium' | 'hard'
   options: { label: string; text: string; is_correct: boolean; image_url: string | null }[]
   statements: { text: string; is_correct: boolean; image_url: string | null }[]
@@ -44,7 +46,8 @@ const emptyForm = (): FormState => ({
   explanation: '',
   image_url: null,
   difficulty: 'medium',
-  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+  education_level: '',
+  options: 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
   statements: [
     { text: '', is_correct: true, image_url: null },
     { text: '', is_correct: false, image_url: null },
@@ -68,6 +71,7 @@ async function fetchQuestions() {
         topic_id: topicFilter.value || undefined,
         difficulty: (difficultyFilter.value as 'easy' | 'medium' | 'hard') || undefined,
         question_type: (typeFilter.value as QuestionType) || undefined,
+        education_level: (eduLevelFilter.value as 'sd' | 'smp' | 'sma') || undefined,
         limit: 50,
       },
     },
@@ -98,9 +102,10 @@ function openEdit(q: Question) {
     explanation: q.explanation ?? '',
     image_url: q.image_url ?? null,
     difficulty: q.difficulty as 'easy' | 'medium' | 'hard',
+    education_level: (q as any).education_level ?? '',
     options: q.question_type !== 'true_false'
       ? q.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? null }))
-      : 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+      : 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
     statements: q.question_type === 'true_false'
       ? q.statements.map(s => ({ text: s.text, is_correct: s.is_correct, image_url: s.image_url ?? null }))
       : [{ text: '', is_correct: true, image_url: null }, { text: '', is_correct: false, image_url: null }],
@@ -138,6 +143,16 @@ function toggleStatementCorrect(idx: number) {
   form.value.statements[idx].is_correct = !form.value.statements[idx].is_correct
 }
 
+function addOption() {
+  const labels = "ABCDEFGHIJ"
+  form.value.options.push({
+    label: labels[form.value.options.length] ?? String(form.value.options.length + 1),
+    text: "",
+    is_correct: false,
+    image_url: null,
+  })
+}
+
 async function saveQuestion() {
   formError.value = ''
   if (!form.value.topic_id) { formError.value = 'Please select a topic.'; return }
@@ -156,6 +171,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
+      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
       options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else if (form.value.question_type === 'multi_correct') {
@@ -168,6 +184,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
+      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
       options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else {
@@ -181,6 +198,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
+      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
       statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
     }
   }
@@ -243,6 +261,12 @@ const typeColor: Record<string, string> = {
         <option value="multi_correct">PGK</option>
         <option value="true_false">Benar/Salah</option>
       </select>
+      <select v-model="eduLevelFilter" class="filter-select" @change="fetchQuestions">
+        <option value="">All Levels</option>
+        <option value="sd">SD</option>
+        <option value="smp">SMP</option>
+        <option value="sma">SMA</option>
+      </select>
     </div>
 
     <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
@@ -259,6 +283,7 @@ const typeColor: Record<string, string> = {
             :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] + '44', background: typeColor[q.question_type] + '18' }"
           >{{ typeLabel[q.question_type] ?? q.question_type }}</span>
           <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
+          <span v-if="(q as any).education_level" class="q-edu-badge">{{ ((q as any).education_level as string).toUpperCase() }}</span>
           <span class="q-topic">{{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}</span>
           <div class="q-actions">
             <button class="icon-btn" @click="openEdit(q)">✏️</button>
@@ -319,6 +344,16 @@ const typeColor: Record<string, string> = {
         </div>
 
         <div class="field">
+          <label>Education Level</label>
+          <select v-model="form.education_level" class="filter-select">
+            <option value="">All Levels</option>
+            <option value="sd">SD</option>
+            <option value="smp">SMP</option>
+            <option value="sma">SMA</option>
+          </select>
+        </div>
+
+        <div class="field">
           <label>Question Text</label>
           <RichTextEditor v-model="form.text" />
         </div>
@@ -344,6 +379,12 @@ const typeColor: Record<string, string> = {
               </div>
               <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
             </div>
+            <button
+              v-if="!isTrueFalse"
+              type="button"
+              class="add-option-btn"
+              @click="addOption()"
+            >+ Add option</button>
           </div>
         </div>
 
@@ -418,6 +459,11 @@ const typeColor: Record<string, string> = {
   border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.03em;
 }
 .q-difficulty { font-size: 0.75rem; font-weight: 700; text-transform: capitalize; }
+.q-edu-badge {
+  font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem;
+  border-radius: 3px; background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent); letter-spacing: 0.03em;
+}
 .q-topic { font-size: 0.75rem; color: var(--text-muted); }
 .q-actions { margin-left: auto; }
 .icon-btn { background: transparent; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); padding: 0.2rem; }
@@ -524,3 +570,6 @@ const typeColor: Record<string, string> = {
 .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
 </style>
 @media (max-width: 768px) { .modal { width: 100%; max-width: 100%; } .form-row { flex-direction: column; } }
+
+.add-option-btn { margin-top: 0.25rem; padding: 0.5rem; border-radius: 8px; border: 1px dashed var(--border); background: transparent; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; width: 100%; transition: all 0.15s; }
+.add-option-btn:hover { border-color: var(--accent); color: var(--accent); }

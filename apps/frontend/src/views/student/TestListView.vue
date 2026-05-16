@@ -89,13 +89,19 @@ const levelLabel: Record<string, string> = {
         <p v-if="t.description" class="test-desc">{{ t.description }}</p>
         <div class="test-footer">
           <span class="test-meta">{{ t.duration_minutes }} min &nbsp;·&nbsp; {{ t.questions.length }} questions</span>
-          <button
-            class="btn-start"
-            :disabled="startingId === t.id"
-            @click="handleStart(t.id)"
-          >
-            {{ startingId === t.id ? 'Starting…' : 'Start' }}
-          </button>
+          <template v-if="t.student_status === 'completed'">
+            <span class="completed-badge">Completed</span>
+            <RouterLink v-if="t.result_id" :to="'/results/' + t.result_id" class="btn-start btn-view-result">View Result</RouterLink>
+          </template>
+          <template v-else>
+            <button
+              class="btn-start"
+              :disabled="startingId === t.id"
+              @click="handleStart(t.id)"
+            >
+              {{ startingId === t.id ? (t.student_status === 'in_progress' ? 'Resuming…' : 'Starting…') : (t.student_status === 'in_progress' ? 'Resume' : 'Start') }}
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -187,6 +193,23 @@ const levelLabel: Record<string, string> = {
 }
 .btn-start:hover { background: var(--accent-hover); }
 .btn-start:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-view-result {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+.btn-view-result:hover { background: var(--accent); color: #fff; }
+
+.completed-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 0.35rem 0.65rem;
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--success) 15%, transparent);
+  color: var(--success);
+}
 
 @media (min-width: 769px) and (max-width: 1024px) { .test-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 768px) { .test-grid { grid-template-columns: 1fr; } .btn-start { min-height: 44px; } }

@@ -24,3 +24,10 @@ func (s *Service) List(ctx context.Context, scope domain.LeaderboardScope) ([]do
 func (s *Service) GetMyRank(ctx context.Context, studentID uuid.UUID, scope domain.LeaderboardScope) (*domain.LeaderboardEntry, error) {
 	return s.repo.GetMyRank(ctx, studentID, scope)
 }
+
+func (s *Service) ListByTest(ctx context.Context, testID uuid.UUID, limit int) ([]domain.TestLeaderboardEntry, error) {
+	if limit <= 0 || limit > 100 {
+		limit = 100
+	}
+	return s.repo.FindByTest(ctx, testID, limit)
+}

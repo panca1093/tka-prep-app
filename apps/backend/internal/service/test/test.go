@@ -58,6 +58,7 @@ type ListFilter struct {
 	Difficulty     *domain.Difficulty
 	Status         *domain.TestStatus
 	EducationLevel *domain.EducationLevel
+	StudentID      *uuid.UUID
 	Page           int
 	Limit          int
 }
@@ -120,6 +121,7 @@ func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Test, int, 
 		Difficulty:     f.Difficulty,
 		Status:         f.Status,
 		EducationLevel: f.EducationLevel,
+		StudentID:      f.StudentID,
 		Page:           f.Page,
 		Limit:          f.Limit,
 	})
@@ -216,10 +218,15 @@ func (s *Service) Publish(ctx context.Context, id uuid.UUID, callerID uuid.UUID,
 	return t, nil
 }
 
-func (s *Service) Unpublish(ctx context.Context, id uuid.UUID) (*domain.Test, error) {
+func (s *Service) Unpublish(ctx context.Context, id uuid.UUID, callerID uuid.UUID, callerRole domain.Role) (*domain.Test, error) {
 	t, err := s.tests.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+
+	// Contributors can only unpublish their own tests.
+	if callerRole == domain.RoleContributor && t.ContributorID != callerID {
+		return nil, apierr.ErrForbidden
 	}
 
 	if t.Status == domain.TestStatusDraft {

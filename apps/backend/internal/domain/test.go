@@ -35,6 +35,9 @@ type Test struct {
 	PublishedAt     *time.Time
 	Questions       []TestQuestion
 	ScoringConfig   *ScoringConfig
+	// Populated only for student callers — computed from test_sessions + test_results.
+	StudentStatus string     // "not_started" | "in_progress" | "completed"
+	ResultID      *uuid.UUID // set when StudentStatus == "completed"
 }
 
 type TestQuestion struct {

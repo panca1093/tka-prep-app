@@ -42,44 +42,48 @@ type StatementInput struct {
 }
 
 type CreateInput struct {
-	ContributorID uuid.UUID
-	TopicID       uuid.UUID
-	QuestionType  domain.QuestionType
-	Text          string
-	Explanation   *string
-	ImageURL      *string
-	Difficulty    domain.Difficulty
-	Options       []OptionInput
-	Statements    []StatementInput
+	ContributorID  uuid.UUID
+	TopicID        uuid.UUID
+	QuestionType   domain.QuestionType
+	EducationLevel *string
+	Text           string
+	Explanation    *string
+	ImageURL       *string
+	Difficulty     domain.Difficulty
+	Options        []OptionInput
+	Statements     []StatementInput
 }
 
 type UpdateInput struct {
-	TopicID     *uuid.UUID
-	Text        *string
-	Explanation *string
-	ImageURL    *string
-	Difficulty  *domain.Difficulty
-	Options     []OptionInput
-	Statements  []StatementInput
+	TopicID        *uuid.UUID
+	EducationLevel *string
+	Text           *string
+	Explanation    *string
+	ImageURL       *string
+	Difficulty     *domain.Difficulty
+	Options        []OptionInput
+	Statements     []StatementInput
 }
 
 type ListFilter struct {
-	Search       string
-	TopicID      *uuid.UUID
-	Difficulty   *domain.Difficulty
-	QuestionType *domain.QuestionType
-	Page         int
-	Limit        int
+	Search         string
+	TopicID        *uuid.UUID
+	Difficulty     *domain.Difficulty
+	QuestionType   *domain.QuestionType
+	EducationLevel *string
+	Page           int
+	Limit          int
 }
 
 func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Question, int, error) {
 	return s.questions.List(ctx, repository.QuestionFilter{
-		Search:       f.Search,
-		TopicID:      f.TopicID,
-		Difficulty:   f.Difficulty,
-		QuestionType: f.QuestionType,
-		Page:         f.Page,
-		Limit:        f.Limit,
+		Search:         f.Search,
+		TopicID:        f.TopicID,
+		Difficulty:     f.Difficulty,
+		QuestionType:   f.QuestionType,
+		EducationLevel: f.EducationLevel,
+		Page:           f.Page,
+		Limit:          f.Limit,
 	})
 }
 
@@ -96,16 +100,17 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 
 	now := time.Now().UTC()
 	q := &domain.Question{
-		ID:            uuid.New(),
-		ContributorID: in.ContributorID,
-		TopicID:       in.TopicID,
-		Type:          qt,
-		Text:          SanitizeHTML(in.Text),
-		Explanation:   sanitizeOptional(in.Explanation),
-		ImageURL:      in.ImageURL,
-		Difficulty:    in.Difficulty,
-		CreatedAt:     now,
-		UpdatedAt:     now,
+		ID:             uuid.New(),
+		ContributorID:  in.ContributorID,
+		TopicID:        in.TopicID,
+		Type:           qt,
+		EducationLevel: in.EducationLevel,
+		Text:           SanitizeHTML(in.Text),
+		Explanation:    sanitizeOptional(in.Explanation),
+		ImageURL:       in.ImageURL,
+		Difficulty:     in.Difficulty,
+		CreatedAt:      now,
+		UpdatedAt:      now,
 	}
 
 	switch qt {
@@ -163,6 +168,9 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	}
 	if in.TopicID != nil {
 		q.TopicID = *in.TopicID
+	}
+	if in.EducationLevel != nil {
+		q.EducationLevel = in.EducationLevel
 	}
 	if in.Explanation != nil {
 		q.Explanation = sanitizeOptional(in.Explanation)
