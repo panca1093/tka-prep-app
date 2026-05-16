@@ -176,7 +176,9 @@ const watermarkStyle = computed(() => {
 
 <template>
   <div v-if="store.isLoading" class="state-screen">
-    <div class="loading-dots"><span/><span/><span/></div>
+    <div class="loading-card">
+      <div class="loading-dots"><span/><span/><span/></div>
+    </div>
   </div>
 
   <div v-else-if="store.error" class="state-screen err">{{ store.error }}</div>
@@ -249,7 +251,14 @@ const watermarkStyle = computed(() => {
         </div>
 
         <!-- Question text -->
-        <div class="question-text">
+        <div
+          class="question-text"
+          :class="{
+            'q-text--mcq': currentQ?.question_type === 'mcq',
+            'q-text--pgk': currentQ?.question_type === 'multi_correct',
+            'q-text--bs':  currentQ?.question_type === 'true_false',
+          }"
+        >
           <RichTextViewer :html="currentQ?.text ?? ''" />
           <img v-if="currentQ?.image_url" :src="resolveUrl(currentQ.image_url)" class="q-img" alt="" />
         </div>
@@ -407,6 +416,14 @@ const watermarkStyle = computed(() => {
   height: 100vh; color: var(--text-muted);
 }
 .err { color: var(--danger); }
+.loading-card {
+  padding: 2rem 3rem;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+  display: flex; align-items: center; justify-content: center;
+}
 .loading-dots { display: flex; gap: 6px; }
 .loading-dots span {
   width: 8px; height: 8px; border-radius: 50%;
@@ -453,16 +470,15 @@ const watermarkStyle = computed(() => {
   gap: 1rem;
   padding: 0.875rem 1.5rem;
   background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
+  box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(0,0,0,0.04);
   position: sticky; top: 0; z-index: 10;
 }
 
 .header-left { flex: 1; min-width: 0; }
 .test-name {
   margin: 0;
-  
   font-size: 1.05rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-heading);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -484,6 +500,7 @@ const watermarkStyle = computed(() => {
 .timer-wrap.warning { border-color: var(--warning); background: color-mix(in srgb, var(--warning) 10%, var(--bg-input)); color: var(--warning); }
 .timer-wrap.critical { border-color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, var(--bg-input)); color: var(--danger); animation: pulse-timer 0.8s ease infinite; }
 @keyframes pulse-timer { 0%,100%{opacity:1} 50%{opacity:0.7} }
+.timer-wrap.critical .timer-digits { font-weight: 700; }
 
 .timer-digits {
   font-family: monospace;
@@ -504,14 +521,27 @@ const watermarkStyle = computed(() => {
 
 /* ─── Progress bar ────────────────────────────────────────────────────────── */
 .progress-track {
-  height: 3px;
+  height: 4px;
   background: var(--border);
   position: sticky; top: 0; z-index: 9;
 }
 .progress-fill {
   height: 100%;
-  background: var(--accent);
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 70%, #60a5fa));
   transition: width 0.6s ease;
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
 }
 
 /* ─── Body ────────────────────────────────────────────────────────────────── */
@@ -570,11 +600,15 @@ const watermarkStyle = computed(() => {
   color: var(--text-primary);
   background: var(--bg-surface);
   border: 1px solid var(--border);
+  border-left-width: 3px;
   border-radius: 12px;
   padding: 1.5rem;
   user-select: none;
   -webkit-user-select: none;
 }
+.q-text--mcq { border-left-color: var(--accent); }
+.q-text--pgk { border-left-color: #a855f7; }
+.q-text--bs  { border-left-color: var(--success); }
 .q-img { max-width: 100%; max-height: 260px; border-radius: 8px; margin-top: 1rem; border: 1px solid var(--border); }
 
 /* ─── Type hint ───────────────────────────────────────────────────────────── */
@@ -602,7 +636,8 @@ const watermarkStyle = computed(() => {
 .option-btn:hover { border-color: var(--accent); background: var(--accent-dim); }
 .option-btn.selected {
   border-color: var(--accent);
-  background: var(--accent-dim);
+  border-width: 2px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-surface));
 }
 
 .opt-label {
@@ -612,10 +647,11 @@ const watermarkStyle = computed(() => {
   font-size: 0.78rem; font-weight: 700;
   flex-shrink: 0;
   color: var(--text-muted);
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s, color 0.15s, box-shadow 0.15s;
 }
 .option-btn.selected .opt-label:not(.pgk) {
   background: var(--accent); color: #fff;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent);
 }
 
 .opt-label.pgk {
@@ -704,8 +740,18 @@ const watermarkStyle = computed(() => {
 }
 .pstat {
   text-align: center; padding: 0.5rem 0.25rem;
+  padding-top: 0.875rem;
   border-radius: 8px;
   border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+.pstat::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 8px 8px 0 0;
 }
 .pstat-val {
   display: block;
@@ -714,9 +760,12 @@ const watermarkStyle = computed(() => {
 }
 .pstat-lbl { display: block; font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
 .pstat--done { border-color: color-mix(in srgb, var(--success) 25%, var(--border)); }
+.pstat--done::before { background: var(--success); }
 .pstat--done .pstat-val { color: var(--success); }
 .pstat--flag { border-color: color-mix(in srgb, var(--warning) 25%, var(--border)); }
+.pstat--flag::before { background: var(--warning); }
 .pstat--flag .pstat-val { color: var(--warning); }
+.pstat--blank::before { background: var(--border); }
 .pstat--blank .pstat-val { color: var(--text-muted); }
 
 .panel-section-label {
@@ -740,7 +789,16 @@ const watermarkStyle = computed(() => {
   cursor: pointer; transition: all 0.1s;
 }
 .q-cell:hover { border-color: var(--accent); color: var(--accent); }
-.q-cell.answered { background: color-mix(in srgb, var(--success) 12%, transparent); border-color: var(--success); color: var(--success); }
+.q-cell.answered { background: color-mix(in srgb, var(--success) 18%, var(--bg-surface)); border-color: var(--success); color: var(--success); position: relative; }
+.q-cell.answered::after {
+  content: '✓';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.55rem;
+  opacity: 0;
+  pointer-events: none;
+}
 .q-cell.flagged { background: color-mix(in srgb, var(--warning) 12%, transparent); border-color: var(--warning); color: var(--warning); }
 .q-cell.current { outline: 2px solid var(--accent); outline-offset: 1px; }
 
@@ -776,6 +834,7 @@ const watermarkStyle = computed(() => {
   background: var(--accent-dim);
   display: flex; align-items: center; justify-content: center;
   color: var(--accent); align-self: flex-start;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--accent) 30%, transparent);
 }
 .modal-title { margin: 0;  font-size: 1.4rem; font-weight: 700; color: var(--text-heading); }
 .modal-sub { margin: 0; font-size: 0.825rem; color: var(--text-muted); }

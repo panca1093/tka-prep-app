@@ -117,9 +117,12 @@ function topScorer(testId: string) {
   <div class="lb-page">
 
     <!-- Page header -->
-    <div class="page-hero">
-      <h1 class="page-title">Papan Peringkat</h1>
-      <p class="page-sub">Lihat posisi kamu di antara semua peserta ujian.</p>
+    <div class="hero-wrap">
+      <div class="hero-dots"></div>
+      <div class="page-hero">
+        <h1 class="page-title">Papan Peringkat</h1>
+        <p class="page-sub">Lihat posisi kamu di antara semua peserta ujian.</p>
+      </div>
     </div>
 
     <!-- Global section -->
@@ -185,7 +188,7 @@ function topScorer(testId: string) {
             <span class="col-right">Ujian</span>
             <span class="col-right">Poin</span>
           </div>
-          <div v-for="e in rest" :key="String(e.student_id)" class="board-row">
+          <div v-for="(e, idx) in rest" :key="String(e.student_id)" class="board-row" :style="`--i:${idx}`">
             <span class="rank-cell">#{{ e.rank }}</span>
             <span class="name-cell">
               <span class="mini-avatar" :style="{ background: avatarGradient(e.student_name) }">{{ initials(e.student_name) }}</span>
@@ -203,7 +206,7 @@ function topScorer(testId: string) {
     </section>
 
     <!-- Per-test section -->
-    <section class="section">
+    <section class="section per-test-section">
       <h2 class="section-title">
         <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z"/></svg>
         Per Ujian
@@ -277,6 +280,12 @@ function topScorer(testId: string) {
 </template>
 
 <style scoped>
+/* ─── Animations ──────────────────────────────────────────────────────────── */
+@keyframes slide-up {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ─── Page ────────────────────────────────────────────────────────────────── */
 .lb-page {
   max-width: 720px;
@@ -284,11 +293,37 @@ function topScorer(testId: string) {
   display: flex; flex-direction: column; gap: 2rem;
 }
 
-.page-hero { display: flex; flex-direction: column; gap: 0.25rem; }
+/* ─── Hero wrap ───────────────────────────────────────────────────────────── */
+.hero-wrap {
+  position: relative;
+  padding: 2rem 2.25rem;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 14%, var(--bg-surface)) 0%,
+    var(--bg-surface) 60%,
+    color-mix(in srgb, var(--accent) 6%, var(--bg-surface)) 100%);
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.6);
+  animation: slide-up 0.45s ease both;
+}
+
+.hero-dots {
+  position: absolute; inset: 0;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--accent) 25%, transparent) 1px, transparent 1px);
+  background-size: 22px 22px;
+  opacity: .35;
+  pointer-events: none;
+}
+
+.page-hero {
+  display: flex; flex-direction: column; gap: 0.25rem;
+  position: relative; z-index: 1;
+}
 .page-title {
   margin: 0;
-  
-  font-size: 2rem; font-weight: 700;
+  font-size: 1.75rem; font-weight: 800;
+  letter-spacing: -0.5px;
   color: var(--text-heading);
 }
 .page-sub { margin: 0; font-size: 0.875rem; color: var(--text-muted); }
@@ -302,7 +337,14 @@ function topScorer(testId: string) {
   font-size: 0.875rem; font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase; letter-spacing: 0.05em;
+  margin-top: 0.5rem; padding-top: 1rem; border-top: 1px solid var(--border);
 }
+
+/* ─── Section entrance animations ────────────────────────────────────────── */
+.scope-tabs { animation: slide-up 0.45s 0.05s ease both; }
+.my-rank-card { animation: slide-up 0.45s 0.08s ease both; }
+.podium { animation: slide-up 0.45s 0.12s ease both; }
+.board { animation: slide-up 0.45s 0.18s ease both; }
 
 /* ─── Scope tabs ──────────────────────────────────────────────────────────── */
 .scope-tabs {
@@ -330,7 +372,9 @@ function topScorer(testId: string) {
   padding: 0.875rem 1.25rem;
   background: var(--accent-dim);
   border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  border-left: 3px solid var(--accent);
   border-radius: 12px;
+  box-shadow: 0 2px 12px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .my-rank-avatar {
   width: 40px; height: 40px; border-radius: 50%;
@@ -344,7 +388,7 @@ function topScorer(testId: string) {
 .my-rank-position { text-align: right; flex-shrink: 0; }
 .my-rank-num {
   font-family: monospace;
-  font-size: 1.375rem; font-weight: 700;
+  font-size: 1.625rem; font-weight: 700;
   color: var(--accent); line-height: 1;
 }
 .my-rank-pts { font-size: 0.72rem; color: var(--text-muted); }
@@ -398,7 +442,11 @@ function topScorer(testId: string) {
 .podium-score {
   margin: 0;
   font-family: monospace;
-  font-size: 0.85rem; font-weight: 700;
+  font-size: 0.9rem; font-weight: 800;
+  color: var(--accent);
+}
+.podium-slot.rank-1 .podium-score {
+  font-size: 1rem;
   color: var(--accent);
 }
 
@@ -411,8 +459,17 @@ function topScorer(testId: string) {
   display: flex; align-items: center; justify-content: center;
 }
 .podium-slot.rank-1 .podium-block {
-  background: color-mix(in srgb, var(--accent) 8%, var(--bg-surface));
-  border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--accent) 12%, var(--bg-surface)),
+    color-mix(in srgb, var(--accent) 4%, var(--bg-surface)));
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+}
+.podium-slot.rank-2 .podium-block,
+.podium-slot.rank-3 .podium-block {
+  background: var(--bg-input);
+}
+.podium-slot.rank-1 .podium-avatar {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent), 0 4px 20px rgba(0,0,0,0.25);
 }
 .podium-rank {
   font-family: monospace;
@@ -441,7 +498,11 @@ function topScorer(testId: string) {
   border-bottom: 1px solid var(--border);
   background: var(--bg-input);
 }
-.board-row { border-bottom: 1px solid var(--bg-input); transition: background 0.1s; }
+.board-row {
+  border-bottom: 1px solid var(--bg-input);
+  transition: background 0.1s;
+  animation: slide-up 0.3s calc(var(--i, 0) * 40ms + 100ms) ease both;
+}
 .board-row:last-child { border-bottom: none; }
 .board-row:hover { background: var(--bg-input); }
 .rank-cell { font-family: monospace; font-weight: 700; color: var(--text-muted); font-size: 0.78rem; }
@@ -479,7 +540,10 @@ function topScorer(testId: string) {
   transition: border-color 0.15s;
 }
 .test-card:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); }
-.test-card.expanded { border-color: var(--accent); }
+.test-card.expanded {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-dim);
+}
 
 .card-summary {
   display: flex; align-items: center; gap: 0.875rem;
