@@ -5,11 +5,14 @@ node_modules/
 dist/
 build/
 
+.agents/
 .claude
 .specify
+/specs
+
 CLAUDE.md
 spec.md
-/specs
+*.json
 
 # Env files
 .env
