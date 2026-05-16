@@ -24,6 +24,7 @@ const searchText = ref('')
 const topicFilter = ref('')
 const difficultyFilter = ref('')
 const typeFilter = ref('')
+const eduLevelFilter = ref('')
 
 // Form state
 interface FormState {
@@ -70,6 +71,7 @@ async function fetchQuestions() {
         topic_id: topicFilter.value || undefined,
         difficulty: (difficultyFilter.value as 'easy' | 'medium' | 'hard') || undefined,
         question_type: (typeFilter.value as QuestionType) || undefined,
+        education_level: (eduLevelFilter.value as 'sd' | 'smp' | 'sma') || undefined,
         limit: 50,
       },
     },
@@ -259,6 +261,12 @@ const typeColor: Record<string, string> = {
         <option value="multi_correct">PGK</option>
         <option value="true_false">Benar/Salah</option>
       </select>
+      <select v-model="eduLevelFilter" class="filter-select" @change="fetchQuestions">
+        <option value="">All Levels</option>
+        <option value="sd">SD</option>
+        <option value="smp">SMP</option>
+        <option value="sma">SMA</option>
+      </select>
     </div>
 
     <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
@@ -275,6 +283,7 @@ const typeColor: Record<string, string> = {
             :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] + '44', background: typeColor[q.question_type] + '18' }"
           >{{ typeLabel[q.question_type] ?? q.question_type }}</span>
           <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
+          <span v-if="(q as any).education_level" class="q-edu-badge">{{ ((q as any).education_level as string).toUpperCase() }}</span>
           <span class="q-topic">{{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}</span>
           <div class="q-actions">
             <button class="icon-btn" @click="openEdit(q)">✏️</button>
@@ -450,6 +459,11 @@ const typeColor: Record<string, string> = {
   border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.03em;
 }
 .q-difficulty { font-size: 0.75rem; font-weight: 700; text-transform: capitalize; }
+.q-edu-badge {
+  font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem;
+  border-radius: 3px; background: color-mix(in srgb, var(--accent) 15%, transparent);
+  color: var(--accent); letter-spacing: 0.03em;
+}
 .q-topic { font-size: 0.75rem; color: var(--text-muted); }
 .q-actions { margin-left: auto; }
 .icon-btn { background: transparent; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); padding: 0.2rem; }

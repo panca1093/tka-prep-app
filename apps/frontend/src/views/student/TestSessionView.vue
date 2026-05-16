@@ -2,12 +2,14 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionStore } from '@/stores/session'
+import { useAuthStore } from '@/stores/auth'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 import { resolveUrl } from '@/utils/url'
 
 const route = useRoute()
 const router = useRouter()
 const store = useSessionStore()
+const auth = useAuthStore()
 
 const sessionId = route.params.sessionId as string
 const showSubmitModal = ref(false)
@@ -148,6 +150,23 @@ onUnmounted(() => {
 const answeredCount = computed(() => store.answeredCount())
 const flaggedCount = computed(() => store.flaggedCount())
 const blankCount = computed(() => store.questions.length - answeredCount.value)
+
+const watermarkStyle = computed(() => {
+  const label = auth.user?.name ?? sessionId
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="340" height="180">
+    <text x="170" y="90" text-anchor="middle" dominant-baseline="middle"
+      transform="rotate(-22, 170, 90)"
+      fill="rgba(128,128,128,0.065)"
+      font-size="14" font-family="system-ui,sans-serif" font-weight="500"
+      letter-spacing="0.5">${label}</text>
+  </svg>`
+  const b64 = btoa(unescape(encodeURIComponent(svg)))
+  return {
+    backgroundImage: `url("data:image/svg+xml;base64,${b64}")`,
+    backgroundSize: '340px 180px',
+    backgroundRepeat: 'repeat',
+  }
+})
 </script>
 
 <template>
@@ -157,7 +176,7 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
 
   <div v-else-if="store.session && store.questions.length" class="session-shell">
     <!-- Watermark -->
-    <div class="session-watermark" aria-hidden="true">{{ store.test?.title }} · {{ sessionId }}</div>
+    <div class="session-watermark" :style="watermarkStyle" aria-hidden="true" />
 
     <!-- Top bar -->
     <header class="session-header">
@@ -331,10 +350,7 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
 
 .session-watermark {
   position: fixed; inset: 0; pointer-events: none; z-index: 1;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.5rem; font-weight: 700; color: var(--text-primary);
-  opacity: 0.06; transform: rotate(-30deg); user-select: none;
-  white-space: nowrap; overflow: hidden;
+  user-select: none;
 }
 
 .loading-screen, .error-screen {
@@ -435,6 +451,8 @@ const blankCount = computed(() => store.questions.length - answeredCount.value)
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1.5rem;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /* MCQ / PGK options */

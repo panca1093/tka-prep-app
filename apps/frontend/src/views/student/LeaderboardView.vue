@@ -35,7 +35,7 @@ async function fetchGlobal() {
 }
 
 async function fetchTests() {
-  const { data } = await client.GET('/tests', { params: { query: { limit: 50 } } })
+  const { data } = await client.GET('/tests', { params: { query: { limit: 50, status: 'published' } } })
   if (data) tests.value = data.data
 }
 
