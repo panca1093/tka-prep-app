@@ -208,7 +208,7 @@ const completed = computed(() => filtered.value.filter(t => t.student_status ===
 .page-header { }
 .page-title {
   margin: 0 0 0.25rem;
-  font-family: 'Cormorant Garamond', serif;
+  
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-heading);

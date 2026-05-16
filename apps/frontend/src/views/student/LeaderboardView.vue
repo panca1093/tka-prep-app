@@ -287,7 +287,7 @@ function topScorer(testId: string) {
 .page-hero { display: flex; flex-direction: column; gap: 0.25rem; }
 .page-title {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  
   font-size: 2rem; font-weight: 700;
   color: var(--text-heading);
 }
@@ -343,7 +343,7 @@ function topScorer(testId: string) {
 .my-rank-meta { margin: 0; font-size: 0.72rem; color: var(--text-muted); }
 .my-rank-position { text-align: right; flex-shrink: 0; }
 .my-rank-num {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 1.375rem; font-weight: 700;
   color: var(--accent); line-height: 1;
 }
@@ -397,7 +397,7 @@ function topScorer(testId: string) {
 }
 .podium-score {
   margin: 0;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 0.85rem; font-weight: 700;
   color: var(--accent);
 }
@@ -415,7 +415,7 @@ function topScorer(testId: string) {
   border-color: color-mix(in srgb, var(--accent) 30%, var(--border));
 }
 .podium-rank {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 0.75rem; font-weight: 700;
   color: var(--text-muted);
 }
@@ -444,11 +444,11 @@ function topScorer(testId: string) {
 .board-row { border-bottom: 1px solid var(--bg-input); transition: background 0.1s; }
 .board-row:last-child { border-bottom: none; }
 .board-row:hover { background: var(--bg-input); }
-.rank-cell { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--text-muted); font-size: 0.78rem; }
+.rank-cell { font-family: monospace; font-weight: 700; color: var(--text-muted); font-size: 0.78rem; }
 .name-cell { display: flex; align-items: center; gap: 0.5rem; font-weight: 500; overflow: hidden; }
 .col-right { text-align: right; }
 .meta-cell { color: var(--text-muted); }
-.score-cell { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
+.score-cell { font-family: monospace; font-weight: 700; color: var(--accent); }
 
 /* ─── Mini avatars ────────────────────────────────────────────────────────── */
 .mini-avatar {
@@ -510,7 +510,7 @@ function topScorer(testId: string) {
 }
 .card-loading { font-size: 0.75rem; color: var(--text-muted); }
 .top-name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.top-score { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 700; color: var(--accent); }
+.top-score { font-family: monospace; font-size: 0.8rem; font-weight: 700; color: var(--accent); }
 .no-data { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
 
 /* ─── Expand ──────────────────────────────────────────────────────────────── */
@@ -537,7 +537,7 @@ function topScorer(testId: string) {
 .eb-row:hover { background: var(--bg-input); }
 .eb-rank { font-weight: 700; }
 .eb-name { display: flex; align-items: center; gap: 0.4rem; font-weight: 500; overflow: hidden; }
-.eb-score { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); text-align: right; }
+.eb-score { font-family: monospace; font-weight: 700; color: var(--accent); text-align: right; }
 .eb-date { color: var(--text-muted); text-align: right; font-size: 0.72rem; }
 
 /* ─── Mobile ──────────────────────────────────────────────────────────────── */

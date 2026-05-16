@@ -179,7 +179,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
               <div class="lb-ellipsis">···</div>
               <div class="lb-row lb-row--me">
                 <span class="lb-pos">#{{ myRank.rank }}</span>
-                <div class="lb-avatar" style="background: linear-gradient(135deg, #00c4b0, #009e8c)">
+                <div class="lb-avatar" style="background: linear-gradient(135deg, #4f8ef7, #3b7be8)">
                   {{ initials(auth.user?.name ?? 'Me') }}
                 </div>
                 <span class="lb-name">Kamu</span>
@@ -212,7 +212,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 .hero-greet { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
 .hero-name {
   margin: 0.1rem 0 0.25rem;
-  font-family: 'Cormorant Garamond', serif;
+  
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-heading);
@@ -254,7 +254,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 }
 .stat:hover { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
 .stat-num {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 1.75rem;
   font-weight: 700;
   color: var(--accent);
@@ -348,7 +348,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 .result-row:last-child { border-bottom: none; }
 .result-row:hover { background: var(--bg-input); }
 .result-score {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 1.125rem;
   font-weight: 700;
   min-width: 2.75rem;
@@ -389,7 +389,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   flex-shrink: 0;
 }
 .lb-name { flex: 1; font-size: 0.85rem; font-weight: 500; color: var(--text-primary); min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.lb-score { font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; font-weight: 700; color: var(--accent); }
+.lb-score { font-family: monospace; font-size: 0.875rem; font-weight: 700; color: var(--accent); }
 
 /* ─── Loading ───────────────────────────────────────────────────────────────── */
 .loading { display: flex; justify-content: center; padding: 3rem; }

@@ -129,7 +129,7 @@ async function handleLogout() {
 .sidebar {
   width: 230px;
   flex-shrink: 0;
-  background: #0c0b09;
+  background: var(--bg-sidebar);
   display: flex;
   flex-direction: column;
   padding: 1.25rem 0.875rem;
@@ -140,7 +140,7 @@ async function handleLogout() {
 }
 
 .sidebar-top { flex: 1; display: flex; flex-direction: column; gap: 0; }
-.sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); }
+.sidebar-bottom { margin-top: auto; display: flex; flex-direction: column; gap: 0.75rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
 
 /* Brand */
 .brand {
@@ -153,14 +153,13 @@ async function handleLogout() {
 .brand-mark {
   width: 32px; height: 32px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #00c4b0, #009e8c);
+  background: linear-gradient(135deg, #4f8ef7, #3b7be8);
   display: flex; align-items: center; justify-content: center;
   font-size: 1rem; font-weight: 800; color: #fff;
-  font-family: 'Cormorant Garamond', serif;
   flex-shrink: 0;
 }
-.brand-name { font-size: 0.9rem; font-weight: 700; color: #f0ece4; line-height: 1.1; }
-.brand-sub { font-size: 0.65rem; color: rgba(240,236,228,0.4); }
+.brand-name { font-size: 0.9rem; font-weight: 700; color: var(--text-heading); line-height: 1.1; }
+.brand-sub { font-size: 0.65rem; color: var(--text-muted); }
 
 /* Nav */
 .nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -170,24 +169,24 @@ async function handleLogout() {
   gap: 0.625rem;
   padding: 0.6rem 0.75rem;
   border-radius: 8px;
-  color: rgba(240,236,228,0.45);
+  color: var(--text-muted);
   font-size: 0.85rem;
   font-weight: 500;
   transition: background 0.15s, color 0.15s;
   text-decoration: none;
   position: relative;
 }
-.nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(240,236,228,0.85); }
+.nav-item:hover { background: var(--accent-dim); color: var(--text-primary); }
 .nav-item--active {
-  background: rgba(0,196,176,0.12);
-  color: #00c4b0;
+  background: var(--bg-active-nav);
+  color: var(--text-active-nav);
 }
 .nav-item--active::before {
   content: '';
   position: absolute;
   left: 0; top: 6px; bottom: 6px;
   width: 2.5px;
-  background: #00c4b0;
+  background: var(--accent);
   border-radius: 0 2px 2px 0;
 }
 .nav-icon { width: 18px; height: 18px; flex-shrink: 0; }
@@ -202,18 +201,18 @@ async function handleLogout() {
 .user-avatar {
   width: 32px; height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #00c4b0, #009e8c);
+  background: linear-gradient(135deg, #4f8ef7, #3b7be8);
   display: flex; align-items: center; justify-content: center;
   font-size: 0.7rem; font-weight: 700; color: #fff;
   flex-shrink: 0;
 }
 .user-info { flex: 1; min-width: 0; }
-.user-name { font-size: 0.78rem; font-weight: 600; color: rgba(240,236,228,0.85); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-role { font-size: 0.65rem; color: rgba(240,236,228,0.35); text-transform: capitalize; margin-top: 1px; }
+.user-name { font-size: 0.78rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-role { font-size: 0.65rem; color: var(--text-muted); text-transform: capitalize; margin-top: 1px; }
 .logout-icon {
   background: transparent;
   border: none;
-  color: rgba(240,236,228,0.3);
+  color: var(--text-muted);
   cursor: pointer;
   padding: 0.25rem;
   border-radius: 6px;
@@ -241,7 +240,7 @@ async function handleLogout() {
   align-items: center;
   gap: 2px;
   padding: 0.5rem 0.5rem;
-  color: rgba(240,236,228,0.4);
+  color: var(--text-muted);
   text-decoration: none;
   font-size: 0.62rem;
   font-weight: 500;
@@ -249,7 +248,7 @@ async function handleLogout() {
   transition: color 0.15s;
   flex: 1;
 }
-.bottom-nav-item--active { color: #00c4b0; }
+.bottom-nav-item--active { color: var(--text-active-nav); }
 .bn-icon { width: 20px; height: 20px; }
 .bn-label { font-size: 0.62rem; }
 
@@ -271,8 +270,8 @@ async function handleLogout() {
     position: fixed;
     bottom: 0; left: 0; right: 0;
     height: 60px;
-    background: #0c0b09;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    background: var(--bg-sidebar);
+    border-top: 1px solid var(--border);
     z-index: 100;
   }
   .content { padding: 1rem; padding-bottom: 76px; max-width: 100%; }

@@ -460,7 +460,7 @@ const watermarkStyle = computed(() => {
 .header-left { flex: 1; min-width: 0; }
 .test-name {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  
   font-size: 1.05rem;
   font-weight: 600;
   color: var(--text-heading);
@@ -486,7 +486,7 @@ const watermarkStyle = computed(() => {
 @keyframes pulse-timer { 0%,100%{opacity:1} 50%{opacity:0.7} }
 
 .timer-digits {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 1.05rem;
   font-weight: 700;
 }
@@ -684,7 +684,7 @@ const watermarkStyle = computed(() => {
 .nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 .nav-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .nav-counter {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 0.8rem; color: var(--text-muted);
 }
 
@@ -709,7 +709,7 @@ const watermarkStyle = computed(() => {
 }
 .pstat-val {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 1.2rem; font-weight: 700; line-height: 1;
 }
 .pstat-lbl { display: block; font-size: 0.62rem; color: var(--text-muted); margin-top: 2px; }
@@ -777,12 +777,12 @@ const watermarkStyle = computed(() => {
   display: flex; align-items: center; justify-content: center;
   color: var(--accent); align-self: flex-start;
 }
-.modal-title { margin: 0; font-family: 'Cormorant Garamond', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-heading); }
+.modal-title { margin: 0;  font-size: 1.4rem; font-weight: 700; color: var(--text-heading); }
 .modal-sub { margin: 0; font-size: 0.825rem; color: var(--text-muted); }
 
 .modal-stats { display: flex; gap: 0.75rem; }
 .modal-stat { flex: 1; text-align: center; padding: 0.875rem; border-radius: 10px; border: 1px solid var(--border); background: var(--bg-input); }
-.ms-val { display: block; font-family: 'JetBrains Mono', monospace; font-size: 1.5rem; font-weight: 700; line-height: 1; }
+.ms-val { display: block; font-family: monospace; font-size: 1.5rem; font-weight: 700; line-height: 1; }
 .ms-lbl { display: block; font-size: 0.65rem; color: var(--text-muted); margin-top: 3px; }
 .ms-val.answered { color: var(--success); }
 .ms-val.flagged { color: var(--warning); }

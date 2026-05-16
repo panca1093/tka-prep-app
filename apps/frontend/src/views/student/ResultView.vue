@@ -177,7 +177,7 @@ function barWidth(tb: { correct_count: number; total: number }) {
 .score-card-left { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
 .test-label {
   margin: 0;
-  font-family: 'Cormorant Garamond', serif;
+  
   font-size: 1.375rem;
   font-weight: 600;
   color: var(--text-heading);
@@ -211,7 +211,7 @@ function barWidth(tb: { correct_count: number; total: number }) {
   align-items: center; justify-content: center;
 }
 .ring-score {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: monospace;
   font-size: 1.375rem;
   font-weight: 700;
   line-height: 1;
@@ -227,7 +227,7 @@ function barWidth(tb: { correct_count: number; total: number }) {
   padding: 1rem;
   text-align: center;
 }
-.cp-val { font-family: 'JetBrains Mono', monospace; font-size: 2rem; font-weight: 700; line-height: 1; }
+.cp-val { font-family: monospace; font-size: 2rem; font-weight: 700; line-height: 1; }
 .cp-label { font-size: 0.72rem; color: var(--text-muted); margin-top: 4px; font-weight: 500; }
 .count-pill--correct { border-color: color-mix(in srgb, var(--success) 30%, var(--border)); }
 .count-pill--correct .cp-val { color: var(--success); }
@@ -248,7 +248,7 @@ function barWidth(tb: { correct_count: number; total: number }) {
 .tb-name { font-size: 0.825rem; font-weight: 500; color: var(--text-primary); }
 .tb-bar-wrap { background: var(--border); border-radius: 99px; height: 6px; overflow: hidden; }
 .tb-bar { height: 100%; background: var(--accent); border-radius: 99px; transition: width 1s ease 0.3s; }
-.tb-frac { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-align: right; }
+.tb-frac { font-family: monospace; font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-align: right; }
 .tb-frac span { color: var(--border); }
 
 /* ─── Actions ─────────────────────────────────────────────────────────────── */
