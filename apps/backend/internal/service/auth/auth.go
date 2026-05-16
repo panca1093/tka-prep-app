@@ -174,6 +174,9 @@ func (s *Service) Logout(ctx context.Context, rawToken string) error {
 
 type UpdateProfileInput struct {
 	EducationLevel *domain.EducationLevel
+	Gender         *domain.Gender
+	Phone          *string
+	AvatarURL      *string
 }
 
 func (s *Service) UpdateProfile(ctx context.Context, userID uuid.UUID, in UpdateProfileInput) (*domain.User, error) {
@@ -185,17 +188,43 @@ func (s *Service) UpdateProfile(ctx context.Context, userID uuid.UUID, in Update
 		return nil, fmt.Errorf("find user for profile update: %w", err)
 	}
 
-	// Education level only applies to students.
 	if user.Role != domain.RoleStudent && in.EducationLevel != nil {
 		return nil, fmt.Errorf("%w: education_level is only applicable for student role", apierr.ErrValidation)
 	}
 
-	user.EducationLevel = in.EducationLevel
+	// Validate gender
+	if in.Gender != nil {
+		switch *in.Gender {
+		case domain.GenderMale, domain.GenderFemale, domain.GenderOther:
+		default:
+			return nil, fmt.Errorf("%w: invalid gender value", apierr.ErrValidation)
+		}
+	}
 
-	// Use a dedicated update for profile fields.
-	if err := s.users.UpdateEducationLevel(ctx, userID, user.EducationLevel); err != nil {
+	// Strip non-digits from phone
+	var cleanPhone *string
+	if in.Phone != nil && *in.Phone != "" {
+		digits := strings.Map(func(r rune) rune {
+			if r >= '0' && r <= '9' { return r }
+			return -1
+		}, *in.Phone)
+		if len(digits) < 10 {
+			return nil, fmt.Errorf("%w: phone must be at least 10 digits", apierr.ErrValidation)
+		}
+		cleanPhone = &digits
+	}
+
+	if err := s.users.UpdateEducationLevel(ctx, userID, in.EducationLevel); err != nil {
+		return nil, fmt.Errorf("update education level: %w", err)
+	}
+	if err := s.users.UpdateProfile(ctx, userID, in.Gender, cleanPhone, in.AvatarURL); err != nil {
 		return nil, fmt.Errorf("update profile: %w", err)
 	}
+
+	user.EducationLevel = in.EducationLevel
+	user.Gender = in.Gender
+	user.Phone = cleanPhone
+	user.AvatarURL = in.AvatarURL
 	return user, nil
 }
 

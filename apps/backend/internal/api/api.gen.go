@@ -93,6 +93,27 @@ func (e AdminTestResponseEducationLevel) Valid() bool {
 	}
 }
 
+// Defines values for AdminTestResponseGender.
+const (
+	AdminTestResponseGenderFemale AdminTestResponseGender = "female"
+	AdminTestResponseGenderMale   AdminTestResponseGender = "male"
+	AdminTestResponseGenderOther  AdminTestResponseGender = "other"
+)
+
+// Valid indicates whether the value is a known member of the AdminTestResponseGender enum.
+func (e AdminTestResponseGender) Valid() bool {
+	switch e {
+	case AdminTestResponseGenderFemale:
+		return true
+	case AdminTestResponseGenderMale:
+		return true
+	case AdminTestResponseGenderOther:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for AdminTestResponseStatus.
 const (
 	AdminTestResponseStatusDraft     AdminTestResponseStatus = "draft"
@@ -126,27 +147,6 @@ func (e CreateQuestionRequestDifficulty) Valid() bool {
 	case CreateQuestionRequestDifficultyHard:
 		return true
 	case CreateQuestionRequestDifficultyMedium:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for CreateQuestionRequestEducationLevel.
-const (
-	CreateQuestionRequestEducationLevelSd  CreateQuestionRequestEducationLevel = "sd"
-	CreateQuestionRequestEducationLevelSma CreateQuestionRequestEducationLevel = "sma"
-	CreateQuestionRequestEducationLevelSmp CreateQuestionRequestEducationLevel = "smp"
-)
-
-// Valid indicates whether the value is a known member of the CreateQuestionRequestEducationLevel enum.
-func (e CreateQuestionRequestEducationLevel) Valid() bool {
-	switch e {
-	case CreateQuestionRequestEducationLevelSd:
-		return true
-	case CreateQuestionRequestEducationLevelSma:
-		return true
-	case CreateQuestionRequestEducationLevelSmp:
 		return true
 	default:
 		return false
@@ -273,27 +273,6 @@ func (e QuestionDetailResponseDifficulty) Valid() bool {
 	case QuestionDetailResponseDifficultyHard:
 		return true
 	case QuestionDetailResponseDifficultyMedium:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for QuestionDetailResponseEducationLevel.
-const (
-	QuestionDetailResponseEducationLevelSd  QuestionDetailResponseEducationLevel = "sd"
-	QuestionDetailResponseEducationLevelSma QuestionDetailResponseEducationLevel = "sma"
-	QuestionDetailResponseEducationLevelSmp QuestionDetailResponseEducationLevel = "smp"
-)
-
-// Valid indicates whether the value is a known member of the QuestionDetailResponseEducationLevel enum.
-func (e QuestionDetailResponseEducationLevel) Valid() bool {
-	switch e {
-	case QuestionDetailResponseEducationLevelSd:
-		return true
-	case QuestionDetailResponseEducationLevelSma:
-		return true
-	case QuestionDetailResponseEducationLevelSmp:
 		return true
 	default:
 		return false
@@ -428,19 +407,19 @@ func (e ReviewItemResponseStatus) Valid() bool {
 
 // Defines values for SessionResponseStatus.
 const (
-	SessionResponseStatusExpired    SessionResponseStatus = "expired"
-	SessionResponseStatusInProgress SessionResponseStatus = "in_progress"
-	SessionResponseStatusSubmitted  SessionResponseStatus = "submitted"
+	Expired    SessionResponseStatus = "expired"
+	InProgress SessionResponseStatus = "in_progress"
+	Submitted  SessionResponseStatus = "submitted"
 )
 
 // Valid indicates whether the value is a known member of the SessionResponseStatus enum.
 func (e SessionResponseStatus) Valid() bool {
 	switch e {
-	case SessionResponseStatusExpired:
+	case Expired:
 		return true
-	case SessionResponseStatusInProgress:
+	case InProgress:
 		return true
-	case SessionResponseStatusSubmitted:
+	case Submitted:
 		return true
 	default:
 		return false
@@ -531,27 +510,6 @@ func (e TestDetailResponseStatus) Valid() bool {
 	}
 }
 
-// Defines values for TestDetailResponseStudentStatus.
-const (
-	TestDetailResponseStudentStatusCompleted  TestDetailResponseStudentStatus = "completed"
-	TestDetailResponseStudentStatusInProgress TestDetailResponseStudentStatus = "in_progress"
-	TestDetailResponseStudentStatusNotStarted TestDetailResponseStudentStatus = "not_started"
-)
-
-// Valid indicates whether the value is a known member of the TestDetailResponseStudentStatus enum.
-func (e TestDetailResponseStudentStatus) Valid() bool {
-	switch e {
-	case TestDetailResponseStudentStatusCompleted:
-		return true
-	case TestDetailResponseStudentStatusInProgress:
-		return true
-	case TestDetailResponseStudentStatusNotStarted:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for UpdateProfileRequestEducationLevel.
 const (
 	UpdateProfileRequestEducationLevelSd  UpdateProfileRequestEducationLevel = "sd"
@@ -576,6 +534,27 @@ func (e UpdateProfileRequestEducationLevel) Valid() bool {
 	}
 }
 
+// Defines values for UpdateProfileRequestGender.
+const (
+	UpdateProfileRequestGenderFemale UpdateProfileRequestGender = "female"
+	UpdateProfileRequestGenderMale   UpdateProfileRequestGender = "male"
+	UpdateProfileRequestGenderOther  UpdateProfileRequestGender = "other"
+)
+
+// Valid indicates whether the value is a known member of the UpdateProfileRequestGender enum.
+func (e UpdateProfileRequestGender) Valid() bool {
+	switch e {
+	case UpdateProfileRequestGenderFemale:
+		return true
+	case UpdateProfileRequestGenderMale:
+		return true
+	case UpdateProfileRequestGenderOther:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for UpdateQuestionRequestDifficulty.
 const (
 	UpdateQuestionRequestDifficultyEasy   UpdateQuestionRequestDifficulty = "easy"
@@ -591,27 +570,6 @@ func (e UpdateQuestionRequestDifficulty) Valid() bool {
 	case UpdateQuestionRequestDifficultyHard:
 		return true
 	case UpdateQuestionRequestDifficultyMedium:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for UpdateQuestionRequestEducationLevel.
-const (
-	UpdateQuestionRequestEducationLevelSd  UpdateQuestionRequestEducationLevel = "sd"
-	UpdateQuestionRequestEducationLevelSma UpdateQuestionRequestEducationLevel = "sma"
-	UpdateQuestionRequestEducationLevelSmp UpdateQuestionRequestEducationLevel = "smp"
-)
-
-// Valid indicates whether the value is a known member of the UpdateQuestionRequestEducationLevel enum.
-func (e UpdateQuestionRequestEducationLevel) Valid() bool {
-	switch e {
-	case UpdateQuestionRequestEducationLevelSd:
-		return true
-	case UpdateQuestionRequestEducationLevelSma:
-		return true
-	case UpdateQuestionRequestEducationLevelSmp:
 		return true
 	default:
 		return false
@@ -723,6 +681,27 @@ func (e UserResponseEducationLevel) Valid() bool {
 	case UserResponseEducationLevelSmk:
 		return true
 	case UserResponseEducationLevelSmp:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UserResponseGender.
+const (
+	Female UserResponseGender = "female"
+	Male   UserResponseGender = "male"
+	Other  UserResponseGender = "other"
+)
+
+// Valid indicates whether the value is a known member of the UserResponseGender enum.
+func (e UserResponseGender) Valid() bool {
+	switch e {
+	case Female:
+		return true
+	case Male:
+		return true
+	case Other:
 		return true
 	default:
 		return false
@@ -909,27 +888,6 @@ func (e GetQuestionsParamsDifficulty) Valid() bool {
 	}
 }
 
-// Defines values for GetQuestionsParamsEducationLevel.
-const (
-	GetQuestionsParamsEducationLevelSd  GetQuestionsParamsEducationLevel = "sd"
-	GetQuestionsParamsEducationLevelSma GetQuestionsParamsEducationLevel = "sma"
-	GetQuestionsParamsEducationLevelSmp GetQuestionsParamsEducationLevel = "smp"
-)
-
-// Valid indicates whether the value is a known member of the GetQuestionsParamsEducationLevel enum.
-func (e GetQuestionsParamsEducationLevel) Valid() bool {
-	switch e {
-	case GetQuestionsParamsEducationLevelSd:
-		return true
-	case GetQuestionsParamsEducationLevelSma:
-		return true
-	case GetQuestionsParamsEducationLevelSmp:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for GetResultsResultIdReviewParamsStatus.
 const (
 	GetResultsResultIdReviewParamsStatusAll     GetResultsResultIdReviewParamsStatus = "all"
@@ -1025,13 +983,16 @@ type AdminTestListResponse struct {
 // AdminTestResponse defines model for AdminTestResponse.
 type AdminTestResponse struct {
 	AttemptCount    int                              `json:"attempt_count"`
+	AvatarUrl       *string                          `json:"avatar_url,omitempty"`
 	Category        AdminTestResponseCategory        `json:"category"`
 	ContributorId   openapi_types.UUID               `json:"contributor_id"`
 	CreatedAt       time.Time                        `json:"created_at"`
 	Difficulty      AdminTestResponseDifficulty      `json:"difficulty"`
 	DurationMinutes int                              `json:"duration_minutes"`
 	EducationLevel  *AdminTestResponseEducationLevel `json:"education_level,omitempty"`
+	Gender          *AdminTestResponseGender         `json:"gender,omitempty"`
 	Id              openapi_types.UUID               `json:"id"`
+	Phone           *string                          `json:"phone,omitempty"`
 	Status          AdminTestResponseStatus          `json:"status"`
 	Title           string                           `json:"title"`
 }
@@ -1044,6 +1005,9 @@ type AdminTestResponseDifficulty string
 
 // AdminTestResponseEducationLevel defines model for AdminTestResponse.EducationLevel.
 type AdminTestResponseEducationLevel string
+
+// AdminTestResponseGender defines model for AdminTestResponse.Gender.
+type AdminTestResponseGender string
 
 // AdminTestResponseStatus defines model for AdminTestResponse.Status.
 type AdminTestResponseStatus string
@@ -1065,22 +1029,18 @@ type AuthResponse struct {
 
 // CreateQuestionRequest defines model for CreateQuestionRequest.
 type CreateQuestionRequest struct {
-	Difficulty     CreateQuestionRequestDifficulty      `json:"difficulty"`
-	EducationLevel *CreateQuestionRequestEducationLevel `json:"education_level,omitempty"`
-	Explanation    *string                              `json:"explanation,omitempty"`
-	ImageUrl       *string                              `json:"image_url,omitempty"`
-	Options        *[]QuestionOptionInput               `json:"options,omitempty"`
-	QuestionType   CreateQuestionRequestQuestionType    `json:"question_type"`
-	Statements     *[]QuestionStatementInput            `json:"statements,omitempty"`
-	Text           string                               `json:"text"`
-	TopicId        openapi_types.UUID                   `json:"topic_id"`
+	Difficulty   CreateQuestionRequestDifficulty   `json:"difficulty"`
+	Explanation  *string                           `json:"explanation,omitempty"`
+	ImageUrl     *string                           `json:"image_url,omitempty"`
+	Options      *[]QuestionOptionInput            `json:"options,omitempty"`
+	QuestionType CreateQuestionRequestQuestionType `json:"question_type"`
+	Statements   *[]QuestionStatementInput         `json:"statements,omitempty"`
+	Text         string                            `json:"text"`
+	TopicId      openapi_types.UUID                `json:"topic_id"`
 }
 
 // CreateQuestionRequestDifficulty defines model for CreateQuestionRequest.Difficulty.
 type CreateQuestionRequestDifficulty string
-
-// CreateQuestionRequestEducationLevel defines model for CreateQuestionRequest.EducationLevel.
-type CreateQuestionRequestEducationLevel string
 
 // CreateQuestionRequestQuestionType defines model for CreateQuestionRequest.QuestionType.
 type CreateQuestionRequestQuestionType string
@@ -1180,26 +1140,22 @@ type PlatformStatsResponse struct {
 
 // QuestionDetailResponse defines model for QuestionDetailResponse.
 type QuestionDetailResponse struct {
-	ContributorId  openapi_types.UUID                    `json:"contributor_id"`
-	CreatedAt      time.Time                             `json:"created_at"`
-	Difficulty     QuestionDetailResponseDifficulty      `json:"difficulty"`
-	EducationLevel *QuestionDetailResponseEducationLevel `json:"education_level,omitempty"`
-	Explanation    *string                               `json:"explanation,omitempty"`
-	Id             openapi_types.UUID                    `json:"id"`
-	ImageUrl       *string                               `json:"image_url,omitempty"`
-	Options        []QuestionOptionResponse              `json:"options"`
-	QuestionType   QuestionDetailResponseQuestionType    `json:"question_type"`
-	Statements     []QuestionStatementResponse           `json:"statements"`
-	Text           string                                `json:"text"`
-	TopicId        openapi_types.UUID                    `json:"topic_id"`
-	UpdatedAt      time.Time                             `json:"updated_at"`
+	ContributorId openapi_types.UUID                 `json:"contributor_id"`
+	CreatedAt     time.Time                          `json:"created_at"`
+	Difficulty    QuestionDetailResponseDifficulty   `json:"difficulty"`
+	Explanation   *string                            `json:"explanation,omitempty"`
+	Id            openapi_types.UUID                 `json:"id"`
+	ImageUrl      *string                            `json:"image_url,omitempty"`
+	Options       []QuestionOptionResponse           `json:"options"`
+	QuestionType  QuestionDetailResponseQuestionType `json:"question_type"`
+	Statements    []QuestionStatementResponse        `json:"statements"`
+	Text          string                             `json:"text"`
+	TopicId       openapi_types.UUID                 `json:"topic_id"`
+	UpdatedAt     time.Time                          `json:"updated_at"`
 }
 
 // QuestionDetailResponseDifficulty defines model for QuestionDetailResponse.Difficulty.
 type QuestionDetailResponseDifficulty string
-
-// QuestionDetailResponseEducationLevel defines model for QuestionDetailResponse.EducationLevel.
-type QuestionDetailResponseEducationLevel string
 
 // QuestionDetailResponseQuestionType defines model for QuestionDetailResponse.QuestionType.
 type QuestionDetailResponseQuestionType string
@@ -1417,15 +1373,9 @@ type TestDetailResponse struct {
 	Id             openapi_types.UUID                `json:"id"`
 	PublishedAt    *time.Time                        `json:"published_at,omitempty"`
 	Questions      []TestQuestionResponse            `json:"questions"`
-
-	// ResultId UUID of the student's completed result. Populated when student_status=completed.
-	ResultId      *openapi_types.UUID      `json:"result_id,omitempty"`
-	ScoringConfig *ScoringConfigResponse   `json:"scoring_config,omitempty"`
-	Status        TestDetailResponseStatus `json:"status"`
-
-	// StudentStatus Only populated for authenticated student callers.
-	StudentStatus *TestDetailResponseStudentStatus `json:"student_status,omitempty"`
-	Title         string                           `json:"title"`
+	ScoringConfig  *ScoringConfigResponse            `json:"scoring_config,omitempty"`
+	Status         TestDetailResponseStatus          `json:"status"`
+	Title          string                            `json:"title"`
 }
 
 // TestDetailResponseCategory defines model for TestDetailResponse.Category.
@@ -1439,18 +1389,6 @@ type TestDetailResponseEducationLevel string
 
 // TestDetailResponseStatus defines model for TestDetailResponse.Status.
 type TestDetailResponseStatus string
-
-// TestDetailResponseStudentStatus Only populated for authenticated student callers.
-type TestDetailResponseStudentStatus string
-
-// TestLeaderboardEntry defines model for TestLeaderboardEntry.
-type TestLeaderboardEntry struct {
-	CompletedAt time.Time          `json:"completed_at"`
-	Rank        int                `json:"rank"`
-	StudentId   openapi_types.UUID `json:"student_id"`
-	StudentName string             `json:"student_name"`
-	TotalScore  float64            `json:"total_score"`
-}
 
 // TestListResponse defines model for TestListResponse.
 type TestListResponse struct {
@@ -1502,30 +1440,33 @@ type TopicResponse struct {
 
 // UpdateProfileRequest defines model for UpdateProfileRequest.
 type UpdateProfileRequest struct {
+	AvatarUrl *string `json:"avatar_url,omitempty"`
+
 	// EducationLevel Education level for student users. Null clears the level. Ignored for non-student roles.
 	EducationLevel *UpdateProfileRequestEducationLevel `json:"education_level,omitempty"`
+	Gender         *UpdateProfileRequestGender         `json:"gender,omitempty"`
+	Phone          *string                             `json:"phone,omitempty"`
 }
 
 // UpdateProfileRequestEducationLevel Education level for student users. Null clears the level. Ignored for non-student roles.
 type UpdateProfileRequestEducationLevel string
 
+// UpdateProfileRequestGender defines model for UpdateProfileRequest.Gender.
+type UpdateProfileRequestGender string
+
 // UpdateQuestionRequest defines model for UpdateQuestionRequest.
 type UpdateQuestionRequest struct {
-	Difficulty     *UpdateQuestionRequestDifficulty     `json:"difficulty,omitempty"`
-	EducationLevel *UpdateQuestionRequestEducationLevel `json:"education_level,omitempty"`
-	Explanation    *string                              `json:"explanation,omitempty"`
-	ImageUrl       *string                              `json:"image_url,omitempty"`
-	Options        *[]QuestionOptionInput               `json:"options,omitempty"`
-	Statements     *[]QuestionStatementInput            `json:"statements,omitempty"`
-	Text           *string                              `json:"text,omitempty"`
-	TopicId        *openapi_types.UUID                  `json:"topic_id,omitempty"`
+	Difficulty  *UpdateQuestionRequestDifficulty `json:"difficulty,omitempty"`
+	Explanation *string                          `json:"explanation,omitempty"`
+	ImageUrl    *string                          `json:"image_url,omitempty"`
+	Options     *[]QuestionOptionInput           `json:"options,omitempty"`
+	Statements  *[]QuestionStatementInput        `json:"statements,omitempty"`
+	Text        *string                          `json:"text,omitempty"`
+	TopicId     *openapi_types.UUID              `json:"topic_id,omitempty"`
 }
 
 // UpdateQuestionRequestDifficulty defines model for UpdateQuestionRequest.Difficulty.
 type UpdateQuestionRequestDifficulty string
-
-// UpdateQuestionRequestEducationLevel defines model for UpdateQuestionRequest.EducationLevel.
-type UpdateQuestionRequestEducationLevel string
 
 // UpdateScoringConfigRequest defines model for UpdateScoringConfigRequest.
 type UpdateScoringConfigRequest struct {
@@ -1569,17 +1510,23 @@ type UpdateUserStatusRequestStatus string
 
 // UserResponse defines model for UserResponse.
 type UserResponse struct {
+	AvatarUrl      *string                     `json:"avatar_url,omitempty"`
 	CreatedAt      time.Time                   `json:"created_at"`
 	EducationLevel *UserResponseEducationLevel `json:"education_level,omitempty"`
 	Email          openapi_types.Email         `json:"email"`
+	Gender         *UserResponseGender         `json:"gender,omitempty"`
 	Id             openapi_types.UUID          `json:"id"`
 	Name           string                      `json:"name"`
+	Phone          *string                     `json:"phone,omitempty"`
 	Role           UserResponseRole            `json:"role"`
 	Status         UserResponseStatus          `json:"status"`
 }
 
 // UserResponseEducationLevel defines model for UserResponse.EducationLevel.
 type UserResponseEducationLevel string
+
+// UserResponseGender defines model for UserResponse.Gender.
+type UserResponseGender string
 
 // UserResponseRole defines model for UserResponse.Role.
 type UserResponseRole string
@@ -1642,18 +1589,12 @@ type GetQuestionsParams struct {
 	Search     *string                       `form:"search,omitempty" json:"search,omitempty"`
 	TopicId    *openapi_types.UUID           `form:"topic_id,omitempty" json:"topic_id,omitempty"`
 	Difficulty *GetQuestionsParamsDifficulty `form:"difficulty,omitempty" json:"difficulty,omitempty"`
-
-	// EducationLevel Filter by education level. Omit to return all (including untagged).
-	EducationLevel *GetQuestionsParamsEducationLevel `form:"education_level,omitempty" json:"education_level,omitempty"`
-	Page           *int                              `form:"page,omitempty" json:"page,omitempty"`
-	Limit          *int                              `form:"limit,omitempty" json:"limit,omitempty"`
+	Page       *int                          `form:"page,omitempty" json:"page,omitempty"`
+	Limit      *int                          `form:"limit,omitempty" json:"limit,omitempty"`
 }
 
 // GetQuestionsParamsDifficulty defines parameters for GetQuestions.
 type GetQuestionsParamsDifficulty string
-
-// GetQuestionsParamsEducationLevel defines parameters for GetQuestions.
-type GetQuestionsParamsEducationLevel string
 
 // GetResultsResultIdReviewParams defines parameters for GetResultsResultIdReview.
 type GetResultsResultIdReviewParams struct {
@@ -1681,11 +1622,6 @@ type GetTestsParamsDifficulty string
 
 // GetTestsParamsStatus defines parameters for GetTests.
 type GetTestsParamsStatus string
-
-// GetTestsTestIdLeaderboardParams defines parameters for GetTestsTestIdLeaderboard.
-type GetTestsTestIdLeaderboardParams struct {
-	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
-}
 
 // UpdateAdminUserStatusJSONRequestBody defines body for UpdateAdminUserStatus for application/json ContentType.
 type UpdateAdminUserStatusJSONRequestBody = UpdateUserStatusRequest
@@ -1836,9 +1772,6 @@ type ServerInterface interface {
 	// Update test metadata (contributor/admin, draft only)
 	// (PATCH /tests/{testId})
 	PatchTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
-	// Get leaderboard for a specific test
-	// (GET /tests/{testId}/leaderboard)
-	GetTestsTestIdLeaderboard(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID, params GetTestsTestIdLeaderboardParams)
 	// Publish a draft test (contributor/admin)
 	// (POST /tests/{testId}/publish)
 	PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID)
@@ -2067,12 +2000,6 @@ func (_ Unimplemented) GetTestsTestId(w http.ResponseWriter, r *http.Request, te
 // Update test metadata (contributor/admin, draft only)
 // (PATCH /tests/{testId})
 func (_ Unimplemented) PatchTestsTestId(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Get leaderboard for a specific test
-// (GET /tests/{testId}/leaderboard)
-func (_ Unimplemented) GetTestsTestIdLeaderboard(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID, params GetTestsTestIdLeaderboardParams) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -2711,19 +2638,6 @@ func (siw *ServerInterfaceWrapper) GetQuestions(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	// ------------- Optional query parameter "education_level" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "education_level", r.URL.Query(), &params.EducationLevel, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "education_level"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "education_level", Err: err})
-		}
-		return
-	}
-
 	// ------------- Optional query parameter "page" -------------
 
 	err = runtime.BindQueryParameterWithOptions("form", true, false, "page", r.URL.Query(), &params.Page, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
@@ -3325,54 +3239,6 @@ func (siw *ServerInterfaceWrapper) PatchTestsTestId(w http.ResponseWriter, r *ht
 	handler.ServeHTTP(w, r)
 }
 
-// GetTestsTestIdLeaderboard operation middleware
-func (siw *ServerInterfaceWrapper) GetTestsTestIdLeaderboard(w http.ResponseWriter, r *http.Request) {
-
-	var err error
-	_ = err
-
-	// ------------- Path parameter "testId" -------------
-	var testId openapi_types.UUID
-
-	err = runtime.BindStyledParameterWithOptions("simple", "testId", chi.URLParam(r, "testId"), &testId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
-	if err != nil {
-		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "testId", Err: err})
-		return
-	}
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	// Parameter object where we will unmarshal all parameters from the context
-	var params GetTestsTestIdLeaderboardParams
-
-	// ------------- Optional query parameter "limit" -------------
-
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", r.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
-	if err != nil {
-		var requiredError *runtime.RequiredParameterError
-		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "limit"})
-		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "limit", Err: err})
-		}
-		return
-	}
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetTestsTestIdLeaderboard(w, r, testId, params)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
 // PostTestsTestIdPublish operation middleware
 func (siw *ServerInterfaceWrapper) PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request) {
 
@@ -3842,9 +3708,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Patch(options.BaseURL+"/tests/{testId}", wrapper.PatchTestsTestId)
-	})
-	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/tests/{testId}/leaderboard", wrapper.GetTestsTestIdLeaderboard)
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/tests/{testId}/publish", wrapper.PostTestsTestIdPublish)
@@ -5867,45 +5730,6 @@ func (response PatchTestsTestId422JSONResponse) VisitPatchTestsTestIdResponse(w 
 	return err
 }
 
-type GetTestsTestIdLeaderboardRequestObject struct {
-	TestId openapi_types.UUID `json:"testId"`
-	Params GetTestsTestIdLeaderboardParams
-}
-
-type GetTestsTestIdLeaderboardResponseObject interface {
-	VisitGetTestsTestIdLeaderboardResponse(w http.ResponseWriter) error
-}
-
-type GetTestsTestIdLeaderboard200JSONResponse struct {
-	Data *[]TestLeaderboardEntry `json:"data,omitempty"`
-}
-
-func (response GetTestsTestIdLeaderboard200JSONResponse) VisitGetTestsTestIdLeaderboardResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(200)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type GetTestsTestIdLeaderboard404JSONResponse ErrorResponse
-
-func (response GetTestsTestIdLeaderboard404JSONResponse) VisitGetTestsTestIdLeaderboardResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(404)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
 type PostTestsTestIdPublishRequestObject struct {
 	TestId openapi_types.UUID `json:"testId"`
 }
@@ -6216,20 +6040,6 @@ func (response PostTestsTestIdSessions404JSONResponse) VisitPostTestsTestIdSessi
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
-	_, err := buf.WriteTo(w)
-	return err
-}
-
-type PostTestsTestIdSessions409JSONResponse ErrorResponse
-
-func (response PostTestsTestIdSessions409JSONResponse) VisitPostTestsTestIdSessionsResponse(w http.ResponseWriter) error {
-
-	var buf bytes.Buffer
-	if err := json.NewEncoder(&buf).Encode(response); err != nil {
-		return err
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(409)
 	_, err := buf.WriteTo(w)
 	return err
 }
@@ -6671,9 +6481,6 @@ type StrictServerInterface interface {
 	// Update test metadata (contributor/admin, draft only)
 	// (PATCH /tests/{testId})
 	PatchTestsTestId(ctx context.Context, request PatchTestsTestIdRequestObject) (PatchTestsTestIdResponseObject, error)
-	// Get leaderboard for a specific test
-	// (GET /tests/{testId}/leaderboard)
-	GetTestsTestIdLeaderboard(ctx context.Context, request GetTestsTestIdLeaderboardRequestObject) (GetTestsTestIdLeaderboardResponseObject, error)
 	// Publish a draft test (contributor/admin)
 	// (POST /tests/{testId}/publish)
 	PostTestsTestIdPublish(ctx context.Context, request PostTestsTestIdPublishRequestObject) (PostTestsTestIdPublishResponseObject, error)
@@ -7653,33 +7460,6 @@ func (sh *strictHandler) PatchTestsTestId(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// GetTestsTestIdLeaderboard operation middleware
-func (sh *strictHandler) GetTestsTestIdLeaderboard(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID, params GetTestsTestIdLeaderboardParams) {
-	var request GetTestsTestIdLeaderboardRequestObject
-
-	request.TestId = testId
-	request.Params = params
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetTestsTestIdLeaderboard(ctx, request.(GetTestsTestIdLeaderboardRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetTestsTestIdLeaderboard")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetTestsTestIdLeaderboardResponseObject); ok {
-		if err := validResponse.VisitGetTestsTestIdLeaderboardResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
 // PostTestsTestIdPublish operation middleware
 func (sh *strictHandler) PostTestsTestIdPublish(w http.ResponseWriter, r *http.Request, testId openapi_types.UUID) {
 	var request PostTestsTestIdPublishRequestObject
@@ -7943,99 +7723,96 @@ func (sh *strictHandler) PatchTopicsTopicId(w http.ResponseWriter, r *http.Reque
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
