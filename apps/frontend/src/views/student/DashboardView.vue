@@ -77,7 +77,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
     </div>
 
     <template v-else>
-      <!-- Stats row (3 cards) -->
+      <!-- Stats row (3 cards — no rata-rata skor) -->
       <div class="stats-row">
         <div class="stat">
           <div class="stat-num">{{ results.length }}</div>
@@ -100,83 +100,81 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
         </div>
       </div>
 
-      <!-- Per-test results -->
-      <section class="test-results-section">
-        <div class="section-head">
-          <h2 class="section-title">Hasil Per Ujian</h2>
-          <RouterLink to="/tests" class="panel-link">Lihat Ujian →</RouterLink>
-        </div>
-
-        <div v-if="results.length === 0" class="empty">
-          <div class="empty-icon">📚</div>
-          <p class="empty-msg">Belum ada ujian yang dikerjakan.</p>
-          <RouterLink to="/tests" class="btn-first">Mulai ujian pertamamu</RouterLink>
-        </div>
-
-        <div v-else class="test-cards-grid">
-          <RouterLink
-            v-for="r in results"
-            :key="r.id"
-            :to="`/results/${r.id}`"
-            class="test-card"
-            :class="scoreClass(r.percentage)"
-          >
-            <div class="tc-header">
-              <span class="tc-title">{{ r.test_title }}</span>
-              <span class="tc-date">{{ formatDate(r.completed_at) }}</span>
-            </div>
-            <div class="tc-score-row">
-              <div class="tc-score" :class="scoreClass(r.percentage)">
-                {{ r.percentage.toFixed(1) }}<span class="tc-pct-unit">%</span>
-              </div>
-              <div class="tc-counts">
-                <span class="tc-correct">✓ {{ r.correct_count }}</span>
-                <span class="tc-wrong">✗ {{ r.wrong_count }}</span>
-                <span class="tc-blank">— {{ r.blank_count }}</span>
-              </div>
-            </div>
-            <div class="tc-bar-wrap">
-              <div class="tc-bar" :style="`width: ${Math.min(r.percentage, 100)}%`" :class="scoreClass(r.percentage)" />
-            </div>
-          </RouterLink>
-        </div>
-      </section>
-
-      <!-- Leaderboard widget -->
-      <section class="panel">
-        <div class="panel-head">
-          <h2 class="panel-title">Peringkat Teratas</h2>
-          <RouterLink to="/leaderboard" class="panel-link">Lihat Semua →</RouterLink>
-        </div>
-
-        <div v-if="topEntries.length === 0" class="empty">
-          <p class="empty-msg">Belum ada data peringkat.</p>
-        </div>
-        <div v-else class="lb-list">
-          <div
-            v-for="e in topEntries"
-            :key="String(e.student_id)"
-            class="lb-row"
-            :class="{ 'lb-row--me': myRank && e.student_id === myRank.student_id }"
-          >
-            <span class="lb-pos">{{ medal(e.rank) || `#${e.rank}` }}</span>
-            <div class="lb-avatar" :style="avatarStyle(e.rank)">{{ initials(e.student_name) }}</div>
-            <span class="lb-name">{{ e.student_name }}</span>
-            <span class="lb-score">{{ e.total_score.toFixed(1) }}</span>
+      <!-- Two column panels -->
+      <div class="panels">
+        <!-- Recent results -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Hasil Terbaru</h2>
+            <RouterLink to="/tests" class="panel-link">Lihat Semua →</RouterLink>
           </div>
-          <template v-if="myRank && !topEntries.some(e => e.student_id === myRank!.student_id)">
-            <div class="lb-ellipsis">···</div>
-            <div class="lb-row lb-row--me">
-              <span class="lb-pos">#{{ myRank.rank }}</span>
-              <div class="lb-avatar" style="background: linear-gradient(135deg, #4f8ef7, #3b7be8)">
-                {{ initials(auth.user?.name ?? 'Me') }}
+
+          <div v-if="results.length === 0" class="empty">
+            <div class="empty-icon">📚</div>
+            <p class="empty-msg">Belum ada ujian yang dikerjakan.</p>
+            <RouterLink to="/tests" class="btn-first">Mulai ujian pertamamu</RouterLink>
+          </div>
+
+          <div v-else class="result-list">
+            <RouterLink
+              v-for="r in results.slice(0, 6)"
+              :key="r.id"
+              :to="`/results/${r.id}`"
+              class="result-row"
+            >
+              <div class="result-score" :class="scoreClass(r.total_score)">
+                {{ r.total_score.toFixed(0) }}
               </div>
-              <span class="lb-name">Kamu</span>
-              <span class="lb-score">{{ myRank.total_score.toFixed(1) }}</span>
+              <div class="result-body">
+                <div class="result-title">{{ r.test_title }}</div>
+                <div class="result-meta">
+                  <span class="tag-correct">✓ {{ r.correct_count }}</span>
+                  <span class="tag-wrong">✗ {{ r.wrong_count }}</span>
+                  <span class="tag-blank">— {{ r.blank_count }}</span>
+                  <span class="result-date">{{ formatDate(r.completed_at) }}</span>
+                </div>
+              </div>
+              <svg class="result-chevron" viewBox="0 0 20 20" fill="currentColor" width="16" height="16"><path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/></svg>
+            </RouterLink>
+          </div>
+        </section>
+
+        <!-- Leaderboard widget -->
+        <section class="panel">
+          <div class="panel-head">
+            <h2 class="panel-title">Peringkat Teratas</h2>
+            <RouterLink to="/leaderboard" class="panel-link">Lihat Semua →</RouterLink>
+          </div>
+
+          <div v-if="topEntries.length === 0" class="empty">
+            <p class="empty-msg">Belum ada data peringkat.</p>
+          </div>
+          <div v-else class="lb-list">
+            <div
+              v-for="e in topEntries"
+              :key="String(e.student_id)"
+              class="lb-row"
+              :class="{ 'lb-row--me': myRank && e.student_id === myRank.student_id }"
+            >
+              <span class="lb-pos">{{ medal(e.rank) || `#${e.rank}` }}</span>
+              <div class="lb-avatar" :style="avatarStyle(e.rank)">{{ initials(e.student_name) }}</div>
+              <span class="lb-name">{{ e.student_name }}</span>
+              <span class="lb-score">{{ e.total_score.toFixed(1) }}</span>
             </div>
-          </template>
-        </div>
-      </section>
+            <template v-if="myRank && !topEntries.some(e => e.student_id === myRank!.student_id)">
+              <div class="lb-ellipsis">···</div>
+              <div class="lb-row lb-row--me">
+                <span class="lb-pos">#{{ myRank.rank }}</span>
+                <div class="lb-avatar" style="background: linear-gradient(135deg, #4f8ef7, #3b7be8)">
+                  {{ initials(auth.user?.name ?? 'Me') }}
+                </div>
+                <span class="lb-name">Kamu</span>
+                <span class="lb-score">{{ myRank.total_score.toFixed(1) }}</span>
+              </div>
+            </template>
+          </div>
+        </section>
+      </div>
     </template>
   </div>
 </template>
@@ -200,7 +198,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 .hero-greet { margin: 0; font-size: 0.8rem; color: var(--text-muted); }
 .hero-name {
   margin: 0.1rem 0 0.25rem;
-  
   font-size: 2rem;
   font-weight: 700;
   color: var(--text-heading);
@@ -268,111 +265,9 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   transition: width 0.8s ease;
 }
 
-/* ─── Per-test results ─────────────────────────────────────────────────────── */
-.test-results-section { display: flex; flex-direction: column; gap: 0.875rem; }
+/* ─── Two column panels ────────────────────────────────────────────────────── */
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.125rem; }
 
-.section-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.section-title {
-  margin: 0;
-  font-size: 0.825rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.test-cards-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.75rem;
-}
-
-.test-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding: 1rem 1.125rem;
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-  border-left-width: 3px;
-}
-.test-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-.test-card.good { border-left-color: var(--success); }
-.test-card.mid  { border-left-color: var(--warning); }
-.test-card.low  { border-left-color: var(--danger); }
-
-.tc-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.tc-title {
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-primary);
-  line-height: 1.35;
-  flex: 1;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.tc-date { font-size: 0.65rem; color: var(--text-muted); white-space: nowrap; flex-shrink: 0; }
-
-.tc-score-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.tc-score {
-  font-family: monospace;
-  font-size: 1.625rem;
-  font-weight: 700;
-  line-height: 1;
-}
-.tc-score.good { color: var(--success); }
-.tc-score.mid  { color: var(--warning); }
-.tc-score.low  { color: var(--danger); }
-.tc-pct-unit { font-size: 0.875rem; font-weight: 500; }
-
-.tc-counts {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  font-size: 0.65rem;
-  font-weight: 600;
-  text-align: right;
-}
-.tc-correct { color: var(--success); }
-.tc-wrong { color: var(--danger); }
-.tc-blank { color: var(--text-muted); }
-
-.tc-bar-wrap {
-  height: 4px;
-  background: var(--border);
-  border-radius: 99px;
-  overflow: hidden;
-}
-.tc-bar {
-  height: 100%;
-  border-radius: 99px;
-  transition: width 0.8s ease;
-}
-.tc-bar.good { background: var(--success); }
-.tc-bar.mid  { background: var(--warning); }
-.tc-bar.low  { background: var(--danger); }
-
-/* ─── Leaderboard panel ────────────────────────────────────────────────────── */
 .panel {
   background: var(--bg-surface);
   border: 1px solid var(--border);
@@ -423,6 +318,40 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 }
 .btn-first:hover { background: var(--accent-hover); }
 
+/* ─── Result list ──────────────────────────────────────────────────────────── */
+.result-list { display: flex; flex-direction: column; }
+.result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--bg-input);
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.1s;
+}
+.result-row:last-child { border-bottom: none; }
+.result-row:hover { background: var(--bg-input); }
+.result-score {
+  font-family: monospace;
+  font-size: 1.125rem;
+  font-weight: 700;
+  min-width: 2.75rem;
+  text-align: right;
+  flex-shrink: 0;
+}
+.result-score.good { color: var(--success); }
+.result-score.mid { color: var(--warning); }
+.result-score.low { color: var(--danger); }
+.result-body { flex: 1; min-width: 0; }
+.result-title { font-size: 0.85rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.result-meta { display: flex; gap: 0.5rem; align-items: center; margin-top: 2px; font-size: 0.7rem; }
+.tag-correct { color: var(--success); font-weight: 600; }
+.tag-wrong { color: var(--danger); font-weight: 600; }
+.tag-blank { color: var(--text-muted); }
+.result-date { color: var(--text-muted); margin-left: auto; }
+.result-chevron { color: var(--text-muted); flex-shrink: 0; }
+
 /* ─── Leaderboard list ─────────────────────────────────────────────────────── */
 .lb-list { display: flex; flex-direction: column; }
 .lb-row {
@@ -462,13 +391,12 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .test-cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
 }
 @media (max-width: 768px) {
   .hero { flex-direction: column; align-items: flex-start; gap: 1rem; padding: 1.25rem; }
   .hero-name { font-size: 1.5rem; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 0.625rem; }
-  .test-cards-grid { grid-template-columns: 1fr; }
+  .panels { grid-template-columns: 1fr; }
 }
 </style>
