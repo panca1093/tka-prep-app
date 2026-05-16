@@ -169,7 +169,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
-      education_level: form.value.education_level || undefined,
+      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
       options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else if (form.value.question_type === 'multi_correct') {
@@ -182,7 +182,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
-      education_level: form.value.education_level || undefined,
+      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
       options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
     }
   } else {
@@ -196,7 +196,7 @@ async function saveQuestion() {
       explanation: form.value.explanation || undefined,
       image_url: form.value.image_url ?? undefined,
       difficulty: form.value.difficulty,
-      education_level: form.value.education_level || undefined,
+      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
       statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
     }
   }
