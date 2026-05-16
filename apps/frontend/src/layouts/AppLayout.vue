@@ -87,7 +87,10 @@ async function handleLogout() {
       <div class="sidebar-bottom">
         <ThemeToggle />
         <div class="user-card">
-          <div class="user-avatar">{{ initials }}</div>
+          <div class="user-avatar">
+                <img v-if="auth.user?.avatar_url" :src="auth.user.avatar_url" class="avatar-img" alt="" />
+                <span v-else>{{ initials }}</span>
+              </div>
           <div class="user-info">
             <div class="user-name">{{ auth.user?.name }}</div>
             <div class="user-role">{{ auth.user?.role }}</div>
@@ -204,8 +207,9 @@ async function handleLogout() {
   background: linear-gradient(135deg, #4f8ef7, #3b7be8);
   display: flex; align-items: center; justify-content: center;
   font-size: 0.7rem; font-weight: 700; color: #fff;
-  flex-shrink: 0;
+  flex-shrink: 0; overflow: hidden;
 }
+.avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .user-info { flex: 1; min-width: 0; }
 .user-name { font-size: 0.78rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .user-role { font-size: 0.65rem; color: var(--text-muted); text-transform: capitalize; margin-top: 1px; }

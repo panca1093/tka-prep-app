@@ -28,6 +28,8 @@ type UserRepository interface {
 	UpdateStatus(ctx context.Context, id uuid.UUID, status domain.Status) error
 	// UpdateEducationLevel sets the education level for a user (students only).
 	UpdateEducationLevel(ctx context.Context, id uuid.UUID, level *domain.EducationLevel) error
+// UpdateProfile sets optional profile fields (gender, phone, avatar).
+UpdateProfile(ctx context.Context, id uuid.UUID, gender *domain.Gender, phone *string, avatarURL *string) error
 }
 
 type RefreshTokenRepository interface {

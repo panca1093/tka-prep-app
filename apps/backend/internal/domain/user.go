@@ -8,6 +8,14 @@ import (
 
 type EducationLevel string
 
+type Gender string
+
+const (
+	GenderMale   Gender = "male"
+	GenderFemale Gender = "female"
+	GenderOther  Gender = "other"
+)
+
 const (
 	EducationLevelSD  EducationLevel = "sd"
 	EducationLevelSMP EducationLevel = "smp"
@@ -40,6 +48,9 @@ type User struct {
 	Role           Role
 	Status         Status
 	EducationLevel *EducationLevel
+	Gender         *Gender
+	Phone          *string
+	AvatarURL      *string
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 }

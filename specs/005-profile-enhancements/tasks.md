@@ -20,9 +20,9 @@
 
 **Purpose**: Add gender, phone, and avatar_url columns to the users table.
 
-- [ ] T001 Create migration `000022_profile_fields.up.sql` in `apps/backend/migrations/` — `CREATE TYPE gender AS ENUM ('male', 'female', 'other')`; `ALTER TABLE users ADD COLUMN gender gender`; `ALTER TABLE users ADD COLUMN phone varchar(20)`; `ALTER TABLE users ADD COLUMN avatar_url text`
-- [ ] T002 Create migration `000022_profile_fields.down.sql` in `apps/backend/migrations/` — drop columns and type
-- [ ] T003 Apply migration — run SQL directly on the postgres container
+- [x] T001 Create migration `000022_profile_fields.up.sql` in `apps/backend/migrations/` — `CREATE TYPE gender AS ENUM ('male', 'female', 'other')`; `ALTER TABLE users ADD COLUMN gender gender`; `ALTER TABLE users ADD COLUMN phone varchar(20)`; `ALTER TABLE users ADD COLUMN avatar_url text`
+- [x] T002 Create migration `000022_profile_fields.down.sql` in `apps/backend/migrations/` — drop columns and type
+- [x] T003 Apply migration — run SQL directly on the postgres container
 
 **Checkpoint**: `\d users` shows gender, phone, avatar_url columns (all nullable).
 
@@ -34,9 +34,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T004 Define `Gender` type and constants (`GenderMale`, `GenderFemale`, `GenderOther`) in `apps/backend/internal/domain/user.go`; add `Gender *Gender`, `Phone *string`, `AvatarURL *string` fields to `User` struct
-- [ ] T005 Add `gender`, `phone`, `avatar_url` to `UpdateProfileRequest` schema (nullable) and `UserResponse` schema (nullable) in `packages/shared-types/openapi.yaml`
-- [ ] T006 Run `make generate` to regenerate Go and TS client code
+- [x] T004 Define `Gender` type and constants (`GenderMale`, `GenderFemale`, `GenderOther`) in `apps/backend/internal/domain/user.go`; add `Gender *Gender`, `Phone *string`, `AvatarURL *string` fields to `User` struct
+- [x] T005 Add `gender`, `phone`, `avatar_url` to `UpdateProfileRequest` schema (nullable) and `UserResponse` schema (nullable) in `packages/shared-types/openapi.yaml`
+- [x] T006 Run `make generate` to regenerate Go and TS client code
 
 **Checkpoint**: Generated code compiles. User struct has new fields. TS types include gender/phone/avatar_url.
 
@@ -50,13 +50,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Add `UpdateProfile(ctx, id uuid.UUID, gender *domain.Gender, phone *string, avatarURL *string)` to `UserRepository` interface in `apps/backend/internal/repository/interfaces.go`
-- [ ] T008 [US1] Implement `UpdateProfile` in `apps/backend/internal/repository/postgres/user.go` — UPDATE users SET gender=$1, phone=$2, avatar_url=$3, updated_at=NOW() WHERE id=$4
-- [ ] T009 [US1] Update `UpdateProfile` in `apps/backend/internal/service/auth/auth.go` — accept gender/phone/avatarURL params; validate gender enum, strip non-digits from phone (require ≥10 digits if provided); call repository
-- [ ] T010 [US1] Update `PatchAuthMe` handler in `apps/backend/internal/handler/http/auth.go` — map `gender`, `phone`, `avatar_url` from request body to service call
-- [ ] T011 [US1] Update `toUserResponse` in `apps/backend/internal/handler/http/auth.go` — map `Gender`, `Phone`, `AvatarURL` from domain User to API response
-- [ ] T012 [US1] Redesign `apps/frontend/src/views/student/ProfileView.vue` — read-only fields: name, email, education_level; editable fields: gender (select: Male/Female/Prefer not to say), phone (text input), avatar (ImageUpload component); sign out button at bottom; save button triggers PATCH /auth/me
-- [ ] T013 [US1] Update auth store in `apps/frontend/src/stores/auth.ts` — ensure `user` object includes `gender`, `phone`, `avatar_url` fields
+- [x] T007 [US1] Add `UpdateProfile(ctx, id uuid.UUID, gender *domain.Gender, phone *string, avatarURL *string)` to `UserRepository` interface in `apps/backend/internal/repository/interfaces.go`
+- [x] T008 [US1] Implement `UpdateProfile` in `apps/backend/internal/repository/postgres/user.go` — UPDATE users SET gender=$1, phone=$2, avatar_url=$3, updated_at=NOW() WHERE id=$4
+- [x] T009 [US1] Update `UpdateProfile` in `apps/backend/internal/service/auth/auth.go` — accept gender/phone/avatarURL params; validate gender enum, strip non-digits from phone (require ≥10 digits if provided); call repository
+- [x] T010 [US1] Update `PatchAuthMe` handler in `apps/backend/internal/handler/http/auth.go` — map `gender`, `phone`, `avatar_url` from request body to service call
+- [x] T011 [US1] Update `toUserResponse` in `apps/backend/internal/handler/http/auth.go` — map `Gender`, `Phone`, `AvatarURL` from domain User to API response
+- [x] T012 [US1] Redesign `apps/frontend/src/views/student/ProfileView.vue` — read-only fields: name, email, education_level; editable fields: gender (select: Male/Female/Prefer not to say), phone (text input), avatar (ImageUpload component); sign out button at bottom; save button triggers PATCH /auth/me
+- [x] T013 [US1] Update auth store in `apps/frontend/src/stores/auth.ts` — ensure `user` object includes `gender`, `phone`, `avatar_url` fields
 
 **Checkpoint**: Student can view and edit gender, phone, avatar from profile page. Data persists across refresh.
 
@@ -70,8 +70,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [US2] Update `apps/frontend/src/layouts/AppLayout.vue` — replace initials text in sidebar user-info area with `<img>` when `auth.user.avatar_url` is set; fallback to initials when null
-- [ ] T015 [US2] Verify `apps/frontend/src/views/student/LeaderboardView.vue` — podium avatars and row mini-avatars already use `initials()` with gradient background; update to use `<img>` when `avatar_url` is present on the entry
+- [x] T014 [US2] Update `apps/frontend/src/layouts/AppLayout.vue` — replace initials text in sidebar user-info area with `<img>` when `auth.user.avatar_url` is set; fallback to initials when null
+- [x] T015 [US2] Verify `apps/frontend/src/views/student/LeaderboardView.vue` — podium avatars and row mini-avatars already use `initials()` with gradient background; update to use `<img>` when `avatar_url` is present on the entry
 
 **Checkpoint**: Avatar image visible in sidebar and leaderboard for students who have uploaded one.
 
@@ -81,10 +81,10 @@
 
 **Purpose**: Validation, edge cases, and final verification.
 
-- [ ] T016 Add server-side phone validation in `apps/backend/internal/service/auth/auth.go` — strip all non-digit characters; reject if length < 10 after stripping
-- [ ] T017 Add client-side avatar upload validation in `apps/frontend/src/views/student/ProfileView.vue` — reject files > 2 MB, reject non-image types before upload
-- [ ] T018 Verify ProfileView renders correctly at mobile (≤768px) and desktop breakpoints — responsive form, no overflow
-- [ ] T019 Run `docker compose up -d --build backend frontend` and verify full flow: open profile page → update gender/phone → upload avatar → check sidebar + leaderboard → refresh → all data persists
+- [x] T016 Add server-side phone validation in `apps/backend/internal/service/auth/auth.go` — strip all non-digit characters; reject if length < 10 after stripping
+- [x] T017 Add client-side avatar upload validation in `apps/frontend/src/views/student/ProfileView.vue` — reject files > 2 MB, reject non-image types before upload
+- [x] T018 Verify ProfileView renders correctly at mobile (≤768px) and desktop breakpoints — responsive form, no overflow
+- [x] T019 Run `docker compose up -d --build backend frontend` and verify full flow: open profile page → update gender/phone → upload avatar → check sidebar + leaderboard → refresh → all data persists
 
 ---
 
