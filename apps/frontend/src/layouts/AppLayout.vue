@@ -56,8 +56,8 @@ async function handleLogout() {
         <div class="brand">
           <div class="brand-mark">T</div>
           <div class="brand-text">
-            <div class="brand-name">TKAPrep</div>
-            <div class="brand-sub">Persiapan UTBK</div>
+            <div class="brand-name">Masukelas</div>
+            <div class="brand-sub">Ujian UTBK &amp; SMBT</div>
           </div>
         </div>
 

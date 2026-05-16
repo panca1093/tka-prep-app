@@ -5,7 +5,7 @@ import type { components } from '@tkaprep/shared-types'
 
 type User = components['schemas']['UserResponse']
 
-const RT_KEY = 'tkaprep_rt'
+const RT_KEY = 'masukelas_rt'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)

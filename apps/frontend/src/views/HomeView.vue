@@ -20,7 +20,7 @@ onMounted(async () => {
 
 <template>
   <main class="container">
-    <h1>✦ TKAPrep</h1>
+    <h1>✦ Masukelas</h1>
     <p class="subtitle">Working skeleton — backend wired, frontend wired, ready to build.</p>
 
     <section class="card">
