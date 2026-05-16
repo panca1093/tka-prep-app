@@ -1,35 +1,47 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useSessionStore } from '@/stores/session'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
 
-type Result = components['schemas']['TestResultResponse']
-type Entry  = components['schemas']['LeaderboardEntryResponse']
+type Result     = components['schemas']['TestResultResponse']
+type Entry      = components['schemas']['LeaderboardEntryResponse']
+type TestDetail = components['schemas']['TestDetailResponse']
 
-const auth       = useAuthStore()
-const results    = ref<Result[]>([])
-const topEntries = ref<Entry[]>([])
-const myRank     = ref<Entry | null>(null)
-const isLoading  = ref(true)
-const ready      = ref(false)
+const auth         = useAuthStore()
+const sessionStore = useSessionStore()
+const router       = useRouter()
+
+const results      = ref<Result[]>([])
+const topEntries   = ref<Entry[]>([])
+const myRank       = ref<Entry | null>(null)
+const ongoingTests = ref<TestDetail[]>([])
+const isLoading    = ref(true)
+const ready        = ref(false)
+const resumingId   = ref<string | null>(null)
 
 onMounted(async () => {
-  const [rr, rb, rm] = await Promise.allSettled([
+  const [rr, rb, rm, rt] = await Promise.allSettled([
     client.GET('/results'),
     client.GET('/leaderboard', { params: { query: { scope: 'global' } } }),
     client.GET('/leaderboard/me', { params: { query: {} } }),
+    client.GET('/tests', { params: { query: { limit: 50 } } }),
   ])
   if (rr.status === 'fulfilled' && rr.value.data) results.value = rr.value.data.data
   if (rb.status === 'fulfilled' && rb.value.data) topEntries.value = rb.value.data.data.slice(0, 5)
   if (rm.status === 'fulfilled' && rm.value.data) myRank.value = rm.value.data
+  if (rt.status === 'fulfilled' && rt.value.data) {
+    ongoingTests.value = rt.value.data.data.filter(t => t.student_status === 'in_progress')
+  }
   isLoading.value = false
   requestAnimationFrame(() => { ready.value = true })
 })
 
 const bestScore = computed(() =>
   results.value.length ? Math.max(...results.value.map(r => r.total_score)) : null)
+
 
 const greeting = computed(() => {
   const h = new Date().getHours()
@@ -41,21 +53,35 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
 const todayStr = computed(() =>
   new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))
 
-function formatDate(iso: string) {
-  return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+function timeAgo(iso: string) {
+  const diff = Date.now() - new Date(iso).getTime()
+  const mins  = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  const days  = Math.floor(diff / 86400000)
+  if (mins < 60)  return `${mins} menit lalu`
+  if (hours < 24) return `${hours} jam lalu`
+  if (days === 1) return 'Kemarin'
+  return `${days} hari lalu`
 }
 
 function scoreClass(s: number) {
   return s >= 70 ? 'good' : s >= 40 ? 'mid' : 'low'
 }
 
-/* SVG score ring */
-const RING_R    = 36
-const RING_CIRC = 2 * Math.PI * RING_R
-const ringOffset = computed(() => {
-  if (bestScore.value === null) return RING_CIRC
-  return RING_CIRC * (1 - Math.min(bestScore.value, 100) / 100)
-})
+function categoryLabel(cat: string) {
+  const map: Record<string, string> = { tka_saintek: 'TKA Saintek', tka_soshum: 'TKA Soshum', smbt: 'SMBT' }
+  return map[cat] ?? cat
+}
+
+async function handleResume(testId: string) {
+  resumingId.value = testId
+  try {
+    const sessionId = await sessionStore.startOrResume(testId)
+    router.push({ name: 'test-session', params: { sessionId } })
+  } finally {
+    resumingId.value = null
+  }
+}
 
 /* Leaderboard avatars */
 const gradients = [
@@ -76,37 +102,17 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 
     <!-- ── Hero ─────────────────────────────────────────────────────────────── -->
     <div class="hero">
-      <!-- dot-grid decoration -->
       <div class="hero-dots" aria-hidden="true" />
-
       <div class="hero-body">
         <p class="hero-greet">{{ greeting }},</p>
         <h1 class="hero-name">{{ firstName || auth.user?.name }}</h1>
         <p class="hero-date">{{ todayStr }}</p>
-
         <RouterLink to="/tests" class="hero-cta">
           <svg viewBox="0 0 20 20" fill="currentColor" width="15" height="15">
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z"/>
           </svg>
           Mulai Ujian
         </RouterLink>
-      </div>
-
-      <!-- Score ring (best score) -->
-      <div class="hero-ring-wrap">
-        <svg class="hero-ring" viewBox="0 0 90 90" width="90" height="90">
-          <circle class="ring-track" cx="45" cy="45" :r="RING_R" />
-          <circle
-            class="ring-fill"
-            cx="45" cy="45" :r="RING_R"
-            :stroke-dasharray="RING_CIRC"
-            :stroke-dashoffset="ready ? ringOffset : RING_CIRC"
-          />
-        </svg>
-        <div class="ring-label">
-          <span class="ring-val">{{ bestScore?.toFixed(0) ?? '—' }}</span>
-          <span class="ring-sub">best</span>
-        </div>
       </div>
     </div>
 
@@ -122,7 +128,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
           <div class="stat-accent" />
           <div class="stat-num">{{ results.length }}</div>
           <div class="stat-label">Ujian Selesai</div>
-          <div class="stat-bar" :style="`--pct: 100%`"><div class="stat-fill" /></div>
+          <div class="stat-bar" style="--pct: 100%"><div class="stat-fill" /></div>
         </div>
 
         <div class="stat stat--score" :class="bestScore !== null ? `stat--${scoreClass(bestScore)}` : ''">
@@ -144,14 +150,38 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
         </div>
       </div>
 
-      <!-- ── Two panels ──────────────────────────────────────────────────────── -->
-      <div class="panels">
+      <!-- ── Ongoing session(s) ──────────────────────────────────────────────── -->
+      <div v-if="ongoingTests.length > 0" class="ongoing-section">
+        <button
+          v-for="t in ongoingTests"
+          :key="t.id"
+          class="ongoing-card"
+          :disabled="resumingId === t.id"
+          @click="handleResume(t.id)"
+        >
+          <div class="ongoing-pulse" aria-hidden="true" />
+          <div class="ongoing-icon">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="18" height="18">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+            </svg>
+          </div>
+          <div class="ongoing-body">
+            <p class="ongoing-label">Ujian Berlangsung</p>
+            <p class="ongoing-title">{{ t.title }}</p>
+            <p class="ongoing-meta">{{ categoryLabel(t.category) }} · {{ t.duration_minutes }} menit</p>
+          </div>
+          <span class="ongoing-cta">{{ resumingId === t.id ? 'Membuka...' : 'Lanjutkan →' }}</span>
+        </button>
+      </div>
+
+      <!-- ── Two columns ────────────────────────────────────────────────────── -->
+      <div class="columns">
 
         <!-- Hasil Terbaru -->
-        <section class="panel">
-          <div class="panel-head">
-            <h2 class="panel-title">Hasil Terbaru</h2>
-            <RouterLink to="/results" class="panel-link">Lihat Semua →</RouterLink>
+        <section class="col-main">
+          <div class="section-head">
+            <h2 class="section-title">Hasil Terbaru</h2>
+            <RouterLink to="/results" class="section-link">Lihat semua →</RouterLink>
           </div>
 
           <div v-if="results.length === 0" class="empty">
@@ -160,38 +190,50 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
             <RouterLink to="/tests" class="btn-primary">Mulai sekarang</RouterLink>
           </div>
 
-          <div v-else class="result-list">
+          <div v-else class="ujian-list">
             <RouterLink
-              v-for="(r, i) in results.slice(0, 6)"
+              v-for="(r, i) in results.slice(0, 5)"
               :key="r.id"
               :to="`/results/${r.id}`"
-              class="result-row"
+              class="ujian-card ujian-card--done"
+              :class="scoreClass(r.total_score)"
               :style="`--i: ${i}`"
             >
-              <div class="result-badge" :class="scoreClass(r.total_score)">
-                {{ r.total_score.toFixed(0) }}
-              </div>
-              <div class="result-body">
-                <div class="result-title">{{ r.test_title }}</div>
-                <div class="result-meta">
-                  <span class="tag tag--ok">✓{{ r.correct_count }}</span>
-                  <span class="tag tag--err">✗{{ r.wrong_count }}</span>
-                  <span class="tag tag--muted">—{{ r.blank_count }}</span>
-                  <span class="result-date">{{ formatDate(r.completed_at) }}</span>
+              <div class="ujian-bar" :class="scoreClass(r.total_score)" />
+              <div class="ujian-content">
+                <h3 class="ujian-title">{{ r.test_title }}</h3>
+                <div class="ujian-score-section">
+                  <div class="ujian-score-row">
+                    <span class="ujian-score-label">Skor</span>
+                    <span class="ujian-score-val" :class="scoreClass(r.total_score)">
+                      {{ r.total_score.toFixed(1) }}
+                    </span>
+                  </div>
+                  <div class="ujian-progress-wrap">
+                    <div
+                      class="ujian-progress-bar"
+                      :class="scoreClass(r.total_score)"
+                      :style="`width: ${ready ? Math.min(Math.max(r.total_score, 0), 100) : 0}%`"
+                    />
+                  </div>
+                </div>
+                <div class="ujian-footer">
+                  <span class="ujian-status ujian-status--done">
+                    <span class="status-dot" />
+                    Selesai
+                  </span>
+                  <span class="ujian-time">{{ timeAgo(r.completed_at) }}</span>
                 </div>
               </div>
-              <svg class="result-arrow" viewBox="0 0 16 16" fill="currentColor" width="14" height="14">
-                <path fill-rule="evenodd" d="M6.293 12.707a1 1 0 010-1.414L9.586 8 6.293 4.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"/>
-              </svg>
             </RouterLink>
           </div>
         </section>
 
         <!-- Peringkat Teratas -->
-        <section class="panel">
+        <section class="col-side panel">
           <div class="panel-head">
             <h2 class="panel-title">Peringkat Teratas</h2>
-            <RouterLink to="/leaderboard" class="panel-link">Lihat Semua →</RouterLink>
+            <RouterLink to="/leaderboard" class="section-link">Lihat semua →</RouterLink>
           </div>
 
           <div v-if="topEntries.length === 0" class="empty">
@@ -232,7 +274,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 </template>
 
 <style scoped>
-/* ─── Entry animation ──────────────────────────────────────────────────────── */
+/* ─── Animations ────────────────────────────────────────────────────────────── */
 @keyframes slide-up {
   from { opacity: 0; transform: translateY(14px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -244,16 +286,17 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 
 .dash { display: flex; flex-direction: column; gap: 1.25rem; }
 
-.dash.ready .hero       { animation: slide-up 0.45s ease both; }
-.dash.ready .stats-row  { animation: slide-up 0.45s 0.08s ease both; }
-.dash.ready .panels     { animation: slide-up 0.45s 0.16s ease both; }
+.dash.ready .hero           { animation: slide-up 0.45s ease both; }
+.dash.ready .stats-row      { animation: slide-up 0.45s 0.08s ease both; }
+.dash.ready .ongoing-section { animation: slide-up 0.45s 0.14s ease both; }
+.dash.ready .columns        { animation: slide-up 0.45s 0.20s ease both; }
+.dash.ready .ujian-card     { animation: slide-up 0.35s calc(var(--i) * 55ms + 280ms) ease both; }
 
-/* ─── Hero ─────────────────────────────────────────────────────────────────── */
+/* ─── Hero ──────────────────────────────────────────────────────────────────── */
 .hero {
   position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
   padding: 2rem 2.25rem;
   border-radius: 18px;
@@ -263,12 +306,8 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
     var(--bg-surface) 60%,
     color-mix(in srgb, var(--accent) 6%, var(--bg-surface)) 100%);
   border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border));
-  box-shadow:
-    0 1px 3px rgba(0,0,0,.04),
-    inset 0 1px 0 rgba(255,255,255,.6);
+  box-shadow: 0 1px 3px rgba(0,0,0,.04), inset 0 1px 0 rgba(255,255,255,.6);
 }
-
-/* dot grid */
 .hero-dots {
   position: absolute;
   inset: 0;
@@ -277,7 +316,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   opacity: .35;
   pointer-events: none;
 }
-
 .hero-body { position: relative; z-index: 1; }
 .hero-greet {
   margin: 0 0 2px;
@@ -295,11 +333,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   line-height: 1.1;
   letter-spacing: -0.5px;
 }
-.hero-date {
-  margin: 0 0 1.25rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
+.hero-date { margin: 0 0 1.25rem; font-size: 0.75rem; color: var(--text-muted); }
 .hero-cta {
   display: inline-flex;
   align-items: center;
@@ -311,7 +345,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   font-size: 0.825rem;
   font-weight: 700;
   text-decoration: none;
-  letter-spacing: 0.01em;
   transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
   box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 40%, transparent);
 }
@@ -321,55 +354,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
 }
 
-/* Score ring */
-.hero-ring-wrap {
-  position: relative;
-  z-index: 1;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 90px;
-  height: 90px;
-}
-.hero-ring { transform: rotate(-90deg); }
-.ring-track {
-  fill: none;
-  stroke: color-mix(in srgb, var(--accent) 14%, var(--border));
-  stroke-width: 7;
-}
-.ring-fill {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 7;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 1s cubic-bezier(.25,.8,.25,1);
-}
-.ring-label {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-.ring-val {
-  font-size: 1.125rem;
-  font-weight: 800;
-  color: var(--text-heading);
-  font-variant-numeric: tabular-nums;
-}
-.ring-sub {
-  font-size: 0.6rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 1px;
-}
-
-/* ─── Stats ────────────────────────────────────────────────────────────────── */
+/* ─── Stats ─────────────────────────────────────────────────────────────────── */
 .stats-row {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -388,8 +373,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 .stat:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.07); }
-
-/* colored top accent line */
 .stat-accent {
   position: absolute;
   top: 0; left: 0; right: 0;
@@ -402,7 +385,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 .stat--low .stat-accent   { background: var(--danger); }
 .stat--warm .stat-accent  { background: var(--warm); }
 .stat--score .stat-accent { background: var(--accent); }
-
 .stat-num {
   font-family: monospace;
   font-size: 1.875rem;
@@ -412,10 +394,10 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   margin-top: 2px;
   font-variant-numeric: tabular-nums;
 }
-.stat-num.good  { color: var(--success); }
-.stat-num.mid   { color: var(--warning); }
-.stat-num.low   { color: var(--danger); }
-.rank-num       { color: var(--warm); }
+.stat-num.good { color: var(--success); }
+.stat-num.mid  { color: var(--warning); }
+.stat-num.low  { color: var(--danger); }
+.rank-num      { color: var(--warm); }
 .stat-label {
   font-size: 0.7rem;
   color: var(--text-muted);
@@ -440,25 +422,22 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 }
 .stat-fill--warm { background: var(--warm); }
 
-/* ─── Panels ───────────────────────────────────────────────────────────────── */
-.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.125rem; }
-
-.panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
+/* ─── Two-column layout ─────────────────────────────────────────────────────── */
+.columns {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
 }
-.panel-head {
+.col-main { display: flex; flex-direction: column; gap: 0.875rem; }
+
+/* ─── Section header ────────────────────────────────────────────────────────── */
+.section-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.875rem 1.25rem;
-  border-bottom: 1px solid var(--border);
 }
-.panel-title {
+.section-title {
   margin: 0;
   font-size: 0.72rem;
   font-weight: 700;
@@ -466,10 +445,10 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   text-transform: uppercase;
   letter-spacing: 0.07em;
 }
-.panel-link { font-size: 0.72rem; color: var(--accent); font-weight: 600; }
-.panel-link:hover { text-decoration: underline; }
+.section-link { font-size: 0.72rem; color: var(--accent); font-weight: 600; text-decoration: none; }
+.section-link:hover { text-decoration: underline; }
 
-/* ─── Empty ─────────────────────────────────────────────────────────────────── */
+/* ─── Empty state ───────────────────────────────────────────────────────────── */
 .empty {
   display: flex;
   flex-direction: column;
@@ -493,67 +472,237 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 }
 .btn-primary:hover { background: var(--accent-hover); }
 
-/* ─── Result list ──────────────────────────────────────────────────────────── */
-.result-list { display: flex; flex-direction: column; }
+/* ─── Ujian list ────────────────────────────────────────────────────────────── */
+.ujian-list { display: flex; flex-direction: column; gap: 0.75rem; }
 
-.result-row {
+/* ─── Ongoing card ──────────────────────────────────────────────────────────── */
+@keyframes pulse-ring {
+  0%   { opacity: 0.6; transform: scale(1); }
+  70%  { opacity: 0;   transform: scale(1.8); }
+  100% { opacity: 0;   transform: scale(1.8); }
+}
+
+.ongoing-section { display: flex; flex-direction: column; gap: 0.625rem; }
+
+.ongoing-card {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 0.875rem;
-  padding: 0.75rem 1.125rem;
-  border-bottom: 1px solid var(--bg-input);
-  text-decoration: none;
-  color: inherit;
-  transition: background 0.12s;
-  animation: slide-up 0.35s calc(var(--i) * 50ms + 200ms) ease both;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--warning) 35%, var(--border));
+  background: color-mix(in srgb, var(--warning) 6%, var(--bg-surface));
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+  transition: background 0.15s, transform 0.15s, box-shadow 0.15s;
+  overflow: hidden;
 }
-.result-row:last-child { border-bottom: none; }
-.result-row:hover { background: var(--bg-input); }
+.ongoing-card:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--warning) 10%, var(--bg-surface));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--warning) 20%, transparent);
+}
+.ongoing-card:disabled { opacity: 0.7; cursor: wait; }
 
-/* score badge (circle with score, color-coded) */
-.result-badge {
-  width: 38px;
-  height: 38px;
+.ongoing-pulse {
+  position: absolute;
+  left: 1.25rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
+  background: color-mix(in srgb, var(--warning) 30%, transparent);
+  animation: pulse-ring 1.8s ease-out infinite;
+  pointer-events: none;
+}
+.ongoing-icon {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--warning) 18%, var(--bg-surface));
+  border: 1.5px solid color-mix(in srgb, var(--warning) 40%, var(--border));
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
-  font-weight: 800;
-  font-family: monospace;
-  border: 2px solid;
+  color: var(--warning);
 }
-.result-badge.good { color: var(--success); border-color: color-mix(in srgb, var(--success) 35%, var(--border)); background: var(--success-bg); }
-.result-badge.mid  { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 35%, var(--border)); background: var(--warning-bg); }
-.result-badge.low  { color: var(--danger);  border-color: color-mix(in srgb, var(--danger)  35%, var(--border)); background: var(--danger-bg); }
-
-.result-body { flex: 1; min-width: 0; }
-.result-title {
-  font-size: 0.825rem;
-  font-weight: 600;
-  color: var(--text-primary);
+.ongoing-body { flex: 1; min-width: 0; }
+.ongoing-label {
+  margin: 0 0 1px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--warning);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.ongoing-title {
+  margin: 0 0 2px;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-heading);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.result-meta { display: flex; gap: 0.4rem; align-items: center; margin-top: 3px; }
-.tag {
-  font-size: 0.65rem;
-  font-weight: 700;
-  padding: 1px 5px;
-  border-radius: 4px;
+.ongoing-meta { margin: 0; font-size: 0.72rem; color: var(--text-muted); }
+.ongoing-cta  { flex-shrink: 0; font-size: 0.78rem; font-weight: 700; color: var(--warning); }
+
+/* ─── Ujian cards ────────────────────────────────────────────────────────────── */
+.ujian-card {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.tag--ok    { color: var(--success); background: var(--success-bg); }
-.tag--err   { color: var(--danger);  background: var(--danger-bg); }
-.tag--muted { color: var(--text-muted); background: var(--bg-input); }
-.result-date { font-size: 0.65rem; color: var(--text-muted); margin-left: auto; }
+.ujian-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+.ujian-card:disabled { opacity: 0.7; cursor: wait; }
 
-.result-arrow { color: var(--text-muted); flex-shrink: 0; }
+/* colored left border strip */
+.ujian-bar {
+  width: 4px;
+  flex-shrink: 0;
+}
+.ujian-bar.good        { background: var(--success); }
+.ujian-bar.mid         { background: var(--warning); }
+.ujian-bar.low         { background: var(--danger); }
+.ujian-bar--ongoing    { background: var(--warning); }
 
-/* ─── Leaderboard ──────────────────────────────────────────────────────────── */
+.ujian-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.25rem;
+}
+
+.ujian-category {
+  margin: 0;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.ujian-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  line-height: 1.3;
+}
+
+/* score section (completed only) */
+.ujian-score-section { display: flex; flex-direction: column; gap: 0.375rem; }
+.ujian-score-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+.ujian-score-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.ujian-score-val {
+  font-family: monospace;
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+.ujian-score-val.good { color: var(--success); }
+.ujian-score-val.mid  { color: var(--warning); }
+.ujian-score-val.low  { color: var(--danger); }
+
+.ujian-progress-wrap {
+  height: 4px;
+  background: var(--border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+.ujian-progress-bar {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.9s cubic-bezier(.25,.8,.25,1);
+}
+.ujian-progress-bar.good { background: var(--success); }
+.ujian-progress-bar.mid  { background: var(--warning); }
+.ujian-progress-bar.low  { background: var(--danger); }
+
+/* footer row */
+.ujian-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.ujian-status {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+.ujian-status--done    { color: var(--success); }
+.ujian-status--ongoing { color: var(--warning); }
+
+.status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.ujian-time {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+.ujian-time--ongoing {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--warning);
+}
+
+/* ─── Leaderboard panel ─────────────────────────────────────────────────────── */
+.col-side {}
+.panel {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.875rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.panel-title {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
 .lb-list { display: flex; flex-direction: column; }
-
 .lb-row {
   display: flex;
   align-items: center;
@@ -566,7 +715,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 .lb-row:last-child { border-bottom: none; }
 .lb-row:hover { background: var(--bg-input); }
 .lb-row--me { background: var(--accent-dim) !important; }
-
 .lb-sep {
   text-align: center;
   padding: 0.25rem;
@@ -574,7 +722,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   color: var(--text-muted);
   border-bottom: 1px solid var(--bg-input);
 }
-
 .lb-pos {
   width: 2rem;
   text-align: center;
@@ -594,7 +741,6 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   font-weight: 800;
   color: #fff;
   flex-shrink: 0;
-  letter-spacing: 0;
 }
 .lb-name {
   flex: 1;
@@ -615,7 +761,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   flex-shrink: 0;
 }
 
-/* ─── Loading ───────────────────────────────────────────────────────────────── */
+/* ─── Loading ────────────────────────────────────────────────────────────────── */
 .loading { display: flex; justify-content: center; padding: 3.5rem; }
 .loading-dots { display: flex; gap: 6px; align-items: center; }
 .loading-dots span {
@@ -627,16 +773,14 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
 .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
 .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
 
-/* ─── Responsive ──────────────────────────────────────────────────────────── */
-@media (max-width: 1024px) {
-  .stats-row { grid-template-columns: repeat(3, 1fr); }
+/* ─── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .columns { grid-template-columns: 1fr 280px; }
 }
 @media (max-width: 768px) {
-  .hero { flex-direction: column; align-items: flex-start; padding: 1.5rem; gap: 1.25rem; }
-  .hero-ring-wrap { width: 72px; height: 72px; }
-  .hero-ring { width: 72px; height: 72px; }
+  .hero { padding: 1.5rem; }
   .hero-name { font-size: 1.625rem; }
   .stats-row { grid-template-columns: repeat(2, 1fr); gap: 0.625rem; }
-  .panels { grid-template-columns: 1fr; }
+  .columns { grid-template-columns: 1fr; }
 }
 </style>

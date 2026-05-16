@@ -54,10 +54,14 @@ async function handleLogout() {
       <div class="sidebar-top">
         <!-- Brand -->
         <div class="brand">
-          <div class="brand-mark">T</div>
+          <div class="brand-mark">
+            <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+              <path d="M12 3L1 9l11 6 9-4.91V17h2V9L12 3z" fill="currentColor"/>
+              <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82z" fill="currentColor" opacity=".85"/>
+            </svg>
+          </div>
           <div class="brand-text">
             <div class="brand-name">Masukelas</div>
-            <div class="brand-sub">Ujian UTBK &amp; SMBT</div>
           </div>
         </div>
 
@@ -162,7 +166,6 @@ async function handleLogout() {
   flex-shrink: 0;
 }
 .brand-name { font-size: 0.9rem; font-weight: 700; color: var(--text-heading); line-height: 1.1; }
-.brand-sub { font-size: 0.65rem; color: var(--text-muted); }
 
 /* Nav */
 .nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -202,12 +205,13 @@ async function handleLogout() {
   padding: 0.625rem 0.375rem;
 }
 .user-avatar {
-  width: 32px; height: 32px;
+  width: 36px; height: 36px;
   border-radius: 50%;
   background: linear-gradient(135deg, #4f8ef7, #3b7be8);
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.7rem; font-weight: 700; color: #fff;
+  font-size: 0.72rem; font-weight: 700; color: #fff;
   flex-shrink: 0; overflow: hidden;
+  border: 2px solid color-mix(in srgb, var(--accent) 25%, var(--border));
 }
 .avatar-img { width: 100%; height: 100%; object-fit: cover; }
 .user-info { flex: 1; min-width: 0; }
@@ -231,7 +235,7 @@ async function handleLogout() {
   flex: 1;
   padding: 2rem 2.5rem;
   overflow-y: auto;
-  max-width: 1100px;
+  min-width: 0;
 }
 .content--full { padding: 0; max-width: unset; overflow: hidden; }
 
@@ -259,7 +263,7 @@ async function handleLogout() {
 /* ─── Responsive ──────────────────────────────────────────────────────────── */
 @media (min-width: 769px) and (max-width: 1024px) {
   .sidebar { width: 64px; padding: 1rem 0.625rem; }
-  .brand-text, .nav-label, .user-info, .brand-sub { display: none; }
+  .brand-text, .nav-label, .user-info { display: none; }
   .brand { justify-content: center; margin-bottom: 1.5rem; padding: 0; }
   .nav-item { justify-content: center; padding: 0.6rem; }
   .user-card { justify-content: center; padding: 0.5rem 0; }
