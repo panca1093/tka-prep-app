@@ -115,6 +115,16 @@ func (s *APIServer) PatchAuthMe(ctx context.Context, req api.PatchAuthMeRequestO
 		el := domain.EducationLevel(string(*req.Body.EducationLevel))
 		in.EducationLevel = &el
 	}
+	if req.Body.Gender != nil {
+		g := domain.Gender(string(*req.Body.Gender))
+		in.Gender = &g
+	}
+	if req.Body.Phone != nil {
+		in.Phone = req.Body.Phone
+	}
+	if req.Body.AvatarUrl != nil {
+		in.AvatarURL = req.Body.AvatarUrl
+	}
 
 	user, err := s.authSvc.UpdateProfile(ctx, claims.UserID, in)
 	if err != nil {
@@ -143,6 +153,16 @@ func toUserResponse(u *domain.User) api.UserResponse {
 	if u.EducationLevel != nil {
 		el := api.UserResponseEducationLevel(string(*u.EducationLevel))
 		resp.EducationLevel = &el
+	}
+	if u.Gender != nil {
+		g := api.UserResponseGender(string(*u.Gender))
+		resp.Gender = &g
+	}
+	if u.Phone != nil {
+		resp.Phone = u.Phone
+	}
+	if u.AvatarURL != nil {
+		resp.AvatarUrl = u.AvatarURL
 	}
 	return resp
 }

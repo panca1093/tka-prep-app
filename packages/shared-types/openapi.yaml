@@ -1935,6 +1935,16 @@ components:
           description: >
             Education level for student users. Null clears the level.
             Ignored for non-student roles.
+        gender:
+          type: string
+          enum: [male, female, other]
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
+          nullable: true
 
     UserResponse:
       type: object
@@ -1960,6 +1970,16 @@ components:
         education_level:
           type: string
           enum: [sd, smp, sma, smk]
+          nullable: true
+        gender:
+          type: string
+          enum: [male, female, other]
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
           nullable: true
         created_at:
           type: string
@@ -2835,6 +2855,16 @@ components:
         education_level:
           type: string
           enum: [sd, smp, sma, smk]
+          nullable: true
+        gender:
+          type: string
+          enum: [male, female, other]
+          nullable: true
+        phone:
+          type: string
+          nullable: true
+        avatar_url:
+          type: string
           nullable: true
         created_at:
           type: string
