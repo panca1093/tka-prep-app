@@ -217,5 +217,5 @@ When in doubt, the order of precedence is: `spec.md` > `CLAUDE.md` > existing co
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan: specs/005-profile-enhancements/plan.md
+shell commands, and other important information, read the current plan: specs/006-admin-user-management/plan.md
 <!-- SPECKIT END -->

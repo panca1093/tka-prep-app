@@ -25,11 +25,22 @@ func (s *APIServer) GetAdminStats(ctx context.Context, _ api.GetAdminStatsReques
 		return nil, err
 	}
 	return api.GetAdminStats200JSONResponse(api.PlatformStatsResponse{
-		TotalStudents:     stats.TotalStudents,
-		TotalContributors: stats.TotalContributors,
-		TotalTests:        stats.TotalTests,
-		TotalQuestions:    stats.TotalQuestions,
-		PendingApprovals:  stats.PendingApprovals,
+		TotalStudents:        stats.TotalStudents,
+		TotalContributors:    stats.TotalContributors,
+		TotalTests:           stats.TotalTests,
+		TotalQuestions:       stats.TotalQuestions,
+		PendingApprovals:     stats.PendingApprovals,
+		StudentsThisWeek:     stats.StudentsThisWeek,
+		ContributorsThisWeek: stats.ContributorsThisWeek,
+		TotalAttempts:        stats.TotalAttempts,
+		AvgScore:             float32(stats.AvgScore),
+		TopTestTitle:         stats.TopTestTitle,
+		TopTestAttempts:      stats.TopTestAttempts,
+		QuestionsTkaSaintek:  stats.QuestionsTKASaintek,
+		QuestionsTkaSoshum:   stats.QuestionsTKASoshum,
+		QuestionsSmbt:        stats.QuestionsSMBT,
+		QuestionsUsed:        stats.QuestionsUsed,
+		QuestionsUnused:      stats.QuestionsUnused,
 	}), nil
 }
 
@@ -100,6 +111,28 @@ func (s *APIServer) UpdateAdminUserStatus(ctx context.Context, req api.UpdateAdm
 		return nil, err
 	}
 	return api.UpdateAdminUserStatus200JSONResponse(toUserResponse(user)), nil
+}
+
+func (s *APIServer) AdminCreateContributor(ctx context.Context, req api.AdminCreateContributorRequestObject) (api.AdminCreateContributorResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.AdminCreateContributor401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleAdmin {
+		return api.AdminCreateContributor403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	}
+
+	user, err := s.adminSvc.CreateContributor(ctx, req.Body.Name, string(req.Body.Email), req.Body.Password)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrConflict):
+			return api.AdminCreateContributor409JSONResponse(errBody("CONFLICT", "email already registered")), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.AdminCreateContributor400JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.AdminCreateContributor201JSONResponse(toUserResponse(user)), nil
 }
 
 func (s *APIServer) ListPendingContributors(ctx context.Context, req api.ListPendingContributorsRequestObject) (api.ListPendingContributorsResponseObject, error) {

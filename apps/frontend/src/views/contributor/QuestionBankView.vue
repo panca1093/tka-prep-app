@@ -25,6 +25,18 @@ const difficultyFilter = ref('')
 const typeFilter = ref('')
 const eduLevelFilter = ref('')
 
+const activeFilterCount = computed(() =>
+  [topicFilter.value, difficultyFilter.value, typeFilter.value, eduLevelFilter.value].filter(Boolean).length
+)
+
+function clearFilters() {
+  topicFilter.value = ''
+  difficultyFilter.value = ''
+  typeFilter.value = ''
+  eduLevelFilter.value = ''
+  fetchQuestions()
+}
+
 // Form state
 interface FormState {
   question_type: QuestionType
@@ -238,41 +250,66 @@ const typeColor: Record<string, string> = {
 <template>
   <div>
     <div class="page-header">
-      <h1 class="page-title">Question Bank</h1>
-      <button class="btn-primary" @click="openCreate">+ Add Question</button>
+      <h1 class="page-title">Bank Soal</h1>
+      <button class="btn-primary" @click="openCreate">+ Tambah Soal</button>
     </div>
 
-    <div class="filters">
-      <input v-model="searchText" placeholder="Search questions…" class="search-input" @input="fetchQuestions" />
-      <select v-model="topicFilter" class="filter-select" @change="fetchQuestions">
-        <option value="">All Topics</option>
+    <div class="filter-toolbar">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+        </svg>
+        <input v-model="searchText" class="search-input" placeholder="Cari soal…" @input="fetchQuestions" />
+      </div>
+      <select v-model="topicFilter" class="filter-select" :class="{ 'has-value': topicFilter }" @change="fetchQuestions">
+        <option value="">Semua Topik</option>
         <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
       </select>
-      <select v-model="difficultyFilter" class="filter-select" @change="fetchQuestions">
-        <option value="">All Difficulties</option>
-        <option value="easy">Easy</option>
-        <option value="medium">Medium</option>
-        <option value="hard">Hard</option>
+      <select v-model="difficultyFilter" class="filter-select" :class="{ 'has-value': difficultyFilter }" @change="fetchQuestions">
+        <option value="">Semua Kesulitan</option>
+        <option value="easy">Mudah</option>
+        <option value="medium">Sedang</option>
+        <option value="hard">Sulit</option>
       </select>
-      <select v-model="typeFilter" class="filter-select" @change="fetchQuestions">
-        <option value="">All Types</option>
-        <option value="mcq">Pilihan Ganda (PG)</option>
+      <select v-model="typeFilter" class="filter-select" :class="{ 'has-value': typeFilter }" @change="fetchQuestions">
+        <option value="">Semua Tipe</option>
+        <option value="mcq">PG</option>
         <option value="multi_correct">PGK</option>
-        <option value="true_false">Benar/Salah</option>
+        <option value="true_false">B/S</option>
       </select>
-      <select v-model="eduLevelFilter" class="filter-select" @change="fetchQuestions">
-        <option value="">All Levels</option>
+      <select v-model="eduLevelFilter" class="filter-select" :class="{ 'has-value': eduLevelFilter }" @change="fetchQuestions">
+        <option value="">Semua Jenjang</option>
         <option value="sd">SD</option>
         <option value="smp">SMP</option>
         <option value="sma">SMA</option>
       </select>
     </div>
 
+    <div v-if="activeFilterCount > 0" class="filter-summary">
+      <span v-if="topicFilter" class="f-chip">
+        {{ topics.find(t => t.id === topicFilter)?.name }}
+        <button @click="topicFilter = ''; fetchQuestions()">✕</button>
+      </span>
+      <span v-if="difficultyFilter" class="f-chip">
+        {{ ({ easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' } as Record<string,string>)[difficultyFilter] }}
+        <button @click="difficultyFilter = ''; fetchQuestions()">✕</button>
+      </span>
+      <span v-if="typeFilter" class="f-chip">
+        {{ ({ mcq: 'PG', multi_correct: 'PGK', true_false: 'B/S' } as Record<string,string>)[typeFilter] }}
+        <button @click="typeFilter = ''; fetchQuestions()">✕</button>
+      </span>
+      <span v-if="eduLevelFilter" class="f-chip">
+        {{ (eduLevelFilter as string).toUpperCase() }}
+        <button @click="eduLevelFilter = ''; fetchQuestions()">✕</button>
+      </span>
+      <button class="clear-all-btn" @click="clearFilters">Hapus semua</button>
+    </div>
+
     <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
 
     <div v-if="isLoading" class="loading">Loading…</div>
 
-    <div v-else-if="questions.length === 0" class="empty-state">No questions yet. Add your first question!</div>
+    <div v-else-if="questions.length === 0" class="empty-state">Belum ada soal. Tambahkan soal pertama Anda!</div>
 
     <div v-else class="question-list">
       <div v-for="q in questions" :key="q.id" class="question-card">
@@ -312,7 +349,7 @@ const typeColor: Record<string, string> = {
         <div class="modal-dialog">
           <!-- Header -->
           <div class="modal-header">
-            <h2 class="modal-title">{{ editTarget ? 'Edit Question' : 'New Question' }}</h2>
+            <h2 class="modal-title">{{ editTarget ? 'Edit Soal' : 'Soal Baru' }}</h2>
             <button class="modal-close" @click="showForm = false">×</button>
           </div>
 
@@ -440,19 +477,22 @@ const typeColor: Record<string, string> = {
 .page-title { margin: 0; font-size: 1.5rem; font-weight: 800; }
 .loading { color: var(--text-muted); }
 
-.filters { display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.search-input {
-  flex: 1; min-width: 200px;
-  padding: 0.55rem 0.875rem; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem;
-  outline: none;
-}
+/* ── Filter toolbar ─────────────────────────────────────────────── */
+.filter-toolbar { display: flex; gap: 0.625rem; align-items: center; margin-bottom: 0.875rem; flex-wrap: wrap; }
+.search-wrap { flex: 1; min-width: 180px; position: relative; }
+.search-icon { position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--text-muted); width: 15px; height: 15px; pointer-events: none; }
+.search-input { width: 100%; padding: 0.55rem 0.875rem 0.55rem 2.25rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem; font-family: inherit; outline: none; transition: border-color 0.15s; }
 .search-input:focus { border-color: var(--accent); }
-.filter-select {
-  padding: 0.55rem 0.875rem; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-primary); font-size: 0.875rem;
-  cursor: pointer; outline: none;
-}
+.search-input::placeholder { color: var(--text-muted); }
+.filter-select { padding: 0.55rem 2rem 0.55rem 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-surface); color: var(--text-muted); font-size: 0.85rem; font-family: inherit; cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 20 20' fill='%2394a3b8'%3E%3Cpath fill-rule='evenodd' d='M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z' clip-rule='evenodd'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.65rem center; transition: border-color 0.15s, color 0.15s; }
+.filter-select:focus { border-color: var(--accent); color: var(--text-primary); }
+.filter-select.has-value { border-color: rgba(79,142,247,0.4); color: var(--accent); }
+.filter-summary { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+.f-chip { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.5rem 0.2rem 0.625rem; border-radius: 5px; font-size: 0.72rem; font-weight: 600; background: rgba(79,142,247,0.1); color: var(--accent); border: 1px solid rgba(79,142,247,0.2); }
+.f-chip button { background: none; border: none; cursor: pointer; color: var(--accent); opacity: 0.5; font-size: 0.65rem; line-height: 1; padding: 0; font-family: inherit; transition: opacity 0.1s; }
+.f-chip button:hover { opacity: 1; }
+.clear-all-btn { margin-left: auto; background: none; border: none; color: var(--text-muted); font-size: 0.72rem; font-weight: 500; cursor: pointer; font-family: inherit; transition: color 0.12s; padding: 0; }
+.clear-all-btn:hover { color: var(--danger); }
 
 .error-msg { padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--danger-bg); color: var(--danger-text); font-size: 0.825rem; margin-bottom: 1rem; }
 .empty-state { color: var(--text-muted); text-align: center; padding: 2rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; }
@@ -553,12 +593,6 @@ const typeColor: Record<string, string> = {
 .field { display: flex; flex-direction: column; gap: 0.375rem; }
 .field-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .hint-inline { font-size: 0.72rem; font-weight: 400; color: var(--text-muted); margin-left: 0.25rem; }
-.text-area {
-  padding: 0.65rem 0.875rem; border-radius: 8px; border: 1px solid var(--border);
-  background: var(--bg-input); color: var(--text-primary); font-size: 0.875rem; resize: vertical; font-family: inherit;
-  outline: none;
-}
-.text-area:focus { border-color: var(--accent); }
 
 /* Type tabs — pill style */
 .type-tabs {
@@ -590,7 +624,6 @@ const typeColor: Record<string, string> = {
 .opt-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.625rem 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input); transition: border-color 0.15s; }
 .opt-card:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
 .opt-input-row { display: flex; align-items: center; gap: 0.625rem; }
-.opt-img-upload { margin-left: 2.5rem; }
 .correct-dot {
   width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid var(--border);
   background: var(--bg-input); color: var(--text-muted); font-size: 0.75rem; font-weight: 700;
@@ -610,7 +643,6 @@ const typeColor: Record<string, string> = {
 .stmt-inputs { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
 .stmt-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.625rem 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input); }
 .stmt-input-row { display: flex; align-items: center; gap: 0.5rem; }
-.stmt-img-upload { margin-left: 2rem; }
 .stmt-idx {
   width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--border);
   display: flex; align-items: center; justify-content: center;

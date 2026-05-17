@@ -1687,6 +1687,51 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /admin/contributors:
+    post:
+      operationId: adminCreateContributor
+      summary: Create a contributor account directly (super admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateContributorRequest'
+      responses:
+        '201':
+          description: Contributor created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /admin/contributors/pending:
     get:
       operationId: listPendingContributors
@@ -2057,6 +2102,21 @@ components:
         created_at:
           type: string
           format: date-time
+
+    CreateContributorRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
 
     CreateTopicRequest:
       type: object
@@ -2838,7 +2898,7 @@ components:
 
     PlatformStatsResponse:
       type: object
-      required: [total_students, total_contributors, total_tests, total_questions, pending_approvals]
+      required: [total_students, total_contributors, total_tests, total_questions, pending_approvals, students_this_week, contributors_this_week, total_attempts, avg_score, top_test_title, top_test_attempts, questions_tka_saintek, questions_tka_soshum, questions_smbt, questions_used, questions_unused]
       properties:
         total_students:
           type: integer
@@ -2849,6 +2909,28 @@ components:
         total_questions:
           type: integer
         pending_approvals:
+          type: integer
+        students_this_week:
+          type: integer
+        contributors_this_week:
+          type: integer
+        total_attempts:
+          type: integer
+        avg_score:
+          type: number
+        top_test_title:
+          type: string
+        top_test_attempts:
+          type: integer
+        questions_tka_saintek:
+          type: integer
+        questions_tka_soshum:
+          type: integer
+        questions_smbt:
+          type: integer
+        questions_used:
+          type: integer
+        questions_unused:
           type: integer
 
     AdminUserListResponse:

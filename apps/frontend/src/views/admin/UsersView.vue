@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
 
@@ -16,6 +16,14 @@ const statusFilter = ref('')
 const actionError  = ref('')
 const confirmSuspendId = ref<string | null>(null)
 const busyId       = ref<string | null>(null)
+const showAddModal = ref(false)
+const addForm      = reactive({ name: '', email: '', password: '' })
+const addError     = ref('')
+const isAdding     = ref(false)
+
+const activeFilterCount = computed(() => [roleFilter.value, statusFilter.value].filter(Boolean).length)
+
+function clearFilters() { roleFilter.value = ''; statusFilter.value = ''; page.value = 1; fetchUsers() }
 
 const roles = [
   { value: '', label: 'Semua Role' },
@@ -63,6 +71,30 @@ async function updateStatus(userId: string, status: 'active' | 'suspended') {
 function setRole(v: string) { roleFilter.value = v; page.value = 1; fetchUsers() }
 function setStatus(v: string) { statusFilter.value = v; page.value = 1; fetchUsers() }
 
+async function createContributor() {
+  addError.value = ''
+  if (!addForm.name.trim() || !addForm.email.trim() || addForm.password.length < 8) {
+    addError.value = 'Semua kolom wajib diisi. Password minimal 8 karakter.'
+    return
+  }
+  isAdding.value = true
+  const { error, response } = await client.POST('/admin/contributors', { body: addForm })
+  if (error) {
+    addError.value = response.status === 409 ? 'Email sudah terdaftar.' : 'Gagal membuat kontributor.'
+    isAdding.value = false
+    return
+  }
+  isAdding.value = false
+  showAddModal.value = false
+  addForm.name = ''; addForm.email = ''; addForm.password = ''
+  await fetchUsers()
+}
+
+function openAddModal() {
+  addForm.name = ''; addForm.email = ''; addForm.password = ''; addError.value = ''
+  showAddModal.value = true
+}
+
 const totalPages = computed(() => Math.ceil(total.value / pageSize))
 
 function initials(name: string) {
@@ -87,6 +119,7 @@ onMounted(fetchUsers)
         <h1 class="uv-title">Pengguna</h1>
         <p class="uv-subtitle">{{ total.toLocaleString('id-ID') }} pengguna ditemukan</p>
       </div>
+      <button class="btn-add" @click="openAddModal">+ Tambah Kontributor</button>
     </div>
 
     <!-- ── Toolbar ──────────────────────────────────────────────────────────── -->
@@ -118,6 +151,9 @@ onMounted(fetchUsers)
           @click="setStatus(s.value)"
         >{{ s.label }}</button>
       </div>
+
+      <span v-if="activeFilterCount > 0" class="filter-badge">{{ activeFilterCount }} aktif</span>
+      <button v-if="activeFilterCount > 0" class="btn-clear" @click="clearFilters">Hapus Semua Filter</button>
     </div>
 
     <!-- ── Error ────────────────────────────────────────────────────────────── -->
@@ -221,6 +257,37 @@ onMounted(fetchUsers)
         <svg viewBox="0 0 16 16" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M6.22 4.78a.75.75 0 011.06 0l3.25 3.25a.75.75 0 010 1.06L7.28 12.34a.75.75 0 01-1.06-1.06L9.94 8.5 7.22 5.78a.75.75 0 010-1.06z" clip-rule="evenodd"/></svg>
       </button>
     </div>
+
+    <!-- ── Add Contributor Modal ─────────────────────────────────────────────── -->
+    <Teleport to="body">
+      <div v-if="showAddModal" class="modal-backdrop" @click.self="showAddModal = false">
+        <div class="modal-dialog">
+          <div class="modal-header">
+            <h3>Tambah Kontributor</h3>
+            <button class="modal-close" @click="showAddModal = false">&times;</button>
+          </div>
+          <form @submit.prevent="createContributor" class="modal-body">
+            <div class="field">
+              <label>Nama Lengkap</label>
+              <input v-model="addForm.name" type="text" required placeholder="Nama kontributor" maxlength="255" />
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input v-model="addForm.email" type="email" required placeholder="email@contoh.com" />
+            </div>
+            <div class="field">
+              <label>Password</label>
+              <input v-model="addForm.password" type="password" required placeholder="Min. 8 karakter" minlength="8" maxlength="72" />
+            </div>
+            <p v-if="addError" class="modal-error">{{ addError }}</p>
+            <div class="modal-actions">
+              <button type="button" class="btn-cancel" @click="showAddModal = false" :disabled="isAdding">Batal</button>
+              <button type="submit" class="btn-submit" :disabled="isAdding">{{ isAdding ? 'Membuat…' : 'Buat Kontributor' }}</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </Teleport>
 
   </div>
 </template>
@@ -515,6 +582,139 @@ onMounted(fetchUsers)
 .pg-btn:hover:not(:disabled):not(.pg-btn--active) { border-color: var(--accent); color: var(--accent); }
 .pg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 .pg-btn--active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+/* ── Header actions ──────────────────────────────────────────────────────────── */
+.uv-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.btn-add {
+  padding: 0.55rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+.btn-add:hover { background: var(--accent-hover); }
+
+/* ── Filter badge & clear ────────────────────────────────────────────────────── */
+.filter-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 99px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.btn-clear {
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s;
+}
+.btn-clear:hover { background: var(--danger-bg); }
+
+/* ── Modal ──────────────────────────────────────────────────────────────────── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  animation: fade-up 0.15s ease both;
+}
+.modal-dialog {
+  background: var(--bg-surface);
+  border-radius: 14px;
+  width: 90%;
+  max-width: 420px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+.modal-header h3 { margin: 0; font-size: 0.95rem; font-weight: 700; color: var(--text-heading); }
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+}
+.modal-body { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.875rem; }
+.modal-body .field { display: flex; flex-direction: column; gap: 0.375rem; }
+.modal-body .field > label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+.modal-body .field input {
+  padding: 0.55rem 0.75rem;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  outline: none;
+  font-family: inherit;
+}
+.modal-body .field input:focus { border-color: var(--accent); }
+.modal-error {
+  margin: 0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+  font-size: 0.8rem;
+}
+.modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+.btn-cancel {
+  padding: 0.5rem 1rem;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.btn-submit {
+  padding: 0.5rem 1.25rem;
+  border-radius: 7px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-submit:hover { background: var(--accent-hover); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 
 /* ── Responsive ──────────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
