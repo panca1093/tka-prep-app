@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	pkgjwt "github.com/yourorg/tkaprep/apps/backend/internal/pkg/jwt"
 )
@@ -98,4 +100,11 @@ func writeJSON(w http.ResponseWriter, status int, v any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	_ = json.NewEncoder(w).Encode(v)
+}
+
+// UploadFile satisfies api.StrictServerInterface. The actual upload is handled
+// by the raw chi route registered in server.go, which takes precedence over
+// the strict handler mount, so this method is never invoked at runtime.
+func (s *APIServer) UploadFile(_ context.Context, _ api.UploadFileRequestObject) (api.UploadFileResponseObject, error) {
+	return api.UploadFile200JSONResponse{Url: ""}, nil
 }
