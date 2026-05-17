@@ -196,26 +196,26 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
               :key="r.id"
               :to="`/results/${r.id}`"
               class="ujian-card ujian-card--done"
-              :class="scoreClass(r.total_score)"
               :style="`--i: ${i}`"
             >
-              <div class="ujian-bar" :class="scoreClass(r.total_score)" />
+              <div class="ujian-bar ujian-bar--done" />
               <div class="ujian-content">
-                <h3 class="ujian-title">{{ r.test_title }}</h3>
-                <div class="ujian-score-section">
-                  <div class="ujian-score-row">
-                    <span class="ujian-score-label">Skor</span>
-                    <span class="ujian-score-val" :class="scoreClass(r.total_score)">
-                      {{ r.total_score.toFixed(1) }}
-                    </span>
-                  </div>
-                  <div class="ujian-progress-wrap">
-                    <div
-                      class="ujian-progress-bar"
-                      :class="scoreClass(r.total_score)"
-                      :style="`width: ${ready ? Math.min(Math.max(r.total_score, 0), 100) : 0}%`"
-                    />
-                  </div>
+                <div class="ujian-top">
+                  <h3 class="ujian-title">{{ r.test_title }}</h3>
+                  <span class="ujian-score-val" :class="scoreClass(r.total_score)">
+                    {{ r.total_score.toFixed(1) }}
+                  </span>
+                </div>
+                <div class="ujian-chips">
+                  <span class="chip chip--correct">✓ {{ r.correct_count }} benar</span>
+                  <span class="chip chip--wrong">✗ {{ r.wrong_count }} salah</span>
+                  <span class="chip chip--blank">— {{ r.blank_count }} kosong</span>
+                </div>
+                <div class="ujian-progress-wrap">
+                  <div
+                    class="ujian-progress-bar ujian-progress-bar--done"
+                    :style="`width: ${ready ? Math.round((r.correct_count + r.wrong_count) / Math.max(r.correct_count + r.wrong_count + r.blank_count, 1) * 100) : 0}%`"
+                  />
                 </div>
                 <div class="ujian-footer">
                   <span class="ujian-status ujian-status--done">
@@ -225,6 +225,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
                   <span class="ujian-time">{{ timeAgo(r.completed_at) }}</span>
                 </div>
               </div>
+              <div class="ujian-arrow" aria-hidden="true">›</div>
             </RouterLink>
           </div>
         </section>
@@ -566,9 +567,16 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
-.ujian-card:hover { transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,.07); }
+.ujian-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0,0,0,.09), 0 2px 8px rgba(0,0,0,.05);
+}
+.ujian-card--done:hover {
+  border-color: var(--success);
+  box-shadow: 0 8px 28px color-mix(in srgb, var(--success) 18%, transparent), 0 2px 8px rgba(0,0,0,.05);
+}
 .ujian-card:disabled { opacity: 0.7; cursor: wait; }
 
 /* colored left border strip */
@@ -576,9 +584,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   width: 4px;
   flex-shrink: 0;
 }
-.ujian-bar.good        { background: var(--success); }
-.ujian-bar.mid         { background: var(--warning); }
-.ujian-bar.low         { background: var(--danger); }
+.ujian-bar--done       { background: var(--success); }
 .ujian-bar--ongoing    { background: var(--warning); }
 
 .ujian-content {
@@ -606,26 +612,60 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   line-height: 1.3;
 }
 
-/* score section (completed only) */
-.ujian-score-section { display: flex; flex-direction: column; gap: 0.375rem; }
-.ujian-score-row {
+/* top row: title + score */
+.ujian-top {
   display: flex;
-  align-items: baseline;
+  align-items: flex-start;
   justify-content: space-between;
-}
-.ujian-score-label {
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  gap: 0.75rem;
 }
 .ujian-score-val {
   font-family: monospace;
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+  line-height: 1.3;
 }
 .ujian-score-val.good { color: var(--success); }
 .ujian-score-val.mid  { color: var(--warning); }
 .ujian-score-val.low  { color: var(--danger); }
+
+/* breakdown chips */
+.ujian-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.18rem 0.55rem;
+  border-radius: 99px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.chip--correct { background: color-mix(in srgb, var(--success) 12%, transparent); color: var(--success); }
+.chip--wrong   { background: color-mix(in srgb, var(--danger)  12%, transparent); color: var(--danger); }
+.chip--blank   { background: color-mix(in srgb, var(--text-muted) 10%, transparent); color: var(--text-muted); }
+
+/* slide-in arrow */
+.ujian-arrow {
+  display: flex;
+  align-items: center;
+  padding: 0 0.75rem 0 0;
+  font-size: 1.25rem;
+  color: var(--success);
+  opacity: 0;
+  transform: translateX(-6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+.ujian-card:hover .ujian-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
 
 .ujian-progress-wrap {
   height: 4px;
@@ -638,9 +678,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
   border-radius: 99px;
   transition: width 0.9s cubic-bezier(.25,.8,.25,1);
 }
-.ujian-progress-bar.good { background: var(--success); }
-.ujian-progress-bar.mid  { background: var(--warning); }
-.ujian-progress-bar.low  { background: var(--danger); }
+.ujian-progress-bar--done    { background: var(--success); }
 
 /* footer row */
 .ujian-footer {

@@ -2,7 +2,6 @@
 import { ref, computed, onMounted } from 'vue'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
-import ImageUpload from '@/components/ImageUpload.vue'
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 
@@ -370,8 +369,6 @@ const typeColor: Record<string, string> = {
               <RichTextEditor v-model="form.text" />
             </div>
 
-            <ImageUpload v-model="form.image_url" label="Gambar soal (opsional)" />
-
             <!-- MCQ / PGK options -->
             <div v-if="!isTrueFalse" class="field">
               <label class="field-label">
@@ -388,7 +385,6 @@ const typeColor: Record<string, string> = {
                     >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
                     <RichTextEditor v-model="opt.text" class="opt-text-input" />
                   </div>
-                  <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
                 </div>
                 <button type="button" class="add-option-btn" @click="addOption()">+ Tambah Pilihan</button>
               </div>
@@ -409,7 +405,6 @@ const typeColor: Record<string, string> = {
                     >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</button>
                     <button class="remove-btn" :disabled="form.statements.length <= 2" @click="removeStatement(i)">✕</button>
                   </div>
-                  <ImageUpload v-model="stmt.image_url" class="stmt-img-upload" />
                 </div>
               </div>
               <button class="btn-add-stmt" :disabled="form.statements.length >= 6" @click="addStatement">

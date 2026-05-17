@@ -196,7 +196,12 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 			}
 			var inProgress bool
 			_ = r.pool.QueryRow(ctx,
-				`SELECT EXISTS(SELECT 1 FROM test_sessions WHERE student_id = $1 AND test_id = $2 AND status = 'in_progress')`,
+				`SELECT EXISTS(
+					SELECT 1 FROM test_sessions ts
+					JOIN tests t ON t.id = ts.test_id
+					WHERE ts.student_id = $1 AND ts.test_id = $2 AND ts.status = 'in_progress'
+					  AND ts.started_at + (t.duration_minutes * INTERVAL '1 minute') > NOW()
+				)`,
 				*f.StudentID, t.ID,
 			).Scan(&inProgress)
 			if inProgress {
