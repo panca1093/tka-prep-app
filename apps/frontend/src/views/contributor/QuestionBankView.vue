@@ -307,125 +307,136 @@ const typeColor: Record<string, string> = {
       </div>
     </div>
 
-    <!-- Slide-in form -->
-    <div v-if="showForm" class="form-backdrop" @click.self="showForm = false">
-      <div class="form-panel">
-        <h2>{{ editTarget ? 'Edit Question' : 'New Question' }}</h2>
-
-        <!-- Question type -->
-        <div class="field">
-          <label>Question Type</label>
-          <div class="type-tabs">
-            <button
-              v-for="t in [{ v: 'mcq', label: 'Pilihan Ganda (PG)' }, { v: 'multi_correct', label: 'PGK' }, { v: 'true_false', label: 'Benar / Salah' }]"
-              :key="t.v"
-              class="type-tab"
-              :class="{ active: form.question_type === t.v }"
-              @click="form.question_type = t.v as QuestionType; onTypeChange()"
-            >{{ t.label }}</button>
+    <!-- Centered modal dialog -->
+    <Teleport to="body">
+      <div v-if="showForm" class="modal-backdrop" @click.self="showForm = false">
+        <div class="modal-dialog">
+          <!-- Header -->
+          <div class="modal-header">
+            <h2 class="modal-title">{{ editTarget ? 'Edit Question' : 'New Question' }}</h2>
+            <button class="modal-close" @click="showForm = false">×</button>
           </div>
-        </div>
 
-        <div class="field">
-          <label>Topic</label>
-          <select v-model="form.topic_id" class="filter-select">
-            <option value="">Select topic…</option>
-            <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
-          </select>
-        </div>
+          <!-- Scrollable body -->
+          <div class="modal-body">
 
-        <div class="field">
-          <label>Difficulty</label>
-          <select v-model="form.difficulty" class="filter-select">
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Education Level</label>
-          <select v-model="form.education_level" class="filter-select">
-            <option value="">All Levels</option>
-            <option value="sd">SD</option>
-            <option value="smp">SMP</option>
-            <option value="sma">SMA</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Question Text</label>
-          <RichTextEditor v-model="form.text" />
-        </div>
-
-        <ImageUpload v-model="form.image_url" label="Question image (optional)" />
-
-        <!-- MCQ options: single correct -->
-        <div v-if="!isTrueFalse" class="field">
-          <label>
-            Options
-            <span v-if="isMultiCorrect" class="hint-inline"> — mark all correct answers</span>
-            <span v-else class="hint-inline"> — click label to mark correct</span>
-          </label>
-          <div class="option-inputs">
-            <div v-for="(opt, i) in form.options" :key="opt.label" class="opt-input-row-wrap">
-              <div class="opt-input-row">
+            <!-- Question type pills -->
+            <div class="field">
+              <label class="field-label">Tipe Soal</label>
+              <div class="type-tabs">
                 <button
-                  class="correct-dot"
-                  :class="{ active: opt.is_correct, pgk: isMultiCorrect }"
-                  @click="isMultiCorrect ? toggleCorrectPGK(i) : setCorrectMCQ(i)"
-                >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
-                <RichTextEditor v-model="opt.text" class="opt-text-input" />
+                  v-for="t in [{ v: 'mcq', label: 'Pilihan Ganda' }, { v: 'multi_correct', label: 'PGK' }, { v: 'true_false', label: 'Benar / Salah' }]"
+                  :key="t.v"
+                  class="type-tab"
+                  :class="{ active: form.question_type === t.v }"
+                  @click="form.question_type = t.v as QuestionType; onTypeChange()"
+                >{{ t.label }}</button>
               </div>
-              <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
             </div>
-            <button
-              v-if="!isTrueFalse"
-              type="button"
-              class="add-option-btn"
-              @click="addOption()"
-            >+ Add option</button>
-          </div>
-        </div>
 
-        <!-- B/S statements -->
-        <div v-if="isTrueFalse" class="field">
-          <label>Pernyataan ({{ form.statements.length }}/6)</label>
-          <div class="stmt-inputs">
-            <div v-for="(stmt, i) in form.statements" :key="i" class="stmt-input-block">
-              <div class="stmt-input-row">
-                <span class="stmt-idx">{{ i + 1 }}</span>
-                <RichTextEditor v-model="stmt.text" class="opt-text-input" />
-                <button
-                  class="bs-toggle"
-                  :class="{ benar: stmt.is_correct, salah: !stmt.is_correct }"
-                  @click="toggleStatementCorrect(i)"
-                >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</button>
-                <button class="remove-btn" :disabled="form.statements.length <= 2" @click="removeStatement(i)">✕</button>
+            <div class="form-row">
+              <div class="field">
+                <label class="field-label">Topik</label>
+                <select v-model="form.topic_id" class="modal-select">
+                  <option value="">Pilih topik…</option>
+                  <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
+                </select>
               </div>
-              <ImageUpload v-model="stmt.image_url" class="stmt-img-upload" />
+
+              <div class="field">
+                <label class="field-label">Kesulitan</label>
+                <select v-model="form.difficulty" class="modal-select">
+                  <option value="easy">Mudah</option>
+                  <option value="medium">Sedang</option>
+                  <option value="hard">Sulit</option>
+                </select>
+              </div>
+
+              <div class="field">
+                <label class="field-label">Jenjang</label>
+                <select v-model="form.education_level" class="modal-select">
+                  <option value="">Semua</option>
+                  <option value="sd">SD</option>
+                  <option value="smp">SMP</option>
+                  <option value="sma">SMA</option>
+                </select>
+              </div>
             </div>
+
+            <div class="section-divider" />
+
+            <div class="field">
+              <label class="field-label">Teks Soal</label>
+              <RichTextEditor v-model="form.text" />
+            </div>
+
+            <ImageUpload v-model="form.image_url" label="Gambar soal (opsional)" />
+
+            <!-- MCQ / PGK options -->
+            <div v-if="!isTrueFalse" class="field">
+              <label class="field-label">
+                Pilihan Jawaban
+                <span class="hint-inline">{{ isMultiCorrect ? '— tandai semua yang benar' : '— klik label untuk menandai benar' }}</span>
+              </label>
+              <div class="option-inputs">
+                <div v-for="(opt, i) in form.options" :key="opt.label" class="opt-card">
+                  <div class="opt-input-row">
+                    <button
+                      class="correct-dot"
+                      :class="{ active: opt.is_correct, pgk: isMultiCorrect }"
+                      @click="isMultiCorrect ? toggleCorrectPGK(i) : setCorrectMCQ(i)"
+                    >{{ opt.is_correct && isMultiCorrect ? '✓' : opt.label }}</button>
+                    <RichTextEditor v-model="opt.text" class="opt-text-input" />
+                  </div>
+                  <ImageUpload v-model="opt.image_url" class="opt-img-upload" />
+                </div>
+                <button type="button" class="add-option-btn" @click="addOption()">+ Tambah Pilihan</button>
+              </div>
+            </div>
+
+            <!-- B/S statements -->
+            <div v-if="isTrueFalse" class="field">
+              <label class="field-label">Pernyataan ({{ form.statements.length }}/6)</label>
+              <div class="stmt-inputs">
+                <div v-for="(stmt, i) in form.statements" :key="i" class="stmt-card">
+                  <div class="stmt-input-row">
+                    <span class="stmt-idx">{{ i + 1 }}</span>
+                    <RichTextEditor v-model="stmt.text" class="opt-text-input" />
+                    <button
+                      class="bs-toggle"
+                      :class="{ benar: stmt.is_correct, salah: !stmt.is_correct }"
+                      @click="toggleStatementCorrect(i)"
+                    >{{ stmt.is_correct ? 'Benar' : 'Salah' }}</button>
+                    <button class="remove-btn" :disabled="form.statements.length <= 2" @click="removeStatement(i)">✕</button>
+                  </div>
+                  <ImageUpload v-model="stmt.image_url" class="stmt-img-upload" />
+                </div>
+              </div>
+              <button class="btn-add-stmt" :disabled="form.statements.length >= 6" @click="addStatement">
+                + Tambah Pernyataan
+              </button>
+            </div>
+
+            <div class="section-divider" />
+
+            <div class="field">
+              <label class="field-label">Penjelasan (opsional)</label>
+              <RichTextEditor v-model="form.explanation" />
+            </div>
+
+            <p v-if="formError" class="error-msg">{{ formError }}</p>
           </div>
-          <button class="btn-add-stmt" :disabled="form.statements.length >= 6" @click="addStatement">
-            + Tambah Pernyataan
-          </button>
-        </div>
 
-        <div class="field">
-          <label>Explanation (optional)</label>
-          <RichTextEditor v-model="form.explanation" />
-        </div>
-
-        <p v-if="formError" class="error-msg">{{ formError }}</p>
-
-        <div class="form-actions">
-          <button class="btn-cancel" @click="showForm = false">Cancel</button>
-          <button class="btn-primary" :disabled="isSaving" @click="saveQuestion">
-            {{ isSaving ? 'Saving…' : 'Save Question' }}
-          </button>
+          <!-- Footer -->
+          <div class="modal-footer">
+            <button class="btn-cancel" @click="showForm = false">Batal</button>
+            <button class="btn-primary" :disabled="isSaving" @click="saveQuestion">
+              {{ isSaving ? 'Menyimpan…' : 'Simpan Soal' }}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
   </div>
 </template>
 
@@ -482,17 +493,70 @@ const typeColor: Record<string, string> = {
 .btn-primary:hover { background: var(--accent-hover); }
 .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* Form panel */
-.form-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 50; }
-.form-panel {
-  position: fixed; right: 0; top: 0; bottom: 0; width: 500px; max-width: 100vw;
-  background: var(--bg-surface); border-left: 1px solid var(--border);
-  padding: 2rem; overflow-y: auto;
-  display: flex; flex-direction: column; gap: 1rem;
+/* Modal */
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
 }
-.form-panel h2 { margin: 0; font-size: 1.1rem; }
+
+.modal-backdrop {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+
+.modal-dialog {
+  width: 100%; max-width: 680px; max-height: 88vh;
+  background: var(--bg-surface);
+  border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.4), 0 4px 16px rgba(0,0,0,0.2);
+  display: flex; flex-direction: column;
+  animation: modal-in 0.25s cubic-bezier(0.22, 1, 0.36, 1) both;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.modal-title { margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--text-heading); }
+
+.modal-close {
+  width: 2rem; height: 2rem; border-radius: 8px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--text-muted); font-size: 1.2rem; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+}
+.modal-close:hover { border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+
+.modal-body {
+  flex: 1; overflow-y: auto; padding: 1.5rem;
+  display: flex; flex-direction: column; gap: 1.25rem;
+}
+
+.modal-footer {
+  display: flex; gap: 0.75rem; justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.section-divider {
+  height: 1px; background: var(--border);
+  margin: 0.25rem 0;
+}
+
+.form-row { display: flex; gap: 0.75rem; }
+.form-row .field { flex: 1; }
+
 .field { display: flex; flex-direction: column; gap: 0.375rem; }
-.field label { font-size: 0.78rem; font-weight: 600; color: var(--text-muted); }
+.field-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
 .hint-inline { font-size: 0.72rem; font-weight: 400; color: var(--text-muted); margin-left: 0.25rem; }
 .text-area {
   padding: 0.65rem 0.875rem; border-radius: 8px; border: 1px solid var(--border);
@@ -501,20 +565,36 @@ const typeColor: Record<string, string> = {
 }
 .text-area:focus { border-color: var(--accent); }
 
-/* Type tabs */
-.type-tabs { display: flex; gap: 0.375rem; }
-.type-tab {
-  flex: 1; padding: 0.5rem 0.25rem; border-radius: 8px;
-  border: 1px solid var(--border); background: var(--bg-input);
-  color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer;
-  transition: all 0.15s; text-align: center;
+/* Type tabs — pill style */
+.type-tabs {
+  display: flex; gap: 0; background: var(--bg-input);
+  border: 1px solid var(--border); border-radius: 10px; padding: 3px;
 }
-.type-tab.active { border-color: var(--accent); background: rgba(79,142,247,0.12); color: var(--accent); }
+.type-tab {
+  flex: 1; padding: 0.45rem 0.5rem; border-radius: 8px;
+  border: none; background: transparent;
+  color: var(--text-muted); font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  transition: all 0.18s; text-align: center;
+}
+.type-tab.active {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 1px 4px rgba(79,142,247,0.35);
+}
+.type-tab:not(.active):hover { color: var(--text-primary); }
+
+/* Modal select */
+.modal-select {
+  width: 100%; padding: 0.55rem 0.75rem; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary);
+  font-size: 0.875rem; cursor: pointer; outline: none; transition: border-color 0.15s;
+}
+.modal-select:focus { border-color: var(--accent); }
 
 /* Options */
-.option-inputs { display: flex; flex-direction: column; gap: 0.625rem; }
-.opt-input-row-wrap { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-input); }
-.opt-input-row { display: flex; align-items: center; gap: 0.5rem; }
+.option-inputs { display: flex; flex-direction: column; gap: 0.5rem; }
+.opt-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.625rem 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input); transition: border-color 0.15s; }
+.opt-card:focus-within { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+.opt-input-row { display: flex; align-items: center; gap: 0.625rem; }
 .opt-img-upload { margin-left: 2.5rem; }
 .correct-dot {
   width: 2rem; height: 2rem; border-radius: 50%; border: 2px solid var(--border);
@@ -532,8 +612,8 @@ const typeColor: Record<string, string> = {
 .opt-text-input:focus { border-color: var(--accent); }
 
 /* Statements */
-.stmt-inputs { display: flex; flex-direction: column; gap: 0.625rem; margin-bottom: 0.5rem; }
-.stmt-input-block { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.5rem; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-input); }
+.stmt-inputs { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 0.5rem; }
+.stmt-card { display: flex; flex-direction: column; gap: 0.25rem; padding: 0.625rem 0.75rem; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input); }
 .stmt-input-row { display: flex; align-items: center; gap: 0.5rem; }
 .stmt-img-upload { margin-left: 2rem; }
 .stmt-idx {
@@ -561,15 +641,22 @@ const typeColor: Record<string, string> = {
 .btn-add-stmt:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 .btn-add-stmt:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.form-actions { display: flex; gap: 0.75rem; margin-top: auto; padding-top: 1rem; }
 .btn-cancel {
-  flex: 1; padding: 0.65rem; border-radius: 8px; border: 1px solid var(--border);
+  padding: 0.55rem 1.25rem; border-radius: 8px; border: 1px solid var(--border);
   background: transparent; color: var(--text-muted); cursor: pointer; font-size: 0.875rem;
-  transition: all 0.15s;
+  font-weight: 600; transition: all 0.15s;
 }
 .btn-cancel:hover { border-color: var(--danger); color: var(--danger); }
-</style>
-@media (max-width: 768px) { .modal { width: 100%; max-width: 100%; } .form-row { flex-direction: column; } }
 
-.add-option-btn { margin-top: 0.25rem; padding: 0.5rem; border-radius: 8px; border: 1px dashed var(--border); background: transparent; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; width: 100%; transition: all 0.15s; }
+.add-option-btn {
+  margin-top: 0.25rem; padding: 0.5rem; border-radius: 8px;
+  border: 1px dashed var(--border); background: transparent;
+  color: var(--text-muted); font-size: 0.8rem; cursor: pointer; width: 100%; transition: all 0.15s;
+}
 .add-option-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+@media (max-width: 640px) {
+  .modal-dialog { max-height: 95vh; border-radius: 12px; }
+  .form-row { flex-direction: column; }
+}
+</style>

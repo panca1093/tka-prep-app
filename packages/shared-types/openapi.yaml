@@ -32,6 +32,49 @@ tags:
     description: Super admin operations
 
 paths:
+  /upload:
+    post:
+      tags: [System]
+      summary: Upload a file (image)
+      operationId: uploadFile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Upload successful
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [url]
+                properties:
+                  url:
+                    type: string
+                    example: "/uploads/3fa85f64.jpg"
+        '400':
+          description: Invalid file
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /health:
     get:
       tags: [System]
@@ -1942,9 +1985,11 @@ components:
         phone:
           type: string
           nullable: true
+          description: 10-15 digit phone number
         avatar_url:
           type: string
           nullable: true
+          description: URL from POST /upload
 
     UserResponse:
       type: object
@@ -2855,16 +2900,6 @@ components:
         education_level:
           type: string
           enum: [sd, smp, sma, smk]
-          nullable: true
-        gender:
-          type: string
-          enum: [male, female, other]
-          nullable: true
-        phone:
-          type: string
-          nullable: true
-        avatar_url:
-          type: string
           nullable: true
         created_at:
           type: string

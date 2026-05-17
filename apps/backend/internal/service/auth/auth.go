@@ -188,11 +188,12 @@ func (s *Service) UpdateProfile(ctx context.Context, userID uuid.UUID, in Update
 		return nil, fmt.Errorf("find user for profile update: %w", err)
 	}
 
+	// Education level only applies to students.
 	if user.Role != domain.RoleStudent && in.EducationLevel != nil {
 		return nil, fmt.Errorf("%w: education_level is only applicable for student role", apierr.ErrValidation)
 	}
 
-	// Validate gender
+	// Validate gender if provided
 	if in.Gender != nil {
 		switch *in.Gender {
 		case domain.GenderMale, domain.GenderFemale, domain.GenderOther:
@@ -201,7 +202,7 @@ func (s *Service) UpdateProfile(ctx context.Context, userID uuid.UUID, in Update
 		}
 	}
 
-	// Strip non-digits from phone
+	// Strip non-digits from phone and validate length
 	var cleanPhone *string
 	if in.Phone != nil && *in.Phone != "" {
 		digits := strings.Map(func(r rune) rune {
