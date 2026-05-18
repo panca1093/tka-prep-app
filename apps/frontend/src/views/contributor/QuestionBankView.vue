@@ -26,15 +26,89 @@ const typeFilter = ref('')
 const eduLevelFilter = ref('')
 
 const activeFilterCount = computed(() =>
-  [topicFilter.value, difficultyFilter.value, typeFilter.value, eduLevelFilter.value].filter(Boolean).length
+  [difficultyFilter.value, typeFilter.value, eduLevelFilter.value].filter(Boolean).length
 )
 
 function clearFilters() {
-  topicFilter.value = ''
   difficultyFilter.value = ''
   typeFilter.value = ''
   eduLevelFilter.value = ''
   fetchQuestions()
+}
+
+function selectTopic(topicId: string) {
+  if (topicFilter.value === topicId) {
+    topicFilter.value = '' // deselect
+  } else {
+    topicFilter.value = topicId
+  }
+  fetchQuestions()
+}
+
+// Topic management
+const showTopicCreate = ref(false)
+const newTopicName = ref('')
+const newTopicSaving = ref(false)
+const newTopicError = ref('')
+const editingTopicId = ref('')
+const editingTopicName = ref('')
+const topicEditError = ref('')
+const topicEditSaving = ref(false)
+
+// Delete confirmation modal
+const deleteModal = ref<{ id: string; name: string; questionCount: number } | null>(null)
+
+async function createTopic() {
+  const name = newTopicName.value.trim()
+  if (!name) return
+  newTopicSaving.value = true; newTopicError.value = ''
+  const { error } = await client.POST('/topics', { body: { name } })
+  if (error) { newTopicError.value = 'Nama sudah ada atau tidak valid.'; newTopicSaving.value = false; return }
+  newTopicSaving.value = false; showTopicCreate.value = false; newTopicName.value = ''
+  await fetchTopics()
+}
+
+function startEditTopic(t: Topic) {
+  editingTopicId.value = t.id
+  editingTopicName.value = t.name
+  topicEditError.value = ''
+}
+
+function cancelEditTopic() {
+  editingTopicId.value = ''
+  editingTopicName.value = ''
+  topicEditError.value = ''
+}
+
+async function saveEditTopic(id: string) {
+  const name = editingTopicName.value.trim()
+  if (!name) return
+  topicEditSaving.value = true; topicEditError.value = ''
+  const { error } = await client.PATCH('/topics/{topicId}', { params: { path: { topicId: id } }, body: { name } })
+  if (error) { topicEditError.value = 'Gagal atau nama sudah ada.'; topicEditSaving.value = false; return }
+  topicEditSaving.value = false; cancelEditTopic()
+  await fetchTopics()
+}
+
+function openDeleteModal(t: Topic) {
+  // Count questions for this topic
+  const count = questions.value.filter(q => q.topic_id === t.id).length
+  deleteModal.value = { id: t.id, name: t.name, questionCount: count }
+}
+
+async function confirmDeleteTopic() {
+  if (!deleteModal.value) return
+  const { error } = await client.DELETE('/topics/{topicId}', { params: { path: { topicId: deleteModal.value.id } } })
+  if (error) { deleteModal.value = null; return }
+  if (topicFilter.value === deleteModal.value.id) topicFilter.value = ''
+  deleteModal.value = null
+  await fetchTopics()
+  await fetchQuestions()
+}
+
+function getTopicDotColor(index: number): string {
+  const colors = ['#6c5ce7','#00d2a0','#ff9f43','#ff5252','#54a0ff','#a29bfe','#2ed573','#ffa502','#e056a0','#48dbfb','#feca57','#ff6b6b','#1dd1a1','#c8d6e5']
+  return colors[index % colors.length]
 }
 
 // Form state
@@ -91,9 +165,13 @@ async function fetchQuestions() {
   isLoading.value = false
 }
 
-onMounted(async () => {
+async function fetchTopics() {
   const { data } = await client.GET('/topics')
   if (data) topics.value = data.data
+}
+
+onMounted(async () => {
+  await fetchTopics()
   await fetchQuestions()
 })
 
@@ -248,100 +326,224 @@ const typeColor: Record<string, string> = {
 </script>
 
 <template>
-  <div>
+  <div class="qb-page">
     <div class="page-header">
       <h1 class="page-title">Bank Soal</h1>
       <button class="btn-primary" @click="openCreate">+ Tambah Soal</button>
     </div>
 
-    <div class="filter-toolbar">
-      <div class="search-wrap">
-        <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
-          <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
-        </svg>
-        <input v-model="searchText" class="search-input" placeholder="Cari soal…" @input="fetchQuestions" />
-      </div>
-      <select v-model="topicFilter" class="filter-select" :class="{ 'has-value': topicFilter }" @change="fetchQuestions">
-        <option value="">Semua Topik</option>
-        <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
-      </select>
-      <select v-model="difficultyFilter" class="filter-select" :class="{ 'has-value': difficultyFilter }" @change="fetchQuestions">
-        <option value="">Semua Kesulitan</option>
-        <option value="easy">Mudah</option>
-        <option value="medium">Sedang</option>
-        <option value="hard">Sulit</option>
-      </select>
-      <select v-model="typeFilter" class="filter-select" :class="{ 'has-value': typeFilter }" @change="fetchQuestions">
-        <option value="">Semua Tipe</option>
-        <option value="mcq">PG</option>
-        <option value="multi_correct">PGK</option>
-        <option value="true_false">B/S</option>
-      </select>
-      <select v-model="eduLevelFilter" class="filter-select" :class="{ 'has-value': eduLevelFilter }" @change="fetchQuestions">
-        <option value="">Semua Jenjang</option>
-        <option value="sd">SD</option>
-        <option value="smp">SMP</option>
-        <option value="sma">SMA</option>
-      </select>
-    </div>
+    <div class="qb-layout">
+      <!-- ═══════════════ TOPIC SIDEBAR ═══════════════ -->
+      <aside class="qb-sidebar">
+        <div class="sb-head">
+          <span class="sb-title">Topik <span class="sb-count">{{ topics.length }}</span></span>
+          <button class="sb-add-btn" @click="showTopicCreate = !showTopicCreate" :title="showTopicCreate ? 'Batal' : 'Tambah Topik'">
+            {{ showTopicCreate ? '×' : '+' }}
+          </button>
+        </div>
 
-    <div v-if="activeFilterCount > 0" class="filter-summary">
-      <span v-if="topicFilter" class="f-chip">
-        {{ topics.find(t => t.id === topicFilter)?.name }}
-        <button @click="topicFilter = ''; fetchQuestions()">✕</button>
-      </span>
-      <span v-if="difficultyFilter" class="f-chip">
-        {{ ({ easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' } as Record<string,string>)[difficultyFilter] }}
-        <button @click="difficultyFilter = ''; fetchQuestions()">✕</button>
-      </span>
-      <span v-if="typeFilter" class="f-chip">
-        {{ ({ mcq: 'PG', multi_correct: 'PGK', true_false: 'B/S' } as Record<string,string>)[typeFilter] }}
-        <button @click="typeFilter = ''; fetchQuestions()">✕</button>
-      </span>
-      <span v-if="eduLevelFilter" class="f-chip">
-        {{ (eduLevelFilter as string).toUpperCase() }}
-        <button @click="eduLevelFilter = ''; fetchQuestions()">✕</button>
-      </span>
-      <button class="clear-all-btn" @click="clearFilters">Hapus semua</button>
-    </div>
-
-    <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
-
-    <div v-if="isLoading" class="loading">Loading…</div>
-
-    <div v-else-if="questions.length === 0" class="empty-state">Belum ada soal. Tambahkan soal pertama Anda!</div>
-
-    <div v-else class="question-list">
-      <div v-for="q in questions" :key="q.id" class="question-card">
-        <div class="q-header">
-          <span
-            class="q-type-badge"
-            :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] + '44', background: typeColor[q.question_type] + '18' }"
-          >{{ typeLabel[q.question_type] ?? q.question_type }}</span>
-          <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
-          <span v-if="(q as any).education_level" class="q-edu-badge">{{ ((q as any).education_level as string).toUpperCase() }}</span>
-          <span class="q-topic">{{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}</span>
-          <div class="q-actions">
-            <button class="icon-btn" @click="openEdit(q)">✏️</button>
-            <button class="icon-btn" @click="deleteQuestion(q.id)">🗑</button>
+        <!-- inline create -->
+        <div v-if="showTopicCreate" class="sb-create">
+          <input
+            v-model="newTopicName"
+            type="text"
+            class="sb-create-input"
+            placeholder="Nama topik baru…"
+            maxlength="100"
+            @keyup.enter="createTopic"
+          />
+          <p v-if="newTopicError" class="sb-err">{{ newTopicError }}</p>
+          <div class="sb-create-actions">
+            <button class="sb-create-cancel" @click="showTopicCreate = false; newTopicError = ''">Batal</button>
+            <button class="sb-create-save" :disabled="newTopicSaving || !newTopicName.trim()" @click="createTopic">
+              {{ newTopicSaving ? '...' : 'Simpan' }}
+            </button>
           </div>
         </div>
-        <div class="q-text"><RichTextViewer :html="q.text" /></div>
-        <!-- Options summary for MCQ / PGK -->
-        <div v-if="q.question_type !== 'true_false'" class="q-options">
-          <span
-            v-for="o in q.options"
-            :key="o.id"
-            class="q-opt"
-            :class="{ correct: o.is_correct }"
-          >{{ o.label }}</span>
+
+        <!-- topic list -->
+        <div class="sb-list">
+          <button
+            class="sb-item sb-item--all"
+            :class="{ 'sb-item--active': !topicFilter }"
+            @click="topicFilter = ''; fetchQuestions()"
+          >
+            <span class="sb-item-name">Semua Topik</span>
+            <span class="sb-item-num">{{ questions.length }}</span>
+          </button>
+
+          <template v-for="(t, i) in topics" :key="t.id">
+            <!-- editing row -->
+            <div v-if="editingTopicId === t.id" class="sb-edit-row">
+              <input
+                v-model="editingTopicName"
+                type="text"
+                class="sb-edit-input"
+                maxlength="100"
+                @keyup.enter="saveEditTopic(t.id)"
+                @keyup.escape="cancelEditTopic"
+              />
+              <p v-if="topicEditError" class="sb-err">{{ topicEditError }}</p>
+              <div class="sb-edit-actions">
+                <button class="sb-edit-cancel" @click="cancelEditTopic">Batal</button>
+                <button class="sb-edit-save" :disabled="topicEditSaving" @click="saveEditTopic(t.id)">Simpan</button>
+              </div>
+            </div>
+
+            <!-- normal row -->
+            <button
+              v-else
+              class="sb-item"
+              :class="{ 'sb-item--active': topicFilter === t.id }"
+              @click="selectTopic(t.id)"
+            >
+              <span class="sb-dot" :style="{ background: getTopicDotColor(i) }" />
+              <span class="sb-item-name">{{ t.name }}</span>
+              <span class="sb-item-actions">
+                <button class="sb-act-btn" title="Edit" @click.stop="startEditTopic(t)">✎</button>
+                <button class="sb-act-btn sb-act-btn--del" title="Hapus" @click.stop="openDeleteModal(t)">×</button>
+              </span>
+            </button>
+          </template>
         </div>
-        <!-- Statement count for B/S -->
-        <div v-else class="q-stmt-count">
-          {{ q.statements.length }} pernyataan
+      </aside>
+
+      <!-- ═══════════════ MAIN: Question List ═══════════════ -->
+      <main class="qb-main">
+        <!-- Filter toolbar — no topic dropdown -->
+        <div class="filter-toolbar">
+          <div class="search-wrap">
+            <svg class="search-icon" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"/>
+            </svg>
+            <input v-model="searchText" class="search-input" placeholder="Cari soal…" @input="fetchQuestions" />
+          </div>
+          <select v-model="difficultyFilter" class="filter-select" :class="{ 'has-value': difficultyFilter }" @change="fetchQuestions">
+            <option value="">Semua Kesulitan</option>
+            <option value="easy">Mudah</option>
+            <option value="medium">Sedang</option>
+            <option value="hard">Sulit</option>
+          </select>
+          <select v-model="typeFilter" class="filter-select" :class="{ 'has-value': typeFilter }" @change="fetchQuestions">
+            <option value="">Semua Tipe</option>
+            <option value="mcq">PG</option>
+            <option value="multi_correct">PGK</option>
+            <option value="true_false">B/S</option>
+          </select>
+          <select v-model="eduLevelFilter" class="filter-select" :class="{ 'has-value': eduLevelFilter }" @change="fetchQuestions">
+            <option value="">Semua Jenjang</option>
+            <option value="sd">SD</option>
+            <option value="smp">SMP</option>
+            <option value="sma">SMA</option>
+          </select>
+        </div>
+
+        <!-- Filter summary + active topic indicator -->
+        <div v-if="activeFilterCount > 0 || topicFilter" class="filter-summary">
+          <span v-if="topicFilter" class="f-chip f-chip--topic">
+            <span class="f-chip-dot" :style="{ background: getTopicDotColor(topics.findIndex(t => t.id === topicFilter)) }" />
+            {{ topics.find(t => t.id === topicFilter)?.name }}
+            <button @click="topicFilter = ''; fetchQuestions()">✕</button>
+          </span>
+          <span v-if="difficultyFilter" class="f-chip">
+            {{ ({ easy: 'Mudah', medium: 'Sedang', hard: 'Sulit' } as Record<string,string>)[difficultyFilter] }}
+            <button @click="difficultyFilter = ''; fetchQuestions()">✕</button>
+          </span>
+          <span v-if="typeFilter" class="f-chip">
+            {{ ({ mcq: 'PG', multi_correct: 'PGK', true_false: 'B/S' } as Record<string,string>)[typeFilter] }}
+            <button @click="typeFilter = ''; fetchQuestions()">✕</button>
+          </span>
+          <span v-if="eduLevelFilter" class="f-chip">
+            {{ (eduLevelFilter as string).toUpperCase() }}
+            <button @click="eduLevelFilter = ''; fetchQuestions()">✕</button>
+          </span>
+          <button class="clear-all-btn" @click="clearFilters(); topicFilter = ''; fetchQuestions()">Hapus semua</button>
+        </div>
+
+        <p v-if="deleteError" class="error-msg">{{ deleteError }}</p>
+
+        <div v-if="isLoading" class="loading">Loading…</div>
+
+        <div v-else-if="questions.length === 0" class="empty-state">Belum ada soal. Tambahkan soal pertama Anda!</div>
+
+        <div v-else class="question-list">
+          <div v-for="q in questions" :key="q.id" class="question-card">
+            <div class="q-header">
+              <span
+                class="q-type-badge"
+                :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] + '44', background: typeColor[q.question_type] + '18' }"
+              >{{ typeLabel[q.question_type] ?? q.question_type }}</span>
+              <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
+              <span v-if="(q as any).education_level" class="q-edu-badge">{{ ((q as any).education_level as string).toUpperCase() }}</span>
+              <span class="q-topic">
+                <span class="q-topic-dot" :style="{ background: getTopicDotColor(topics.findIndex(t => t.id === q.topic_id)) }" />
+                {{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}
+              </span>
+              <div class="q-actions">
+                <button class="icon-btn" @click="openEdit(q)">✏️</button>
+                <button class="icon-btn" @click="deleteQuestion(q.id)">🗑</button>
+              </div>
+            </div>
+            <div class="q-text"><RichTextViewer :html="q.text" /></div>
+            <div v-if="q.question_type !== 'true_false'" class="q-options">
+              <span v-for="o in q.options" :key="o.id" class="q-opt" :class="{ correct: o.is_correct }">{{ o.label }}</span>
+            </div>
+            <div v-else class="q-stmt-count">{{ q.statements.length }} pernyataan</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- Delete topic confirmation modal -->
+    <Teleport to="body">
+      <div v-if="deleteModal" class="modal-backdrop" @click.self="deleteModal = null">
+        <div class="modal-dialog" style="max-width: 420px;">
+          <div class="modal-header">
+            <h2 class="modal-title">Hapus Topik</h2>
+            <button class="modal-close" @click="deleteModal = null">×</button>
+          </div>
+          <div class="modal-body" style="text-align: center; gap: 0.75rem;">
+            <!-- Blocked: topic has questions -->
+            <template v-if="deleteModal.questionCount > 0">
+              <div class="del-icon del-icon--warn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+              </div>
+              <h3 style="margin:0;font-size:0.95rem;">Tidak Dapat Menghapus</h3>
+              <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">
+                Topik <strong>{{ deleteModal.name }}</strong> sedang digunakan oleh soal.
+              </p>
+              <div class="del-count-box">
+                <span class="del-count-num">{{ deleteModal.questionCount }}</span>
+                <span class="del-count-lbl">soal menggunakan topik ini</span>
+              </div>
+              <p style="margin:0;font-size:0.7rem;color:var(--text-muted);">
+                Hapus atau pindahkan soal terlebih dahulu.
+              </p>
+              <button class="btn-primary" style="width:100%;" @click="deleteModal = null">Mengerti</button>
+            </template>
+            <!-- Can delete: no questions -->
+            <template v-else>
+              <div class="del-icon del-icon--danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+                  <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
+                </svg>
+              </div>
+              <h3 style="margin:0;font-size:0.95rem;">Hapus Topik</h3>
+              <p style="margin:0;font-size:0.78rem;color:var(--text-muted);">
+                Anda akan menghapus topik <strong>{{ deleteModal.name }}</strong>.
+              </p>
+              <div class="del-safe-badge">Aman untuk dihapus — tidak ada soal terkait</div>
+            </template>
+          </div>
+          <div v-if="deleteModal.questionCount === 0" class="modal-footer">
+            <button class="btn-cancel" @click="deleteModal = null">Batal</button>
+            <button class="btn-primary" style="background: var(--danger);" @click="confirmDeleteTopic">Ya, Hapus</button>
+          </div>
         </div>
       </div>
-    </div>
+    </Teleport>
 
     <!-- Centered modal dialog -->
     <Teleport to="body">
@@ -477,6 +679,83 @@ const typeColor: Record<string, string> = {
 .page-title { margin: 0; font-size: 1.5rem; font-weight: 800; }
 .loading { color: var(--text-muted); }
 
+/* ── Two-column layout ── */
+.qb-page { display: flex; flex-direction: column; gap: 1.25rem; }
+.qb-layout { display: flex; gap: 1.25rem; align-items: flex-start; }
+
+/* ── Sidebar ── */
+.qb-sidebar {
+  width: 220px; flex-shrink: 0;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; position: sticky; top: 5rem;
+}
+.sb-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.65rem 0.875rem; border-bottom: 1px solid var(--border);
+}
+.sb-title { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); display: flex; align-items: center; gap: 0.35rem; }
+.sb-count { font-size: 0.55rem; color: var(--text-muted); background: var(--bg-input); padding: 0.08rem 0.3rem; border-radius: 99px; }
+.sb-add-btn {
+  width: 22px; height: 22px; border-radius: 5px; border: 1px solid var(--border);
+  background: transparent; color: var(--text-muted); font-size: 0.9rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center; line-height: 1; transition: all 0.15s;
+}
+.sb-add-btn:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+/* inline create */
+.sb-create { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; gap: 0.3rem; background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.sb-create-input { padding: 0.32rem 0.45rem; border-radius: 5px; border: 1px solid var(--accent); background: var(--bg-input); color: var(--text-primary); font-size: 0.72rem; outline: none; font-family: inherit; }
+.sb-create-actions { display: flex; gap: 0.3rem; justify-content: flex-end; }
+.sb-create-save, .sb-create-cancel {
+  padding: 0.22rem 0.5rem; border-radius: 4px; border: none; font-size: 0.65rem; font-weight: 700; cursor: pointer; font-family: inherit;
+}
+.sb-create-save { background: var(--accent); color: #fff; }
+.sb-create-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.sb-create-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+.sb-err { margin: 0; font-size: 0.62rem; color: var(--danger); }
+
+/* topic list */
+.sb-list { display: flex; flex-direction: column; }
+.sb-item {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.45rem 0.875rem; border: none; border-bottom: 1px solid var(--bg-input);
+  background: transparent; cursor: pointer; font-size: 0.75rem; color: var(--text-primary);
+  transition: background 0.1s; width: 100%; text-align: left; font-family: inherit;
+  position: relative;
+}
+.sb-item:last-child { border-bottom: none; }
+.sb-item:hover { background: color-mix(in srgb, var(--accent) 3%, transparent); }
+.sb-item--active { background: color-mix(in srgb, var(--accent) 8%, transparent); font-weight: 600; border-right: 2px solid var(--accent); }
+.sb-item--all { border-bottom: 1px solid var(--border); font-weight: 600; }
+.sb-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.sb-item-name { flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sb-item-num {
+  font-size: 0.58rem; font-weight: 700; color: var(--text-muted);
+  background: var(--bg-input); padding: 0.06rem 0.3rem; border-radius: 99px;
+}
+.sb-item .sb-item-actions { display: none; gap: 0.1rem; position: absolute; right: 0.35rem; background: var(--bg-surface); padding: 0.05rem 0.2rem; border-radius: 4px; }
+.sb-item:hover .sb-item-actions { display: flex; }
+.sb-item:hover .sb-item-num { visibility: hidden; }
+.sb-act-btn {
+  width: 20px; height: 20px; border-radius: 3px; border: none;
+  background: transparent; color: var(--text-muted); cursor: pointer;
+  font-size: 0.65rem; display: flex; align-items: center; justify-content: center; font-family: inherit;
+}
+.sb-act-btn:hover { background: var(--bg-input); color: var(--accent); }
+.sb-act-btn--del:hover { color: var(--danger); }
+
+/* edit inline in sidebar */
+.sb-edit-row { padding: 0.3rem 0.75rem; border-bottom: 1px solid var(--bg-input); background: color-mix(in srgb, var(--accent) 6%, transparent); display: flex; flex-direction: column; gap: 0.25rem; }
+.sb-edit-input { padding: 0.28rem 0.4rem; border-radius: 4px; border: 1px solid var(--accent); background: var(--bg-input); color: var(--text-primary); font-size: 0.7rem; outline: none; font-family: inherit; }
+.sb-edit-actions { display: flex; gap: 0.2rem; justify-content: flex-end; }
+.sb-edit-save, .sb-edit-cancel { padding: 0.18rem 0.4rem; border-radius: 3px; border: none; font-size: 0.62rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+.sb-edit-save { background: var(--accent); color: #fff; }
+.sb-edit-save:disabled { opacity: 0.5; }
+.sb-edit-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+
+/* ── Main content area ── */
+.qb-main { flex: 1; min-width: 0; }
+
 /* ── Filter toolbar ─────────────────────────────────────────────── */
 .filter-toolbar { display: flex; gap: 0.625rem; align-items: center; margin-bottom: 0.875rem; flex-wrap: wrap; }
 .search-wrap { flex: 1; min-width: 180px; position: relative; }
@@ -510,7 +789,10 @@ const typeColor: Record<string, string> = {
   border-radius: 3px; background: color-mix(in srgb, var(--accent) 15%, transparent);
   color: var(--accent); letter-spacing: 0.03em;
 }
-.q-topic { font-size: 0.75rem; color: var(--text-muted); }
+.q-topic { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem; }
+.q-topic-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.f-chip--topic { gap: 0.35rem; }
+.f-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .q-actions { margin-left: auto; }
 .icon-btn { background: transparent; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); padding: 0.2rem; }
 .icon-btn:hover { color: var(--danger); }
@@ -682,6 +964,30 @@ const typeColor: Record<string, string> = {
 }
 .add-option-btn:hover { border-color: var(--accent); color: var(--accent); }
 
+/* ── Delete confirmation modal ── */
+.del-icon {
+  width: 44px; height: 44px; border-radius: 50%; margin: 0 auto;
+  display: flex; align-items: center; justify-content: center;
+}
+.del-icon--warn { background: rgba(245,166,35,0.12); color: var(--warning); }
+.del-icon--danger { background: rgba(255,82,82,0.1); color: var(--danger); }
+.del-count-box {
+  padding: 0.5rem; background: rgba(245,166,35,0.06);
+  border: 1px solid rgba(245,166,35,0.15); border-radius: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+}
+.del-count-num { font-size: 1.5rem; font-weight: 800; color: var(--warning); line-height: 1; }
+.del-count-lbl { font-size: 0.65rem; color: var(--text-muted); }
+.del-safe-badge {
+  text-align: center; padding: 0.35rem 0.5rem; border-radius: 6px;
+  font-size: 0.7rem; color: var(--success); background: rgba(0,210,160,0.06);
+  border: 1px solid rgba(0,210,160,0.12);
+}
+
+@media (max-width: 800px) {
+  .qb-layout { flex-direction: column; }
+  .qb-sidebar { width: 100%; position: static; max-height: 260px; overflow-y: auto; }
+}
 @media (max-width: 640px) {
   .modal-dialog { max-height: 95vh; border-radius: 12px; }
   .form-row { flex-direction: column; }

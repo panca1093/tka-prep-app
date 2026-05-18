@@ -3,16 +3,31 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useTestStore } from '@/stores/test'
 import { useSessionStore } from '@/stores/session'
+import client from '@/api/client'
+import type { components } from '@tkaprep/shared-types'
+
+type Category = components['schemas']['Category']
 
 const testStore = useTestStore()
 const sessionStore = useSessionStore()
 const router = useRouter()
 
-const categoryFilter = ref<'all' | 'tka_saintek' | 'tka_soshum' | 'smbt'>('all')
+const categoryFilter = ref<string>('all')
 const startingId = ref<string | null>(null)
 const startError = ref('')
+const categories = ref<Category[]>([])
 
-onMounted(() => testStore.fetchPublished())
+async function fetchCategories() {
+  const { data } = await client.GET('/admin/categories')
+  if (data) categories.value = data.data
+}
+
+async function selectCategory(key: string) {
+  categoryFilter.value = key
+  await testStore.fetchPublished({ category_id: key === 'all' ? undefined : key })
+}
+
+onMounted(() => Promise.all([testStore.fetchPublished(), fetchCategories()]))
 
 async function handleStart(testId: string) {
   startingId.value = testId
@@ -27,18 +42,10 @@ async function handleStart(testId: string) {
   }
 }
 
-const categoryLabel: Record<string, string> = {
-  tka_saintek: 'TKA Saintek',
-  tka_soshum: 'TKA Soshum',
-  smbt: 'SMBT',
-}
-
-const cats = [
+const cats = computed(() => [
   { key: 'all', label: 'Semua', icon: '📋' },
-  { key: 'tka_saintek', label: 'TKA Saintek', icon: '🔬' },
-  { key: 'tka_soshum', label: 'TKA Soshum', icon: '📚' },
-  { key: 'smbt', label: 'SMBT', icon: '🎓' },
-]
+  ...categories.value.map(c => ({ key: c.id, label: c.name, icon: '📂' })),
+])
 
 const difficultyColor: Record<string, string> = {
   easy: 'var(--success)',
@@ -56,14 +63,9 @@ const levelLabel: Record<string, string> = {
   sd: 'SD', smp: 'SMP', sma: 'SMA', smk: 'SMK',
 }
 
-const filtered = computed(() =>
-  categoryFilter.value === 'all'
-    ? testStore.tests
-    : testStore.tests.filter((t) => t.category === categoryFilter.value))
-
-const inProgress = computed(() => filtered.value.filter(t => t.student_status === 'in_progress'))
-const notStarted = computed(() => filtered.value.filter(t => t.student_status !== 'in_progress' && t.student_status !== 'completed'))
-const completed = computed(() => filtered.value.filter(t => t.student_status === 'completed'))
+const inProgress = computed(() => testStore.tests.filter(t => t.student_status === 'in_progress'))
+const notStarted = computed(() => testStore.tests.filter(t => t.student_status !== 'in_progress' && t.student_status !== 'completed'))
+const completed = computed(() => testStore.tests.filter(t => t.student_status === 'completed'))
 </script>
 
 <template>
@@ -80,7 +82,7 @@ const completed = computed(() => filtered.value.filter(t => t.student_status ===
         :key="c.key"
         class="cat-tab"
         :class="{ 'cat-tab--active': categoryFilter === c.key }"
-        @click="categoryFilter = c.key as typeof categoryFilter"
+        @click="selectCategory(c.key)"
       >
         <span class="cat-icon">{{ c.icon }}</span>
         <span>{{ c.label }}</span>
@@ -92,7 +94,7 @@ const completed = computed(() => filtered.value.filter(t => t.student_status ===
       <div class="loading-dots"><span/><span/><span/></div>
     </div>
 
-    <template v-else-if="filtered.length === 0">
+    <template v-else-if="testStore.tests.length === 0">
       <div class="empty-state">
         <div class="empty-icon">🔍</div>
         <p>Tidak ada ujian dalam kategori ini.</p>
@@ -111,7 +113,7 @@ const completed = computed(() => filtered.value.filter(t => t.student_status ===
             <div class="card-strip card-strip--progress" />
             <div class="card-body">
               <div class="card-meta">
-                <span class="cat-badge">{{ categoryLabel[t.category] }}</span>
+                <span class="cat-badge">{{ t.category_name }}</span>
                 <span v-if="t.education_level" class="level-badge">{{ levelLabel[t.education_level] ?? t.education_level }}</span>
                 <span class="diff-badge" :style="{ color: difficultyColor[t.difficulty] }">{{ difficultyLabel[t.difficulty] }}</span>
               </div>
@@ -145,7 +147,7 @@ const completed = computed(() => filtered.value.filter(t => t.student_status ===
             <div class="card-strip" />
             <div class="card-body">
               <div class="card-meta">
-                <span class="cat-badge">{{ categoryLabel[t.category] }}</span>
+                <span class="cat-badge">{{ t.category_name }}</span>
                 <span v-if="t.education_level" class="level-badge">{{ levelLabel[t.education_level] ?? t.education_level }}</span>
                 <span class="diff-badge" :style="{ color: difficultyColor[t.difficulty] }">{{ difficultyLabel[t.difficulty] }}</span>
               </div>
@@ -179,7 +181,7 @@ const completed = computed(() => filtered.value.filter(t => t.student_status ===
             <div class="card-strip card-strip--done" />
             <div class="card-body">
               <div class="card-meta">
-                <span class="cat-badge">{{ categoryLabel[t.category] }}</span>
+                <span class="cat-badge">{{ t.category_name }}</span>
                 <span v-if="t.education_level" class="level-badge">{{ levelLabel[t.education_level] ?? t.education_level }}</span>
                 <span class="done-badge">✓ Selesai</span>
               </div>

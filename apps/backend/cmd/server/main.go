@@ -19,6 +19,7 @@ import (
 	pgstore "github.com/yourorg/tkaprep/apps/backend/internal/repository/postgres"
 	adminsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/admin"
 	authsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/auth"
+	categorysvc "github.com/yourorg/tkaprep/apps/backend/internal/service/category"
 	leadersvc "github.com/yourorg/tkaprep/apps/backend/internal/service/leaderboard"
 	questionsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/question"
 	resultsvc "github.com/yourorg/tkaprep/apps/backend/internal/service/result"
@@ -74,8 +75,10 @@ func main() {
 	sessionService := sessionsvc.NewService(sessionRepo, resultRepo, testRepo, pool)
 	resultService := resultsvc.NewService(resultRepo, sessionRepo)
 	adminService := adminsvc.New(userRepo, adminRepo)
+	categoryRepo := pgstore.NewCategoryRepository(pool)
+	categoryService := categorysvc.New(categoryRepo)
 
-	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardSvc, adminService)
+	apiHandler := httphandler.NewAPIServer(authSvc, topicService, questionService, testService, sessionService, resultService, leaderboardSvc, adminService, categoryService)
 	srv := server.New(cfg, apiHandler)
 
 	httpServer := &http.Server{

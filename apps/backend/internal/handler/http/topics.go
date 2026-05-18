@@ -29,13 +29,14 @@ func (s *APIServer) PostTopics(ctx context.Context, req api.PostTopicsRequestObj
 	if !ok {
 		return api.PostTopics401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleAdmin {
-		return api.PostTopics403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	if claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+		return api.PostTopics403JSONResponse(errBody("FORBIDDEN", "admin or contributor only")), nil
 	}
 
 	t, err := s.topicSvc.Create(ctx, topic.CreateInput{
 		Name:        req.Body.Name,
 		Description: req.Body.Description,
+		CreatedBy:   claims.UserID,
 	})
 	if err != nil {
 		switch {
@@ -55,11 +56,11 @@ func (s *APIServer) PatchTopicsTopicId(ctx context.Context, req api.PatchTopicsT
 	if !ok {
 		return api.PatchTopicsTopicId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleAdmin {
-		return api.PatchTopicsTopicId403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	if claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+		return api.PatchTopicsTopicId403JSONResponse(errBody("FORBIDDEN", "admin or contributor only")), nil
 	}
 
-	t, err := s.topicSvc.Update(ctx, req.TopicId, topic.UpdateInput{
+	t, err := s.topicSvc.Update(ctx, req.TopicId, claims.UserID, claims.Role, topic.UpdateInput{
 		Name:        req.Body.Name,
 		Description: req.Body.Description,
 	})
@@ -67,6 +68,8 @@ func (s *APIServer) PatchTopicsTopicId(ctx context.Context, req api.PatchTopicsT
 		switch {
 		case errors.Is(err, apierr.ErrNotFound):
 			return api.PatchTopicsTopicId404JSONResponse(errBody("NOT_FOUND", "topic not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.PatchTopicsTopicId403JSONResponse(errBody("FORBIDDEN", "only the topic creator or admin can edit")), nil
 		case errors.Is(err, apierr.ErrConflict):
 			return api.PatchTopicsTopicId422JSONResponse(errBody("CONFLICT", "topic name already exists")), nil
 		case errors.Is(err, apierr.ErrValidation):
@@ -83,14 +86,16 @@ func (s *APIServer) DeleteTopicsTopicId(ctx context.Context, req api.DeleteTopic
 	if !ok {
 		return api.DeleteTopicsTopicId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleAdmin {
-		return api.DeleteTopicsTopicId403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	if claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+		return api.DeleteTopicsTopicId403JSONResponse(errBody("FORBIDDEN", "admin or contributor only")), nil
 	}
 
-	if err := s.topicSvc.Delete(ctx, req.TopicId); err != nil {
+	if err := s.topicSvc.Delete(ctx, req.TopicId, claims.UserID, claims.Role); err != nil {
 		switch {
 		case errors.Is(err, apierr.ErrNotFound):
 			return api.DeleteTopicsTopicId404JSONResponse(errBody("NOT_FOUND", "topic not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.DeleteTopicsTopicId403JSONResponse(errBody("FORBIDDEN", "only the topic creator or admin can delete")), nil
 		case errors.Is(err, apierr.ErrConflict):
 			return api.DeleteTopicsTopicId409JSONResponse(errBody("CONFLICT", "topic is in use by questions")), nil
 		}

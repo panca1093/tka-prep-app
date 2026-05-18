@@ -24,7 +24,7 @@ func NewTopicRepository(pool *pgxpool.Pool) *TopicRepository {
 
 func (r *TopicRepository) List(ctx context.Context) ([]*domain.Topic, error) {
 	rows, err := r.pool.Query(ctx,
-		`SELECT id, name, description, created_at FROM topics ORDER BY name`)
+		`SELECT id, name, description, created_by, created_at FROM topics ORDER BY name`)
 	if err != nil {
 		return nil, fmt.Errorf("list topics: %w", err)
 	}
@@ -33,7 +33,7 @@ func (r *TopicRepository) List(ctx context.Context) ([]*domain.Topic, error) {
 	var topics []*domain.Topic
 	for rows.Next() {
 		t := &domain.Topic{}
-		if err := rows.Scan(&t.ID, &t.Name, &t.Description, &t.CreatedAt); err != nil {
+		if err := rows.Scan(&t.ID, &t.Name, &t.Description, &t.CreatedBy, &t.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan topic: %w", err)
 		}
 		topics = append(topics, t)
@@ -43,9 +43,9 @@ func (r *TopicRepository) List(ctx context.Context) ([]*domain.Topic, error) {
 
 func (r *TopicRepository) Create(ctx context.Context, t *domain.Topic) error {
 	_, err := r.pool.Exec(ctx,
-		`INSERT INTO topics (id, name, description, created_at)
-		 VALUES ($1, $2, $3, $4)`,
-		t.ID, t.Name, t.Description, t.CreatedAt,
+		`INSERT INTO topics (id, name, description, created_by, created_at)
+		 VALUES ($1, $2, $3, $4, $5)`,
+		t.ID, t.Name, t.Description, t.CreatedBy, t.CreatedAt,
 	)
 	if err != nil {
 		var pgErr *pgconn.PgError
@@ -60,8 +60,8 @@ func (r *TopicRepository) Create(ctx context.Context, t *domain.Topic) error {
 func (r *TopicRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Topic, error) {
 	t := &domain.Topic{}
 	err := r.pool.QueryRow(ctx,
-		`SELECT id, name, description, created_at FROM topics WHERE id = $1`, id,
-	).Scan(&t.ID, &t.Name, &t.Description, &t.CreatedAt)
+		`SELECT id, name, description, created_by, created_at FROM topics WHERE id = $1`, id,
+	).Scan(&t.ID, &t.Name, &t.Description, &t.CreatedBy, &t.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound

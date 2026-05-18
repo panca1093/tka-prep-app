@@ -656,11 +656,11 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-        - name: category
+        - name: category_id
           in: query
           schema:
             type: string
-            enum: [tka_saintek, tka_soshum, smbt]
+            format: uuid
         - name: difficulty
           in: query
           schema:
@@ -1732,6 +1732,172 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /admin/categories:
+    get:
+      operationId: listCategories
+      summary: List all test categories with test counts (admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of categories
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CategoryListResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    post:
+      operationId: createCategory
+      summary: Create a new test category (admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCategoryRequest'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Duplicate name
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /admin/categories/{id}:
+    patch:
+      operationId: updateCategory
+      summary: Update a category name (admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCategoryRequest'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      operationId: deleteCategory
+      summary: Delete an unused category (admin only)
+      tags: [Admin]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Category deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Admin only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Category in use
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /admin/contributors/pending:
     get:
       operationId: listPendingContributors
@@ -1891,6 +2057,11 @@ paths:
           schema:
             type: string
             enum: [sd, smp, sma, smk]
+        - name: category_id
+          in: query
+          schema:
+            type: string
+            format: uuid
       responses:
         '200':
           description: Paginated list of tests with attempt counts
@@ -2103,6 +2274,47 @@ components:
           type: string
           format: date-time
 
+    Category:
+      type: object
+      required: [id, name, test_count, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        test_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+
+    CategoryListResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/Category'
+
+    CreateCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
     CreateContributorRequest:
       type: object
       required: [name, email, password]
@@ -2117,6 +2329,102 @@ components:
         password:
           type: string
           minLength: 8
+
+    AttemptsByTopic:
+      type: object
+      required: [topic, sd, smp, sma, smk]
+      properties:
+        topic:
+          type: string
+        sd:
+          type: integer
+        smp:
+          type: integer
+        sma:
+          type: integer
+        smk:
+          type: integer
+
+    TopicPerformance:
+      type: object
+      required: [topic, avg_score, best_score]
+      properties:
+        topic:
+          type: string
+        avg_score:
+          type: number
+        best_score:
+          type: number
+
+    TopicQuestionCount:
+      type: object
+      required: [topic, total, used, unused]
+      properties:
+        topic:
+          type: string
+        total:
+          type: integer
+        used:
+          type: integer
+        unused:
+          type: integer
+
+    QuestionCountGroup:
+      type: object
+      required: [education_level, topics]
+      properties:
+        education_level:
+          type: string
+          enum: [sd, smp, sma, smk]
+        topics:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicQuestionCount'
+
+    ContributorProductivity:
+      type: object
+      required: [name, email, question_count, test_count, output_score]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+        question_count:
+          type: integer
+        test_count:
+          type: integer
+        output_score:
+          type: integer
+
+    TestCompletion:
+      type: object
+      required: [test_title, started, submitted, expired, completion_pct]
+      properties:
+        test_title:
+          type: string
+        started:
+          type: integer
+        submitted:
+          type: integer
+        expired:
+          type: integer
+        completion_pct:
+          type: number
+
+    ActivityFeedEntry:
+      type: object
+      required: [event_type, actor_name, detail, timestamp]
+      properties:
+        event_type:
+          type: string
+          enum: [registration, publication, submission]
+        actor_name:
+          type: string
+        detail:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
 
     CreateTopicRequest:
       type: object
@@ -2391,7 +2699,7 @@ components:
 
     TestDetailResponse:
       type: object
-      required: [id, contributor_id, title, category, duration_minutes, difficulty, status, created_at, questions]
+      required: [id, contributor_id, title, category_id, category_name, duration_minutes, difficulty, status, created_at, questions]
       properties:
         id:
           type: string
@@ -2404,9 +2712,11 @@ components:
         description:
           type: string
           nullable: true
-        category:
+        category_id:
           type: string
-          enum: [tka_saintek, tka_soshum, smbt]
+          format: uuid
+        category_name:
+          type: string
         duration_minutes:
           type: integer
         difficulty:
@@ -2480,7 +2790,7 @@ components:
 
     CreateTestRequest:
       type: object
-      required: [title, category, duration_minutes, difficulty]
+      required: [title, category_id, duration_minutes, difficulty]
       properties:
         title:
           type: string
@@ -2489,9 +2799,11 @@ components:
         description:
           type: string
           maxLength: 1000
-        category:
+        category_id:
           type: string
-          enum: [tka_saintek, tka_soshum, smbt]
+          format: uuid
+        category_name:
+          type: string
         duration_minutes:
           type: integer
           minimum: 1
@@ -2516,9 +2828,11 @@ components:
           type: string
           maxLength: 1000
           nullable: true
-        category:
+        category_id:
           type: string
-          enum: [tka_saintek, tka_soshum, smbt]
+          format: uuid
+        category_name:
+          type: string
         duration_minutes:
           type: integer
           minimum: 1
@@ -2898,7 +3212,7 @@ components:
 
     PlatformStatsResponse:
       type: object
-      required: [total_students, total_contributors, total_tests, total_questions, pending_approvals, students_this_week, contributors_this_week, total_attempts, avg_score, top_test_title, top_test_attempts, questions_tka_saintek, questions_tka_soshum, questions_smbt, questions_used, questions_unused]
+      required: [total_students, total_contributors, total_tests, total_questions, pending_approvals, students_this_week, contributors_this_week, attempts_by_topic, topic_performance, question_counts, contributor_productivity, test_completion, activity_feed]
       properties:
         total_students:
           type: integer
@@ -2914,24 +3228,30 @@ components:
           type: integer
         contributors_this_week:
           type: integer
-        total_attempts:
-          type: integer
-        avg_score:
-          type: number
-        top_test_title:
-          type: string
-        top_test_attempts:
-          type: integer
-        questions_tka_saintek:
-          type: integer
-        questions_tka_soshum:
-          type: integer
-        questions_smbt:
-          type: integer
-        questions_used:
-          type: integer
-        questions_unused:
-          type: integer
+        attempts_by_topic:
+          type: array
+          items:
+            $ref: '#/components/schemas/AttemptsByTopic'
+        topic_performance:
+          type: array
+          items:
+            $ref: '#/components/schemas/TopicPerformance'
+        question_counts:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionCountGroup'
+        contributor_productivity:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContributorProductivity'
+        test_completion:
+          type: array
+          items:
+            $ref: '#/components/schemas/TestCompletion'
+        activity_feed:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityFeedEntry'
 
     AdminUserListResponse:
       type: object
@@ -2958,7 +3278,7 @@ components:
 
     AdminTestResponse:
       type: object
-      required: [id, contributor_id, title, category, difficulty, status, duration_minutes, created_at, attempt_count]
+      required: [id, contributor_id, title, category_id, category_name, difficulty, status, duration_minutes, created_at, attempt_count]
       properties:
         id:
           type: string
@@ -2968,9 +3288,11 @@ components:
           format: uuid
         title:
           type: string
-        category:
+        category_id:
           type: string
-          enum: [tka_saintek, tka_soshum, smbt]
+          format: uuid
+        category_name:
+          type: string
         difficulty:
           type: string
           enum: [easy, medium, hard]

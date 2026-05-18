@@ -68,11 +68,6 @@ function scoreClass(s: number) {
   return s >= 70 ? 'good' : s >= 40 ? 'mid' : 'low'
 }
 
-function categoryLabel(cat: string) {
-  const map: Record<string, string> = { tka_saintek: 'TKA Saintek', tka_soshum: 'TKA Soshum', smbt: 'SMBT' }
-  return map[cat] ?? cat
-}
-
 async function handleResume(testId: string) {
   resumingId.value = testId
   try {
@@ -168,7 +163,7 @@ const medal = (r: number) => r === 1 ? '🥇' : r === 2 ? '🥈' : r === 3 ? '�
           <div class="ongoing-body">
             <p class="ongoing-label">Ujian Berlangsung</p>
             <p class="ongoing-title">{{ t.title }}</p>
-            <p class="ongoing-meta">{{ categoryLabel(t.category) }} · {{ t.duration_minutes }} menit</p>
+            <p class="ongoing-meta">{{ t.category_name }} · {{ t.duration_minutes }} menit</p>
           </div>
           <span class="ongoing-cta">{{ resumingId === t.id ? 'Membuka...' : 'Lanjutkan →' }}</span>
         </button>

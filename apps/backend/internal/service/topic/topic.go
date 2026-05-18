@@ -29,6 +29,7 @@ func (s *Service) List(ctx context.Context) ([]*domain.Topic, error) {
 type CreateInput struct {
 	Name        string
 	Description *string
+	CreatedBy   uuid.UUID
 }
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Topic, error) {
@@ -41,6 +42,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Topic, er
 		ID:          uuid.New(),
 		Name:        in.Name,
 		Description: in.Description,
+		CreatedBy:   &in.CreatedBy,
 		CreatedAt:   time.Now().UTC(),
 	}
 	if err := s.topics.Create(ctx, t); err != nil {
@@ -57,10 +59,15 @@ type UpdateInput struct {
 	Description *string
 }
 
-func (s *Service) Update(ctx context.Context, id uuid.UUID, in UpdateInput) (*domain.Topic, error) {
+func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, callerRole domain.Role, in UpdateInput) (*domain.Topic, error) {
 	t, err := s.topics.FindByID(ctx, id)
 	if err != nil {
 		return nil, err
+	}
+
+	// Admin can edit any topic; contributor can only edit their own
+	if callerRole != domain.RoleAdmin && (t.CreatedBy == nil || *t.CreatedBy != callerID) {
+		return nil, apierr.ErrForbidden
 	}
 
 	if in.Name != nil {
@@ -83,7 +90,17 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, in UpdateInput) (*do
 	return t, nil
 }
 
-func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
+func (s *Service) Delete(ctx context.Context, id uuid.UUID, callerID uuid.UUID, callerRole domain.Role) error {
+	t, err := s.topics.FindByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	// Admin can delete any topic; contributor can only delete their own
+	if callerRole != domain.RoleAdmin && (t.CreatedBy == nil || *t.CreatedBy != callerID) {
+		return apierr.ErrForbidden
+	}
+
 	used, err := s.topics.IsUsedByQuestions(ctx, id)
 	if err != nil {
 		return fmt.Errorf("check topic usage: %w", err)

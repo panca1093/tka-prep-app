@@ -106,13 +106,13 @@ func leaderboardQuery(scope domain.LeaderboardScope, studentID uuid.UUID, forStu
 
 	switch scope {
 	case domain.ScopeTKA:
-		join = "JOIN tests t ON t.id = tr.test_id"
-		where = fmt.Sprintf("WHERE t.category IN ($%d, $%d)", nextArg, nextArg+1)
-		args = append(args, domain.CategoryTKASaintek, domain.CategoryTKASoshum)
+		join = "JOIN tests t ON t.id = tr.test_id JOIN categories cat ON cat.id = t.category_id"
+		where = fmt.Sprintf("WHERE cat.name IN ($%d, $%d)", nextArg, nextArg+1)
+		args = append(args, "tka_saintek", "tka_soshum")
 	case domain.ScopeSMBT:
-		join = "JOIN tests t ON t.id = tr.test_id"
-		where = fmt.Sprintf("WHERE t.category = $%d", nextArg)
-		args = append(args, domain.CategorySMBT)
+		join = "JOIN tests t ON t.id = tr.test_id JOIN categories cat ON cat.id = t.category_id"
+		where = fmt.Sprintf("WHERE cat.name = $%d", nextArg)
+		args = append(args, "smbt")
 	case domain.ScopeWeek:
 		where = fmt.Sprintf("WHERE tr.completed_at >= NOW() - INTERVAL '7 days'")
 	}

@@ -10,14 +10,14 @@ export const useTestStore = defineStore('test', () => {
   const total = ref(0)
   const isLoading = ref(false)
 
-  async function fetchPublished(params?: { category?: string; page?: number; limit?: number }) {
+  async function fetchPublished(params?: { category_id?: string; page?: number; limit?: number }) {
     isLoading.value = true
     try {
       const { data } = await client.GET('/tests', {
         params: {
           query: {
             status: 'published',
-            category: params?.category as 'tka_saintek' | 'tka_soshum' | 'smbt' | undefined,
+            category_id: params?.category_id as string | undefined,
             page: params?.page,
             limit: params?.limit ?? 20,
           },
