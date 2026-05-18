@@ -26,7 +26,9 @@
   --warning:       #f59e0b;
   --warning-bg:    #fef3c7;
 
-  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
+  font-family: 'Outfit', system-ui, -apple-system, sans-serif;
   line-height: 1.5;
   color: var(--text-primary);
   background: var(--bg-app);
@@ -34,6 +36,8 @@
 
 /* ─── Dark theme ──────────────────────────────────────────────────────────── */
 :root[data-theme="dark"] {
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
   --bg-app:        #080c18;
   --bg-surface:    #0d1424;
   --bg-sidebar:    #0d1424;
@@ -64,6 +68,8 @@
 /* ─── System preference dark ─────────────────────────────────────────────── */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]):not([data-theme="dark"]) {
+    --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+
     --bg-app:        #080c18;
     --bg-surface:    #0d1424;
     --bg-sidebar:    #0d1424;
