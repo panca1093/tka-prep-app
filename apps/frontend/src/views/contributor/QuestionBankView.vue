@@ -316,7 +316,6 @@ async function deleteQuestion(id: string) {
   await fetchQuestions()
 }
 
-const diffColor: Record<string, string> = { easy: 'var(--success)', medium: 'var(--warning)', hard: 'var(--danger)' }
 const typeLabel: Record<string, string> = { mcq: 'PG', multi_correct: 'PGK', true_false: 'B/S' }
 const typeColor: Record<string, string> = {
   mcq: 'var(--accent)',
@@ -468,21 +467,17 @@ const typeColor: Record<string, string> = {
 
         <div v-else class="question-list">
           <div v-for="q in questions" :key="q.id" class="question-card">
-            <div class="q-header">
-              <span
-                class="q-type-badge"
-                :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] + '44', background: typeColor[q.question_type] + '18' }"
-              >{{ typeLabel[q.question_type] ?? q.question_type }}</span>
-              <span class="q-difficulty" :style="{ color: diffColor[q.difficulty] }">{{ q.difficulty }}</span>
-              <span v-if="(q as any).education_level" class="q-edu-badge">{{ ((q as any).education_level as string).toUpperCase() }}</span>
-              <span class="q-topic">
+            <div class="q-top">
+              <span class="q-type" :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] }">{{ typeLabel[q.question_type] ?? q.question_type }}</span>
+              <span class="q-topic-name">
                 <span class="q-topic-dot" :style="{ background: getTopicDotColor(topics.findIndex(t => t.id === q.topic_id)) }" />
                 {{ topics.find(t => t.id === q.topic_id)?.name ?? '—' }}
               </span>
-              <div class="q-actions">
-                <button class="icon-btn" @click="openEdit(q)">✏️</button>
-                <button class="icon-btn" @click="deleteQuestion(q.id)">🗑</button>
-              </div>
+              <span v-if="(q as any).education_level" class="q-edu">{{ ((q as any).education_level as string).toUpperCase() }}</span>
+              <span class="q-diff" :class="'q-diff--' + q.difficulty">{{ q.difficulty }}</span>
+              <span class="q-spacer" />
+              <button class="q-act" @click="openEdit(q)">Edit</button>
+              <button class="q-act q-act--del" @click="deleteQuestion(q.id)">Hapus</button>
             </div>
             <div class="q-text"><RichTextViewer :html="q.text" /></div>
             <div v-if="q.question_type !== 'true_false'" class="q-options">
@@ -776,31 +771,29 @@ const typeColor: Record<string, string> = {
 .error-msg { padding: 0.6rem 0.75rem; border-radius: 8px; background: var(--danger-bg); color: var(--danger-text); font-size: 0.825rem; margin-bottom: 1rem; }
 .empty-state { color: var(--text-muted); text-align: center; padding: 2rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; }
 
-.question-list { display: flex; flex-direction: column; gap: 0.625rem; }
-.question-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; }
-.q-header { display: flex; align-items: center; gap: 0.625rem; margin-bottom: 0.5rem; }
-.q-type-badge {
-  font-size: 0.68rem; font-weight: 800; padding: 0.2rem 0.5rem;
-  border-radius: 4px; border: 1px solid; text-transform: uppercase; letter-spacing: 0.03em;
-}
-.q-difficulty { font-size: 0.75rem; font-weight: 700; text-transform: capitalize; }
-.q-edu-badge {
-  font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem;
-  border-radius: 3px; background: color-mix(in srgb, var(--accent) 15%, transparent);
-  color: var(--accent); letter-spacing: 0.03em;
-}
-.q-topic { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem; }
+.question-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.question-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; transition: border-color 0.15s; }
+.question-card:hover { border-color: color-mix(in srgb, var(--accent) 25%, var(--border)); }
+.q-top { display: flex; align-items: center; gap: 0.5rem; }
+.q-type { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; background: color-mix(in srgb, currentColor 10%, transparent); }
+.q-topic-name { font-size: 0.68rem; font-weight: 600; color: var(--text-muted); display: flex; align-items: center; gap: 0.25rem; }
 .q-topic-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.q-edu { font-size: 0.6rem; font-weight: 700; padding: 0.1rem 0.35rem; border-radius: 3px; background: color-mix(in srgb, var(--accent) 12%, transparent); color: var(--accent); letter-spacing: 0.03em; }
+.q-diff { font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 0.1rem 0.35rem; border-radius: 3px; }
+.q-diff--easy { color: var(--success); background: rgba(0,210,160,0.08); }
+.q-diff--medium { color: var(--warning); background: rgba(245,166,35,0.08); }
+.q-diff--hard { color: var(--danger); background: rgba(255,82,82,0.08); }
+.q-spacer { flex: 1; }
+.q-act { padding: 0.25rem 0.55rem; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: all 0.12s; font-family: inherit; }
+.q-act:hover { border-color: var(--accent); color: var(--accent); }
+.q-act--del:hover { border-color: var(--danger); color: var(--danger); }
+.q-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.q-options { display: flex; gap: 0.3rem; }
+.q-opt { width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--bg-input); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); }
+.q-opt.correct { background: var(--success); border-color: var(--success); color: #000; }
+.q-stmt-count { font-size: 0.72rem; color: var(--text-muted); }
 .f-chip--topic { gap: 0.35rem; }
 .f-chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.q-actions { margin-left: auto; }
-.icon-btn { background: transparent; border: none; cursor: pointer; font-size: 0.9rem; color: var(--text-muted); padding: 0.2rem; }
-.icon-btn:hover { color: var(--danger); }
-.q-text { margin: 0 0 0.625rem; font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.q-options { display: flex; gap: 0.375rem; }
-.q-opt { width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; color: var(--text-muted); }
-.q-opt.correct { background: var(--success); color: #000; }
-.q-stmt-count { font-size: 0.75rem; color: var(--text-muted); }
 
 .btn-primary {
   padding: 0.55rem 1.25rem; border-radius: 8px; border: none;
