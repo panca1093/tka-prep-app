@@ -28,21 +28,21 @@ const (
 	BearerAuthScopes bearerAuthContextKey = "bearerAuth.Scopes"
 )
 
-// Defines values for AdminTestResponseCategory.
+// Defines values for ActivityFeedEntryEventType.
 const (
-	AdminTestResponseCategorySmbt       AdminTestResponseCategory = "smbt"
-	AdminTestResponseCategoryTkaSaintek AdminTestResponseCategory = "tka_saintek"
-	AdminTestResponseCategoryTkaSoshum  AdminTestResponseCategory = "tka_soshum"
+	Publication  ActivityFeedEntryEventType = "publication"
+	Registration ActivityFeedEntryEventType = "registration"
+	Submission   ActivityFeedEntryEventType = "submission"
 )
 
-// Valid indicates whether the value is a known member of the AdminTestResponseCategory enum.
-func (e AdminTestResponseCategory) Valid() bool {
+// Valid indicates whether the value is a known member of the ActivityFeedEntryEventType enum.
+func (e ActivityFeedEntryEventType) Valid() bool {
 	switch e {
-	case AdminTestResponseCategorySmbt:
+	case Publication:
 		return true
-	case AdminTestResponseCategoryTkaSaintek:
+	case Registration:
 		return true
-	case AdminTestResponseCategoryTkaSoshum:
+	case Submission:
 		return true
 	default:
 		return false
@@ -175,27 +175,6 @@ func (e CreateQuestionRequestQuestionType) Valid() bool {
 	}
 }
 
-// Defines values for CreateTestRequestCategory.
-const (
-	CreateTestRequestCategorySmbt       CreateTestRequestCategory = "smbt"
-	CreateTestRequestCategoryTkaSaintek CreateTestRequestCategory = "tka_saintek"
-	CreateTestRequestCategoryTkaSoshum  CreateTestRequestCategory = "tka_soshum"
-)
-
-// Valid indicates whether the value is a known member of the CreateTestRequestCategory enum.
-func (e CreateTestRequestCategory) Valid() bool {
-	switch e {
-	case CreateTestRequestCategorySmbt:
-		return true
-	case CreateTestRequestCategoryTkaSaintek:
-		return true
-	case CreateTestRequestCategoryTkaSoshum:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for CreateTestRequestDifficulty.
 const (
 	CreateTestRequestDifficultyEasy   CreateTestRequestDifficulty = "easy"
@@ -253,6 +232,30 @@ func (e HealthResponseStatus) Valid() bool {
 	case Degraded:
 		return true
 	case Ok:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for QuestionCountGroupEducationLevel.
+const (
+	QuestionCountGroupEducationLevelSd  QuestionCountGroupEducationLevel = "sd"
+	QuestionCountGroupEducationLevelSma QuestionCountGroupEducationLevel = "sma"
+	QuestionCountGroupEducationLevelSmk QuestionCountGroupEducationLevel = "smk"
+	QuestionCountGroupEducationLevelSmp QuestionCountGroupEducationLevel = "smp"
+)
+
+// Valid indicates whether the value is a known member of the QuestionCountGroupEducationLevel enum.
+func (e QuestionCountGroupEducationLevel) Valid() bool {
+	switch e {
+	case QuestionCountGroupEducationLevelSd:
+		return true
+	case QuestionCountGroupEducationLevelSma:
+		return true
+	case QuestionCountGroupEducationLevelSmk:
+		return true
+	case QuestionCountGroupEducationLevelSmp:
 		return true
 	default:
 		return false
@@ -448,27 +451,6 @@ func (e SessionResponseStatus) Valid() bool {
 	}
 }
 
-// Defines values for TestDetailResponseCategory.
-const (
-	TestDetailResponseCategorySmbt       TestDetailResponseCategory = "smbt"
-	TestDetailResponseCategoryTkaSaintek TestDetailResponseCategory = "tka_saintek"
-	TestDetailResponseCategoryTkaSoshum  TestDetailResponseCategory = "tka_soshum"
-)
-
-// Valid indicates whether the value is a known member of the TestDetailResponseCategory enum.
-func (e TestDetailResponseCategory) Valid() bool {
-	switch e {
-	case TestDetailResponseCategorySmbt:
-		return true
-	case TestDetailResponseCategoryTkaSaintek:
-		return true
-	case TestDetailResponseCategoryTkaSoshum:
-		return true
-	default:
-		return false
-	}
-}
-
 // Defines values for TestDetailResponseDifficulty.
 const (
 	TestDetailResponseDifficultyEasy   TestDetailResponseDifficulty = "easy"
@@ -634,27 +616,6 @@ func (e UpdateQuestionRequestEducationLevel) Valid() bool {
 	case UpdateQuestionRequestEducationLevelSma:
 		return true
 	case UpdateQuestionRequestEducationLevelSmp:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for UpdateTestRequestCategory.
-const (
-	UpdateTestRequestCategorySmbt       UpdateTestRequestCategory = "smbt"
-	UpdateTestRequestCategoryTkaSaintek UpdateTestRequestCategory = "tka_saintek"
-	UpdateTestRequestCategoryTkaSoshum  UpdateTestRequestCategory = "tka_soshum"
-)
-
-// Valid indicates whether the value is a known member of the UpdateTestRequestCategory enum.
-func (e UpdateTestRequestCategory) Valid() bool {
-	switch e {
-	case UpdateTestRequestCategorySmbt:
-		return true
-	case UpdateTestRequestCategoryTkaSaintek:
-		return true
-	case UpdateTestRequestCategoryTkaSoshum:
 		return true
 	default:
 		return false
@@ -954,19 +915,19 @@ func (e GetQuestionsParamsDifficulty) Valid() bool {
 
 // Defines values for GetQuestionsParamsEducationLevel.
 const (
-	GetQuestionsParamsEducationLevelSd  GetQuestionsParamsEducationLevel = "sd"
-	GetQuestionsParamsEducationLevelSma GetQuestionsParamsEducationLevel = "sma"
-	GetQuestionsParamsEducationLevelSmp GetQuestionsParamsEducationLevel = "smp"
+	Sd  GetQuestionsParamsEducationLevel = "sd"
+	Sma GetQuestionsParamsEducationLevel = "sma"
+	Smp GetQuestionsParamsEducationLevel = "smp"
 )
 
 // Valid indicates whether the value is a known member of the GetQuestionsParamsEducationLevel enum.
 func (e GetQuestionsParamsEducationLevel) Valid() bool {
 	switch e {
-	case GetQuestionsParamsEducationLevelSd:
+	case Sd:
 		return true
-	case GetQuestionsParamsEducationLevelSma:
+	case Sma:
 		return true
-	case GetQuestionsParamsEducationLevelSmp:
+	case Smp:
 		return true
 	default:
 		return false
@@ -991,27 +952,6 @@ func (e GetResultsResultIdReviewParamsStatus) Valid() bool {
 	case GetResultsResultIdReviewParamsStatusCorrect:
 		return true
 	case GetResultsResultIdReviewParamsStatusWrong:
-		return true
-	default:
-		return false
-	}
-}
-
-// Defines values for GetTestsParamsCategory.
-const (
-	Smbt       GetTestsParamsCategory = "smbt"
-	TkaSaintek GetTestsParamsCategory = "tka_saintek"
-	TkaSoshum  GetTestsParamsCategory = "tka_soshum"
-)
-
-// Valid indicates whether the value is a known member of the GetTestsParamsCategory enum.
-func (e GetTestsParamsCategory) Valid() bool {
-	switch e {
-	case Smbt:
-		return true
-	case TkaSaintek:
-		return true
-	case TkaSoshum:
 		return true
 	default:
 		return false
@@ -1057,6 +997,17 @@ func (e GetTestsParamsStatus) Valid() bool {
 	}
 }
 
+// ActivityFeedEntry defines model for ActivityFeedEntry.
+type ActivityFeedEntry struct {
+	ActorName string                     `json:"actor_name"`
+	Detail    string                     `json:"detail"`
+	EventType ActivityFeedEntryEventType `json:"event_type"`
+	Timestamp time.Time                  `json:"timestamp"`
+}
+
+// ActivityFeedEntryEventType defines model for ActivityFeedEntry.EventType.
+type ActivityFeedEntryEventType string
+
 // AdminTestListResponse defines model for AdminTestListResponse.
 type AdminTestListResponse struct {
 	Data  []AdminTestResponse `json:"data"`
@@ -1068,7 +1019,8 @@ type AdminTestListResponse struct {
 // AdminTestResponse defines model for AdminTestResponse.
 type AdminTestResponse struct {
 	AttemptCount    int                              `json:"attempt_count"`
-	Category        AdminTestResponseCategory        `json:"category"`
+	CategoryId      openapi_types.UUID               `json:"category_id"`
+	CategoryName    string                           `json:"category_name"`
 	ContributorId   openapi_types.UUID               `json:"contributor_id"`
 	CreatedAt       time.Time                        `json:"created_at"`
 	Difficulty      AdminTestResponseDifficulty      `json:"difficulty"`
@@ -1078,9 +1030,6 @@ type AdminTestResponse struct {
 	Status          AdminTestResponseStatus          `json:"status"`
 	Title           string                           `json:"title"`
 }
-
-// AdminTestResponseCategory defines model for AdminTestResponse.Category.
-type AdminTestResponseCategory string
 
 // AdminTestResponseDifficulty defines model for AdminTestResponse.Difficulty.
 type AdminTestResponseDifficulty string
@@ -1099,11 +1048,54 @@ type AdminUserListResponse struct {
 	Total int            `json:"total"`
 }
 
+// AttemptsByTopic defines model for AttemptsByTopic.
+type AttemptsByTopic struct {
+	Sd    int    `json:"sd"`
+	Sma   int    `json:"sma"`
+	Smk   int    `json:"smk"`
+	Smp   int    `json:"smp"`
+	Topic string `json:"topic"`
+}
+
 // AuthResponse defines model for AuthResponse.
 type AuthResponse struct {
 	AccessToken  string       `json:"access_token"`
 	RefreshToken string       `json:"refresh_token"`
 	User         UserResponse `json:"user"`
+}
+
+// Category defines model for Category.
+type Category struct {
+	CreatedAt time.Time          `json:"created_at"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
+	TestCount int                `json:"test_count"`
+}
+
+// CategoryListResponse defines model for CategoryListResponse.
+type CategoryListResponse struct {
+	Data []Category `json:"data"`
+}
+
+// ContributorProductivity defines model for ContributorProductivity.
+type ContributorProductivity struct {
+	Email         string `json:"email"`
+	Name          string `json:"name"`
+	OutputScore   int    `json:"output_score"`
+	QuestionCount int    `json:"question_count"`
+	TestCount     int    `json:"test_count"`
+}
+
+// CreateCategoryRequest defines model for CreateCategoryRequest.
+type CreateCategoryRequest struct {
+	Name string `json:"name"`
+}
+
+// CreateContributorRequest defines model for CreateContributorRequest.
+type CreateContributorRequest struct {
+	Email    openapi_types.Email `json:"email"`
+	Name     string              `json:"name"`
+	Password string              `json:"password"`
 }
 
 // CreateQuestionRequest defines model for CreateQuestionRequest.
@@ -1130,7 +1122,8 @@ type CreateQuestionRequestQuestionType string
 
 // CreateTestRequest defines model for CreateTestRequest.
 type CreateTestRequest struct {
-	Category        CreateTestRequestCategory        `json:"category"`
+	CategoryId      openapi_types.UUID               `json:"category_id"`
+	CategoryName    *string                          `json:"category_name,omitempty"`
 	Description     *string                          `json:"description,omitempty"`
 	Difficulty      CreateTestRequestDifficulty      `json:"difficulty"`
 	DurationMinutes int                              `json:"duration_minutes"`
@@ -1138,9 +1131,6 @@ type CreateTestRequest struct {
 	ScoringConfig   *UpdateScoringConfigRequest      `json:"scoring_config,omitempty"`
 	Title           string                           `json:"title"`
 }
-
-// CreateTestRequestCategory defines model for CreateTestRequest.Category.
-type CreateTestRequestCategory string
 
 // CreateTestRequestDifficulty defines model for CreateTestRequest.Difficulty.
 type CreateTestRequestDifficulty string
@@ -1214,12 +1204,29 @@ type MessageResponse struct {
 
 // PlatformStatsResponse defines model for PlatformStatsResponse.
 type PlatformStatsResponse struct {
-	PendingApprovals  int `json:"pending_approvals"`
-	TotalContributors int `json:"total_contributors"`
-	TotalQuestions    int `json:"total_questions"`
-	TotalStudents     int `json:"total_students"`
-	TotalTests        int `json:"total_tests"`
+	ActivityFeed            []ActivityFeedEntry       `json:"activity_feed"`
+	AttemptsByTopic         []AttemptsByTopic         `json:"attempts_by_topic"`
+	ContributorProductivity []ContributorProductivity `json:"contributor_productivity"`
+	ContributorsThisWeek    int                       `json:"contributors_this_week"`
+	PendingApprovals        int                       `json:"pending_approvals"`
+	QuestionCounts          []QuestionCountGroup      `json:"question_counts"`
+	StudentsThisWeek        int                       `json:"students_this_week"`
+	TestCompletion          []TestCompletion          `json:"test_completion"`
+	TopicPerformance        []TopicPerformance        `json:"topic_performance"`
+	TotalContributors       int                       `json:"total_contributors"`
+	TotalQuestions          int                       `json:"total_questions"`
+	TotalStudents           int                       `json:"total_students"`
+	TotalTests              int                       `json:"total_tests"`
 }
+
+// QuestionCountGroup defines model for QuestionCountGroup.
+type QuestionCountGroup struct {
+	EducationLevel QuestionCountGroupEducationLevel `json:"education_level"`
+	Topics         []TopicQuestionCount             `json:"topics"`
+}
+
+// QuestionCountGroupEducationLevel defines model for QuestionCountGroup.EducationLevel.
+type QuestionCountGroupEducationLevel string
 
 // QuestionDetailResponse defines model for QuestionDetailResponse.
 type QuestionDetailResponse struct {
@@ -1446,9 +1453,19 @@ type StatementAnswerInput struct {
 	StatementId openapi_types.UUID `json:"statement_id"`
 }
 
+// TestCompletion defines model for TestCompletion.
+type TestCompletion struct {
+	CompletionPct float32 `json:"completion_pct"`
+	Expired       int     `json:"expired"`
+	Started       int     `json:"started"`
+	Submitted     int     `json:"submitted"`
+	TestTitle     string  `json:"test_title"`
+}
+
 // TestDetailResponse defines model for TestDetailResponse.
 type TestDetailResponse struct {
-	Category        TestDetailResponseCategory   `json:"category"`
+	CategoryId      openapi_types.UUID           `json:"category_id"`
+	CategoryName    string                       `json:"category_name"`
 	ContributorId   openapi_types.UUID           `json:"contributor_id"`
 	CreatedAt       time.Time                    `json:"created_at"`
 	Description     *string                      `json:"description,omitempty"`
@@ -1470,9 +1487,6 @@ type TestDetailResponse struct {
 	StudentStatus *TestDetailResponseStudentStatus `json:"student_status,omitempty"`
 	Title         string                           `json:"title"`
 }
-
-// TestDetailResponseCategory defines model for TestDetailResponse.Category.
-type TestDetailResponseCategory string
 
 // TestDetailResponseDifficulty defines model for TestDetailResponse.Difficulty.
 type TestDetailResponseDifficulty string
@@ -1535,12 +1549,32 @@ type TopicBreakdownResponse struct {
 	WrongCount   int                `json:"wrong_count"`
 }
 
+// TopicPerformance defines model for TopicPerformance.
+type TopicPerformance struct {
+	AvgScore  float32 `json:"avg_score"`
+	BestScore float32 `json:"best_score"`
+	Topic     string  `json:"topic"`
+}
+
+// TopicQuestionCount defines model for TopicQuestionCount.
+type TopicQuestionCount struct {
+	Topic  string `json:"topic"`
+	Total  int    `json:"total"`
+	Unused int    `json:"unused"`
+	Used   int    `json:"used"`
+}
+
 // TopicResponse defines model for TopicResponse.
 type TopicResponse struct {
 	CreatedAt   time.Time          `json:"created_at"`
 	Description *string            `json:"description,omitempty"`
 	Id          openapi_types.UUID `json:"id"`
 	Name        string             `json:"name"`
+}
+
+// UpdateCategoryRequest defines model for UpdateCategoryRequest.
+type UpdateCategoryRequest struct {
+	Name *string `json:"name,omitempty"`
 }
 
 // UpdateProfileRequest defines model for UpdateProfileRequest.
@@ -1589,16 +1623,14 @@ type UpdateScoringConfigRequest struct {
 
 // UpdateTestRequest defines model for UpdateTestRequest.
 type UpdateTestRequest struct {
-	Category        *UpdateTestRequestCategory       `json:"category,omitempty"`
+	CategoryId      *openapi_types.UUID              `json:"category_id,omitempty"`
+	CategoryName    *string                          `json:"category_name,omitempty"`
 	Description     *string                          `json:"description,omitempty"`
 	Difficulty      *UpdateTestRequestDifficulty     `json:"difficulty,omitempty"`
 	DurationMinutes *int                             `json:"duration_minutes,omitempty"`
 	EducationLevel  *UpdateTestRequestEducationLevel `json:"education_level,omitempty"`
 	Title           *string                          `json:"title,omitempty"`
 }
-
-// UpdateTestRequestCategory defines model for UpdateTestRequest.Category.
-type UpdateTestRequestCategory string
 
 // UpdateTestRequestDifficulty defines model for UpdateTestRequest.Difficulty.
 type UpdateTestRequestDifficulty string
@@ -1660,6 +1692,7 @@ type ListAdminTestsParams struct {
 	Page           *int                                `form:"page,omitempty" json:"page,omitempty"`
 	Limit          *int                                `form:"limit,omitempty" json:"limit,omitempty"`
 	EducationLevel *ListAdminTestsParamsEducationLevel `form:"education_level,omitempty" json:"education_level,omitempty"`
+	CategoryId     *openapi_types.UUID                 `form:"category_id,omitempty" json:"category_id,omitempty"`
 }
 
 // ListAdminTestsParamsEducationLevel defines parameters for ListAdminTests.
@@ -1726,14 +1759,11 @@ type GetResultsResultIdReviewParamsStatus string
 type GetTestsParams struct {
 	Page          *int                      `form:"page,omitempty" json:"page,omitempty"`
 	Limit         *int                      `form:"limit,omitempty" json:"limit,omitempty"`
-	Category      *GetTestsParamsCategory   `form:"category,omitempty" json:"category,omitempty"`
+	CategoryId    *openapi_types.UUID       `form:"category_id,omitempty" json:"category_id,omitempty"`
 	Difficulty    *GetTestsParamsDifficulty `form:"difficulty,omitempty" json:"difficulty,omitempty"`
 	Status        *GetTestsParamsStatus     `form:"status,omitempty" json:"status,omitempty"`
 	ContributorId *openapi_types.UUID       `form:"contributor_id,omitempty" json:"contributor_id,omitempty"`
 }
-
-// GetTestsParamsCategory defines parameters for GetTests.
-type GetTestsParamsCategory string
 
 // GetTestsParamsDifficulty defines parameters for GetTests.
 type GetTestsParamsDifficulty string
@@ -1750,6 +1780,15 @@ type GetTestsTestIdLeaderboardParams struct {
 type UploadFileMultipartBody struct {
 	File openapi_types.File `json:"file"`
 }
+
+// CreateCategoryJSONRequestBody defines body for CreateCategory for application/json ContentType.
+type CreateCategoryJSONRequestBody = CreateCategoryRequest
+
+// UpdateCategoryJSONRequestBody defines body for UpdateCategory for application/json ContentType.
+type UpdateCategoryJSONRequestBody = UpdateCategoryRequest
+
+// AdminCreateContributorJSONRequestBody defines body for AdminCreateContributor for application/json ContentType.
+type AdminCreateContributorJSONRequestBody = CreateContributorRequest
 
 // UpdateAdminUserStatusJSONRequestBody defines body for UpdateAdminUserStatus for application/json ContentType.
 type UpdateAdminUserStatusJSONRequestBody = UpdateUserStatusRequest
@@ -1804,6 +1843,21 @@ type UploadFileMultipartRequestBody UploadFileMultipartBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
+	// List all test categories with test counts (admin only)
+	// (GET /admin/categories)
+	ListCategories(w http.ResponseWriter, r *http.Request)
+	// Create a new test category (admin only)
+	// (POST /admin/categories)
+	CreateCategory(w http.ResponseWriter, r *http.Request)
+	// Delete an unused category (admin only)
+	// (DELETE /admin/categories/{id})
+	DeleteCategory(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Update a category name (admin only)
+	// (PATCH /admin/categories/{id})
+	UpdateCategory(w http.ResponseWriter, r *http.Request, id openapi_types.UUID)
+	// Create a contributor account directly (super admin only)
+	// (POST /admin/contributors)
+	AdminCreateContributor(w http.ResponseWriter, r *http.Request)
 	// List contributors awaiting approval (super admin only)
 	// (GET /admin/contributors/pending)
 	ListPendingContributors(w http.ResponseWriter, r *http.Request, params ListPendingContributorsParams)
@@ -1941,6 +1995,36 @@ type ServerInterface interface {
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
+
+// List all test categories with test counts (admin only)
+// (GET /admin/categories)
+func (_ Unimplemented) ListCategories(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a new test category (admin only)
+// (POST /admin/categories)
+func (_ Unimplemented) CreateCategory(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete an unused category (admin only)
+// (DELETE /admin/categories/{id})
+func (_ Unimplemented) DeleteCategory(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update a category name (admin only)
+// (PATCH /admin/categories/{id})
+func (_ Unimplemented) UpdateCategory(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a contributor account directly (super admin only)
+// (POST /admin/contributors)
+func (_ Unimplemented) AdminCreateContributor(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
 
 // List contributors awaiting approval (super admin only)
 // (GET /admin/contributors/pending)
@@ -2215,6 +2299,130 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
+// ListCategories operation middleware
+func (siw *ServerInterfaceWrapper) ListCategories(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.ListCategories(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateCategory operation middleware
+func (siw *ServerInterfaceWrapper) CreateCategory(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateCategory(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteCategory operation middleware
+func (siw *ServerInterfaceWrapper) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteCategory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateCategory operation middleware
+func (siw *ServerInterfaceWrapper) UpdateCategory(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "id" -------------
+	var id openapi_types.UUID
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateCategory(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AdminCreateContributor operation middleware
+func (siw *ServerInterfaceWrapper) AdminCreateContributor(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, BearerAuthScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AdminCreateContributor(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 // ListPendingContributors operation middleware
 func (siw *ServerInterfaceWrapper) ListPendingContributors(w http.ResponseWriter, r *http.Request) {
 
@@ -2401,6 +2609,19 @@ func (siw *ServerInterfaceWrapper) ListAdminTests(w http.ResponseWriter, r *http
 			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "education_level"})
 		} else {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "education_level", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "category_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category_id", r.URL.Query(), &params.CategoryId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category_id"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category_id", Err: err})
 		}
 		return
 	}
@@ -3222,15 +3443,15 @@ func (siw *ServerInterfaceWrapper) GetTests(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// ------------- Optional query parameter "category" -------------
+	// ------------- Optional query parameter "category_id" -------------
 
-	err = runtime.BindQueryParameterWithOptions("form", true, false, "category", r.URL.Query(), &params.Category, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "category_id", r.URL.Query(), &params.CategoryId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
 	if err != nil {
 		var requiredError *runtime.RequiredParameterError
 		if errors.As(err, &requiredError) {
-			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category"})
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "category_id"})
 		} else {
-			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category", Err: err})
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "category_id", Err: err})
 		}
 		return
 	}
@@ -3841,6 +4062,21 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/admin/categories", wrapper.ListCategories)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/categories", wrapper.CreateCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/admin/categories/{id}", wrapper.DeleteCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/admin/categories/{id}", wrapper.UpdateCategory)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/admin/contributors", wrapper.AdminCreateContributor)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/admin/contributors/pending", wrapper.ListPendingContributors)
 	})
 	r.Group(func(r chi.Router) {
@@ -3974,6 +4210,368 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 
 	return r
+}
+
+type ListCategoriesRequestObject struct {
+}
+
+type ListCategoriesResponseObject interface {
+	VisitListCategoriesResponse(w http.ResponseWriter) error
+}
+
+type ListCategories200JSONResponse CategoryListResponse
+
+func (response ListCategories200JSONResponse) VisitListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCategories401JSONResponse ErrorResponse
+
+func (response ListCategories401JSONResponse) VisitListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListCategories403JSONResponse ErrorResponse
+
+func (response ListCategories403JSONResponse) VisitListCategoriesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategoryRequestObject struct {
+	Body *CreateCategoryJSONRequestBody
+}
+
+type CreateCategoryResponseObject interface {
+	VisitCreateCategoryResponse(w http.ResponseWriter) error
+}
+
+type CreateCategory201JSONResponse Category
+
+func (response CreateCategory201JSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategory400JSONResponse ErrorResponse
+
+func (response CreateCategory400JSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategory401JSONResponse ErrorResponse
+
+func (response CreateCategory401JSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategory403JSONResponse ErrorResponse
+
+func (response CreateCategory403JSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateCategory409JSONResponse ErrorResponse
+
+func (response CreateCategory409JSONResponse) VisitCreateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCategoryRequestObject struct {
+	Id openapi_types.UUID `json:"id"`
+}
+
+type DeleteCategoryResponseObject interface {
+	VisitDeleteCategoryResponse(w http.ResponseWriter) error
+}
+
+type DeleteCategory200JSONResponse MessageResponse
+
+func (response DeleteCategory200JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCategory401JSONResponse ErrorResponse
+
+func (response DeleteCategory401JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCategory403JSONResponse ErrorResponse
+
+func (response DeleteCategory403JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCategory404JSONResponse ErrorResponse
+
+func (response DeleteCategory404JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeleteCategory409JSONResponse ErrorResponse
+
+func (response DeleteCategory409JSONResponse) VisitDeleteCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCategoryRequestObject struct {
+	Id   openapi_types.UUID `json:"id"`
+	Body *UpdateCategoryJSONRequestBody
+}
+
+type UpdateCategoryResponseObject interface {
+	VisitUpdateCategoryResponse(w http.ResponseWriter) error
+}
+
+type UpdateCategory200JSONResponse Category
+
+func (response UpdateCategory200JSONResponse) VisitUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCategory400JSONResponse ErrorResponse
+
+func (response UpdateCategory400JSONResponse) VisitUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCategory401JSONResponse ErrorResponse
+
+func (response UpdateCategory401JSONResponse) VisitUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCategory403JSONResponse ErrorResponse
+
+func (response UpdateCategory403JSONResponse) VisitUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateCategory404JSONResponse ErrorResponse
+
+func (response UpdateCategory404JSONResponse) VisitUpdateCategoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateContributorRequestObject struct {
+	Body *AdminCreateContributorJSONRequestBody
+}
+
+type AdminCreateContributorResponseObject interface {
+	VisitAdminCreateContributorResponse(w http.ResponseWriter) error
+}
+
+type AdminCreateContributor201JSONResponse UserResponse
+
+func (response AdminCreateContributor201JSONResponse) VisitAdminCreateContributorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateContributor400JSONResponse ErrorResponse
+
+func (response AdminCreateContributor400JSONResponse) VisitAdminCreateContributorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateContributor401JSONResponse ErrorResponse
+
+func (response AdminCreateContributor401JSONResponse) VisitAdminCreateContributorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(401)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateContributor403JSONResponse ErrorResponse
+
+func (response AdminCreateContributor403JSONResponse) VisitAdminCreateContributorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(403)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AdminCreateContributor409JSONResponse ErrorResponse
+
+func (response AdminCreateContributor409JSONResponse) VisitAdminCreateContributorResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(409)
+	_, err := buf.WriteTo(w)
+	return err
 }
 
 type ListPendingContributorsRequestObject struct {
@@ -6723,6 +7321,21 @@ func (response UploadFile401JSONResponse) VisitUploadFileResponse(w http.Respons
 
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
+	// List all test categories with test counts (admin only)
+	// (GET /admin/categories)
+	ListCategories(ctx context.Context, request ListCategoriesRequestObject) (ListCategoriesResponseObject, error)
+	// Create a new test category (admin only)
+	// (POST /admin/categories)
+	CreateCategory(ctx context.Context, request CreateCategoryRequestObject) (CreateCategoryResponseObject, error)
+	// Delete an unused category (admin only)
+	// (DELETE /admin/categories/{id})
+	DeleteCategory(ctx context.Context, request DeleteCategoryRequestObject) (DeleteCategoryResponseObject, error)
+	// Update a category name (admin only)
+	// (PATCH /admin/categories/{id})
+	UpdateCategory(ctx context.Context, request UpdateCategoryRequestObject) (UpdateCategoryResponseObject, error)
+	// Create a contributor account directly (super admin only)
+	// (POST /admin/contributors)
+	AdminCreateContributor(ctx context.Context, request AdminCreateContributorRequestObject) (AdminCreateContributorResponseObject, error)
 	// List contributors awaiting approval (super admin only)
 	// (GET /admin/contributors/pending)
 	ListPendingContributors(ctx context.Context, request ListPendingContributorsRequestObject) (ListPendingContributorsResponseObject, error)
@@ -6884,6 +7497,151 @@ type strictHandler struct {
 	ssi         StrictServerInterface
 	middlewares []StrictMiddlewareFunc
 	options     StrictHTTPServerOptions
+}
+
+// ListCategories operation middleware
+func (sh *strictHandler) ListCategories(w http.ResponseWriter, r *http.Request) {
+	var request ListCategoriesRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.ListCategories(ctx, request.(ListCategoriesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListCategories")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(ListCategoriesResponseObject); ok {
+		if err := validResponse.VisitListCategoriesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateCategory operation middleware
+func (sh *strictHandler) CreateCategory(w http.ResponseWriter, r *http.Request) {
+	var request CreateCategoryRequestObject
+
+	var body CreateCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateCategory(ctx, request.(CreateCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateCategoryResponseObject); ok {
+		if err := validResponse.VisitCreateCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteCategory operation middleware
+func (sh *strictHandler) DeleteCategory(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request DeleteCategoryRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteCategory(ctx, request.(DeleteCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteCategoryResponseObject); ok {
+		if err := validResponse.VisitDeleteCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateCategory operation middleware
+func (sh *strictHandler) UpdateCategory(w http.ResponseWriter, r *http.Request, id openapi_types.UUID) {
+	var request UpdateCategoryRequestObject
+
+	request.Id = id
+
+	var body UpdateCategoryJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateCategory(ctx, request.(UpdateCategoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateCategory")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateCategoryResponseObject); ok {
+		if err := validResponse.VisitUpdateCategoryResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AdminCreateContributor operation middleware
+func (sh *strictHandler) AdminCreateContributor(w http.ResponseWriter, r *http.Request) {
+	var request AdminCreateContributorRequestObject
+
+	var body AdminCreateContributorJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AdminCreateContributor(ctx, request.(AdminCreateContributorRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AdminCreateContributor")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AdminCreateContributorResponseObject); ok {
+		if err := validResponse.VisitAdminCreateContributorResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
 }
 
 // ListPendingContributors operation middleware
@@ -8128,103 +8886,115 @@ func (sh *strictHandler) UploadFile(w http.ResponseWriter, r *http.Request) {
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
-	"/eByPkcWhfrR5fvP9/8fAAD//w==",
+	"7D1rc+M2kn8FxbuqnbmSLXke2ay3tmqdmUzOd7OJY3v2PiRTCkRCEmKSYADQHp/LVfcj7hfeL7nCiyRI",
+	"gA9ZkuWxvsxYEh6NRnejX2jcBSFJMpKilLPg+C5g4RIlUP55EnJ8jfntB4Si71NOb8WXGSUZohwj2QSG",
+	"nNBpChMkPvHbDAXHAeMUp4vgfhREiEMcO39C1yjlU/X1XYDSPAmOfwkoWmDGKeSYpMEoyPJZjEPzieWz",
+	"BDMmPnweNUfkOEGMwyQTA84JTSAPjoMIcnQgfgoaXe5HAUV/5JiiSMxdgWhUXVixjOoUJQBk9jsKuQDg",
+	"JEpweokY/4gZP0csIylDTZxFkEPxP+YokV/8K0Xz4Dj4l3G5E2O9DeNizGK8+2JmSCm8FZ9jnGBewTJO",
+	"OVogKn7K4AK5f+GEw9j1Uw0tElzTXA9opmzFgh8DkHOUZHwakjz1wB1CjhaE3k5xZG1nnuMocGx+0d5L",
+	"iyFJOcWzXOxr30EpghxFU8j7ktQoiPB8jsM85rdVukaQ3QajIEERzpNgFCwhjZxEHOWK+KcJTnOu0NXE",
+	"DopyxRXTGF2juDoTEythSSb/hfLfKzFTmscxnMUoOOY0R46Ze+KEcchzVp0xonDODbOyJYo83Mlj18bU",
+	"qE1OWtsq09mmivqeW6gv4HRg1NrXUY0YvRT9iSG6Rr4Wwz0dllYoYt/dXpIMh82ls8gNkKBAzw9Xvh8y",
+	"39r0zO30o5qNvGzQXFvOly2SKgwRY1NOrlDqlCoUzSliy5YWOUN0GDXUlmTBUJ9Rj+9a2TvNHs1VrSLX",
+	"eooHr/jliLUIfJcU0Fxd6WhxbtuS18ioBRYbTOpiKidQpTQ7oyTKtVbVhAslPmXJi1WS8yznUxYS6pEJ",
+	"f+SISfHXctgO2hu9LQrYxvi1/bLgcyJHbqhB8jmSwzVRYxCQwC8fUbrgy+D4aDIZBQlOi89d+p0cowWG",
+	"cpu8YBQ7VPCBQYN3yyoQv3r7tgNiIYsZuyFUMlul6be9FlfuSjGMf70/643zLvaBmkx/HaWPdoK+ZDFM",
+	"lSXgYgScwAWa5lTO0zkaycRArLcQMLj6SfY7TbNcIjKBX05Vd7Wx5Yf6cV5wSd3gScI/BPXQHE3nMGZi",
+	"D5M85ngaEkrFfn326GAoMRbboBVcmK6ORXxTXcSr5iI4+sJrdOkiYXkE91OxXYe30u1shOm5LRXPT9nK",
+	"+PBQ9foNiwixkOLMkKYtoibbMRESnOJEjFNuyIbNBSHScbqYhiSd40WngpMJ5eJC9Xknu5gdqtoGVWE5",
+	"VLy7bQSH9t+PhgQp+kWjd8vfOnfc0A76ApNMLDX4h2BDyPGVwPlGTrXvKSXUrwQh8bODPUhUg/SfJx9P",
+	"359cnv704/T78/Ofzp1Gr3SQ2NLIHneOURy5JTdjuccwbKypLpESxJi2hkqAT9NrGOMIYCnhuvAnF1yO",
+	"1MRk3Usk8eZC+IcYLrwUg9l0HsPFAlWRMCMkRjC1DohV5Ga186g6lQvMf0cwbjN5mgY+uZI+sAWFkRqz",
+	"xLX86eGeuFFwjSjT3FSOPjk8Opx0rr6w9Nu9cx8RjBCdEUiVM9OPAQrTKwtynPJv3gQuycp4HqGUT3s7",
+	"T1TzFa0kbbKX6n6JW5LP4gpi0zyZOXR3uTIL6hpM9gwWPB04XZO55d2llc2vj2SB026NvqS6WR7hv+uP",
+	"hyERZ3G3ul/V28uh2Oswp6/P/s5Yt/e5j+b+kSxI7tdtupwRdWqwmrvm+4eSiv69dQpgl1CoTe0Xt6Pg",
+	"LIZcIFyoqqzNNaPs6OkcKaHaz5/eiGk4jhXtEmTT2e208Dv1G77mKXMMXnVuZjV/QD+PhMef0D4Xm/Il",
+	"ZtMbhDyetwylkVDoYJZRcg1j1sefMNwAeSe6/UBJnrkA1sKoE1gtlwTBGSWsFxTCNHhXdnNAoGyQDFHJ",
+	"82mI+o8tep5VOjpHF9K1ui1tct7gurWRQVlbG4Eu1sO3UxvRCa89ZhNUFyU5N9ZLni4GdG1MkxhbuKtJ",
+	"M6OaCHHJIgfVNo+Q4daV22Zmw0jNgq3zfKxDWczZtuz3Uq/3y+CnEVPbqCdqXXG1bTqw2gJPu+epaoPW",
+	"uKQe4oQaBbn0TgyhyX5RyyHurHJPLazVgpUVSNv4do3xD48o2PWQpctj2zTKB/EcZgWpO034GM5QzZQ4",
+	"qTl3Ot3/vVysNdSoeQuaqoDZjRg/kWxEbK2IQi+aenDlatipuck3TDkZYbgW2bB03eE00VxtZZZeC98x",
+	"yuiHoh70MBgz58pK3p7RfS5z4FBLFLKpz1gO6UDxNoxB0RLIln8FJI1vAcyyGKMIzAkFlMTob1o5D0bD",
+	"Fdd1+U+aHvLv8giDC5hywki7j/zVav6Yyoh/fjVqj7aOAoEoS3MscFY5923naNlktditntRNIyyPeZd6",
+	"PothetWaZaesoYHquGactoF7yogM0RClXGsHNhFbs4AxqNmZ4N/A0WRSpS2fD3QUMCSzRod6aXs2l3bl",
+	"kLa+VDijMc4oglcRuUmH2YPfmW6tCvNAB/IouKFEhvkGZO5U8F1zNhtcWZioO51t+rIhGFlEXaNgi6Ca",
+	"2PQz0hr1ZZ35msf84a7rc3SN0c0pR0mbCa6QpawHDx12Hr+NUWx7rZuua2T2UIt9qI29UeNZbUO36Uxo",
+	"hOgUpxH60uE77Skt1myLoxiFglMeRirNYR5IKyv4CNSO9PIQNMOZpd4nBYsRKW6/3Fr8C6qxJ+jXGsut",
+	"+w2qJOb2IlScDpVpvd4FjR6/9NnbiX7crOnIcIj5Bx4Zu2rFGV0ApuxGZUV7hqz0eZBt50LRBbxGJxIA",
+	"r4U1VFDvimj1zNAUtXoH+kvcgqIU5orswfYZW2Sbc2fs/LB2syYjWB8ZPZRYo98M6rQB/V+psgOgcJO5",
+	"UaJry6qNP7Ix5cS40tQNO3hj7fL3gWai5uFBzD5UMdo2fw60Iw23rTRfp2VlqwrVPWrZauPoU9lq3tNh",
+	"Z9LVNNhdtDlAkjlJ3qE5CqgGD+tEr2Pw/iREh7pnmhovTqcZJQuKpN9LXqPlHIkJ0ZdM7srnh7tBimHb",
+	"gO1ksUHOFJygKUUJxClOF1OGQpJGrLeTwu2XqGB8ZKcWOqYaFdTnJl1uyIH1UTUeZEf5ecwDnOtAd8mB",
+	"DoWuXcR1Z24WvTv1tlrujsMTYn6bZha85YluyN199VDtvOfHgmn8+Ug9r7hani8zqZstR/VF+fDSmajx",
+	"ZK9T25n2nfLjsa5f277rH/M4BgmCKQN8iYDYcYAZgNcQS/ABJwDGjfgM6xGBWVe+SXFb+0Hi2spQ6+0f",
+	"La+e+Q9IKn2omrRs7H76dPoekLlErZbif2Kg8AQD1fUQnJEsjwXFgZslSk3TqRLqfyvaH1aDCL1VwUHX",
+	"X9yGzQNu09trcUQA0/gWZMX654QCmPMlSjkO5Td6ABDCOEaUHVYoLyVyXC2WbN2hQNqj3fFvvc9TObGt",
+	"tJmSTH0CtJ537j1eBsovc5dgC1cHtnw1wMKHF63rDaw8sSQkp6xb1RO39uhCf1W73Qlhm3NVMH04qcXH",
+	"nl7c+gkFlL/icK+TvNyR8FVIrJNY1hcDahFBQ3fEF/8xQqs/tr3oPbMvR9TcMdeLRjmKkrpmggz8Pw8s",
+	"8lLOZY3sBdzOmG+A7pu9dXfyNGc+q9D3i2c5Zotkt2Jk72parL0tGFoD68F4bj73OGg0/XZUflEXzDdW",
+	"R8Qz3xklcxwj73TwGnJITfisZsWcfwRzShJw9tPFJRjnWUxgL9Oj0/r83rYqpfZv9P2cCW0fSAM1jBGk",
+	"ykKVDQ/B6SIlVNsLKUkPTC9KYsQOf03XYZ8uUBqpcECRzQDlqTBH+g/Cl6qkUedY2ZKkjtSxo8nB0VsQ",
+	"4QXmQDYBWsT08bl7tvpJl0t55ASaB5dP+ZoKnnjoy1kb49FCnw+NUz44MKmQsmOVXB7D+7j9yi4rV2Px",
+	"beJDSql0QrvmE/0TQ/RC+pC8EDd9dvIeKSpvvkpvPhMfnI4yd/0KJxew1qi8pV1053iuoBVugr7WdWVg",
+	"nYoErl0UePt2gr59M5kcoFd/mR28OYreHMA/H31z8ObNN9+8ffvmzWRi5573V39r1xr8Kk0nzP1uJIwC",
+	"GCU49d7O9FAyTos/S1IuCfzzENXd7KAE2O2idZbdYSjMKea3F+JI1+cfghTRk1ywtfn0wWzCf/zXpRhe",
+	"thZEJX8tcbzkPAvuxcA4nZOm1nj+/cUlODk7ldqvUIov//PkjKIMZLogxeGv6a/pSRzXXOkojdRBBjQC",
+	"wG8CQELxf0vWOQbfSUjAr/lk8jqslvOU36Df5MAXCIHfWIbCwyT6DeBUgkBRRgAlhBdAzYXmrm+2A9Ec",
+	"z3WFbKWfa+kdGOBPzk6DSnkdXVNHKnEohRkOjoPXh5PD19KfyZcSy2NJMmN9YGpps0BSbggBJKc7jYLj",
+	"4CNm/F3ZTIZtpLSSXV5NJuaWOFIGt7x6pMAd/86UyFcaW986nJZHWe6mvYvid0DmoAL8/Sh4MzlaGyR2",
+	"YS0HCD8SbpOIguD19iCQFYvlZS+LkYLjX2wW+uXz/WfB4EkC6a1BHoxjFbEsUQhuMF/qL2WlBfACFlO8",
+	"FFQnU2V+URMHn9WFPQe92OU+AyUzEOPfkeh2faTirCl6b4soIVTvG/R6tHZ6dW2P+Q1oCajoY7I9+vgn",
+	"jHGkXASqntnzZhEx9V+2N/X7XA2NgDwgB3Goom0AQYpuLC697WLJ+1FTro/vcHSvTsIYcdTk1/fy+wq/",
+	"ZpDCBHGZcPfLXYDFesS5YU77Y3Xy23w2qmCuy0D+vMEzpF7Oqo01FUaiPWdM3mx38XOSp9HWebLYd5yC",
+	"nA1kSsUlAKZA+ex786TUucJlk+9sd/bW+G79Z7HbL9/rLJ5s9yzWpVX2Z/FzlThDOF6RNYAlpwsuHHAE",
+	"1yrAubVl2a9RnX6zWnOzCv6WFefaWxhNhi0h3OvPz1J//j6BOAYwpghGt4DqcikoWlGTrvAigKEqNxFh",
+	"ikIe34IXLM8QBavw9dg4y9qcJ2eqzTu7wqLrtP8jR1IT0Me9Tj4rURqhOcxjbqpMeYMG9yP3gCqNzTni",
+	"q4mMmukhtXfdP8EmVXj3W0wOIjmDC5xK/1ysPUJ6O4Ale/e+oUG+oSruALyBmAuMmkKfD+KWu5whehrd",
+	"j9VoqOVYVA3sI7FbQVbjP2XjVC98b5RuVUUU0gaklmX66tXj6RrghYAFusTZy2EcrcnJPdZ6eJmi3/Xd",
+	"MTcrn8vfnx8nq3XvOXnPyWvhZEVO62FkxiH3B/x+QFx2kcX5Nxnvc78C4FL0dEMgAMeM43Cv1fWnnB8Q",
+	"L+LbBzc4QhU0DqWcosq819op3gZ++kaOZ4JmmfVyqoHFNX1T2BfkduPIcz993cssk1SjAsy67L+OMe+5",
+	"eLW4vROZQ3lZ5ol38/In2awXLzMEabi0KLYnwZu8oSYjDcx48k1QZCQ1pxic2rf31qzHW6MIcC8CBosA",
+	"iTglAoipAz3HseDNlYRAacyV6YKtUcti0y8MW23PottUALOZFrzlEGZXVESBGcnd3xuVz9ioXDGOKejm",
+	"T6yIfyhWHyAvcr4cx2SBU7+v54wwLqCQD/JtKIhpPfa3ZRYVa2vNTBWwAZbL/N95Hm+dTc3DqCFFQm3C",
+	"MGY7Qq6lS7IiRQBMI0BRiPA1AjJdmlWpT9CzTXwk572oj8hnYTdEfpX3GbdMfz3cjh/JYoEiQNRFuK0S",
+	"36cU6qT4oYFaTbaCIvgSgTCnVN5JVQ9pKMpoIQx1AcPrzMr58h8oeMST+51ej5DAIFMXip/Q7vyAuLUt",
+	"9t0IfayYZTV2yZsAdya+rmzOphS72g3uHdbqbNqYNO+vtCSlrGuztboQVki2bXcLHtS82i2d9WM7G9ry",
+	"2lM+O6YfXMojzsi1R4gNGf2AUKALENaErH1WnxMuiMFqIs/sBeI6QV3ddeoU0SaFpw996JabIhD76aUt",
+	"p751UYg0NXTOW0WR3KkUrN3SJ82GanqU1rGTDpfyVfw2TUG9m79JTaH2Mr9jtReIXuMQAcyAAvi2tl41",
+	"BAiXKLyqLPTilnGU6KXGZam7tvVWKuL1dPCGJPM4OYNFTGayto3xqxZf8CsVAZnJYkQIOSMhm/RRut6w",
+	"d6nOZTOAUv4oFwsfqKWR7OBoMgGxtbGGRKrb3aCTDiW60leqa8+CWGSZyFafNqJMel/jGuncPjLhbNk3",
+	"d6GLCD1Sfr8uB8uUf07fo8YMKApczdaRRVOF5mu2mML0CpBU11Iqt/sFqyz+ZSu7WaV0fZz2c/WZ9U3G",
+	"3Cpl5Pq74D1j2QVaGyG2nuVRxOj23n6QUQ0wu63XUT4EPyVYCDxAEc9pKuMiL3AaxrnMjslTLh8ceHko",
+	"Kx2sJYq/jwX2LMg0PBRYcsazkpsfCJ3hKDJ216BAYPlM5otKaFyF9apiqJQn/jv7wvaqyp3NXT6q11jb",
+	"svnle+q8uTWmpX0B6RkS5pMKdhU3fgx3WMzROKKrvGEd0OM78+dpn9vzxTg/F716xcT/qDZ/spnO7x/p",
+	"Hv0OccjzuEFfyETMgLwEj1MAQfGMgUxNW+1afYVfyY2KQ/8VzGISXolZ5mIiexr/CdepV399PLrCqRbJ",
+	"pnuW3ekr6MIY/aO2Y17FriXItgukv6no3koK5aOynlWFYs972z0un2DeVvNolB6uil47AjBVX7Zaf0LD",
+	"1Z6yNgfUuW6yQa5xPMnfUufPwLx3DfR0DRh3qCSYSmn4kfSSOenEbLpFJeM79Ye2gToI5ly37XW00LLx",
+	"bupUajXdYl212+tTT0WfotX9Ujn0GaIH0hkOZuZVmQGcMabyPfYBDKIecN8em/S/ElMG6GBcjc6pT+bl",
+	"Tl3q3dR433aArvYwv5MnRQugHhHYs+RXrmaZnCad0K4uwgwTDGeIHhRqluJnJRo0yQP9BrDMfao8vMG8",
+	"ckI/mMXGd/qvjjNUvy3NLkzrXuKBVVrv5jFaf9vbmfEim8j9Q8+UXcH//c//yhsmtySnQG/rUzpWWXUT",
+	"wQvFPCZfuMI8HCcIFK9sVzVQdWfczz3jyivw/ihWg49OdK8ts9P63R0X8BqZF+0fxdXRg5UVfIDB671/",
+	"4+sPBxjBLeQWToF5Q7iSXLx1XaBwsmmYZBrQ8LCE4DWxjFz7YFItw8ALqfECPAcMxbK8z1TdwJ3iCBD1",
+	"uPsgoTaP4WKgRPsgujx5cSZWsbuCTEC3d9Q+c0E2TGZcksUiRkAwNCBpxW87RBywfKYftx4gEC5Up6/D",
+	"YHA8Hu33uon++Z5FnwGLnuh7KIpBOIosLWPQ2S5HkGm8xmgRhokmJf0kk6AuD9+2l8D6AfGHFL9aT27o",
+	"w2tcrVqAauPpwQNr+0QUzqVkNMkjQ4pwlQG2XarD1acE18dq4a193Kxv3Ixrzq2zfVvarOH2zaXMVl9I",
+	"3XK6rJi6OwR2Kd8o2qfJPsE02eKJqfYc8sb5N74T//XKjZV9L2XrXioqN033+bB7pXS3lVIp+DArU1NX",
+	"Sn718N8ISOWlkbNeHkqtCujXw3EDDqF9FsYTCRdJmp/dgtP3bnWrJZn1sah7Uwmsg9W7bXOWqVCj3Oh7",
+	"1np2Z9pTTJuVAiZBHEaQwxVO16am27eoRkU+ddfXWLuoGn5/WPmILI/R2i8NZ1SgietnxsWWiP9VflYf",
+	"d0etJIMgSQ0jpBSqCin1x+WbPmOYXlWuHJc1A2g1TLhlRpfslq5+kFYrEcjE3uLBeLWetnIENfrWHN8e",
+	"fKhQ95lu/7xUTFsu7o/CZxBzeLyjUFLcEjKQkmqJhEGpjQp4APWB9yBvj13BJMtdQiKvyoiuYiZPRVW/",
+	"qNwf3WllvYByn72w90L1fFgqi2GI5NWgsqaIvNm9omfKITdYSKh+J7WnbX+he3wNJr5eyzuSzvFip8WH",
+	"hhSEEtS9DNnLkCFGN7OpZz2SQ2c79TZLTHrU49klR490e4LqtBhh2SZ7rn0cE15sgPhQsxP/sv1ijMJu",
+	"MOV7xTgyKLlyRrQgr2rA2OROvSgIDqAvmMnHonF6UCSD63Y9uT1Ph3ohPhU9npcfosDUntGfjydCG/ED",
+	"D2dDKUajn8HwCnCiz+IX7qd/LCYlGQ7bcx5Vi0d0EwsAShQ6/MMlx/+ihv7cw2dcJNKp9dmVuMsnGc3q",
+	"C+SpLzoyx0qcbSx1TGHlcXLH7B1xPYaQ4XCfN/Yk88ZUuQSf6DDUX8qO8Z38v1/CmOxxqdr3O9WLtvuc",
+	"sf1RvuOWtuQcnIKcoRVrJfZjvo4smsdjso0l0gw+7CbbPuz2/rRnwuXvSDqPccjBiyhXkyAg+OjlUy1C",
+	"1//Az7OYwMhvv3+Sv39Qr4n5pUGSxxxnkPKxECoHxhjwGQvydbKqBJrhFMoMmEaGjGUJyH5uS2C90sMG",
+	"N6exvKb0BSaZANygjY1fz+G3b+ffvDn8PVt0Qi+G6WPGKJw3HiadbL9IzxN7+lAjDkq4wQucwAV66Xx1",
+	"SY5Kr80BWn+UM4QxiNA1ikmWqPfsJQkES86z4/E4Fg2WhPHjbyffTsYww+Pro0DAomeqj6hfgYJpBAr2",
+	"gjFAaZQRnMobSfrc1iA239aoPMRqLkGat4ETmMIF0oDqcSSCmqOog63soGXEy7Kjlg7NrkWxhhlMr6xo",
+	"QaX3z5WXIe4cjjBVVoaVTn8zq7765upT5H6p52d1NTbd8byoNnnnSCBTIUndtJpS1Wx+UX1Y2exRBUL1",
+	"uPL95/v/DwAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

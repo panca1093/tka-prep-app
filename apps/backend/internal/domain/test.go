@@ -6,14 +6,6 @@ import (
 	"github.com/google/uuid"
 )
 
-type TestCategory string
-
-const (
-	CategoryTKASaintek TestCategory = "tka_saintek"
-	CategoryTKASoshum  TestCategory = "tka_soshum"
-	CategorySMBT       TestCategory = "smbt"
-)
-
 type TestStatus string
 
 const (
@@ -26,7 +18,8 @@ type Test struct {
 	ContributorID   uuid.UUID
 	Title           string
 	Description     *string
-	Category        TestCategory
+	CategoryID      uuid.UUID
+	CategoryName    string
 	DurationMinutes int
 	Difficulty      Difficulty
 	Status          TestStatus

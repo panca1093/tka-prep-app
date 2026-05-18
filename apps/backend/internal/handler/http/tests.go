@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
+
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
@@ -25,9 +27,9 @@ func (s *APIServer) GetTests(ctx context.Context, req api.GetTestsRequestObject)
 	if p.Limit != nil {
 		f.Limit = *p.Limit
 	}
-	if p.Category != nil {
-		cat := domain.TestCategory(*p.Category)
-		f.Category = &cat
+	if p.CategoryId != nil {
+		id := uuid.UUID(*p.CategoryId)
+		f.CategoryID = &id
 	}
 	if p.Difficulty != nil {
 		d := domain.Difficulty(*p.Difficulty)
@@ -85,7 +87,7 @@ func (s *APIServer) PostTests(ctx context.Context, req api.PostTestsRequestObjec
 		ContributorID:   claims.UserID,
 		Title:           req.Body.Title,
 		Description:     req.Body.Description,
-		Category:        domain.TestCategory(req.Body.Category),
+		CategoryID:      req.Body.CategoryId,
 		DurationMinutes: req.Body.DurationMinutes,
 		Difficulty:      domain.Difficulty(req.Body.Difficulty),
 	}
@@ -157,9 +159,8 @@ func (s *APIServer) PatchTestsTestId(ctx context.Context, req api.PatchTestsTest
 		Title:       req.Body.Title,
 		Description: req.Body.Description,
 	}
-	if req.Body.Category != nil {
-		cat := domain.TestCategory(*req.Body.Category)
-		in.Category = &cat
+	if req.Body.CategoryId != nil {
+		in.CategoryID = req.Body.CategoryId
 	}
 	if req.Body.DurationMinutes != nil {
 		in.DurationMinutes = req.Body.DurationMinutes
@@ -332,7 +333,8 @@ func toTestDetailResponse(t *domain.Test) api.TestDetailResponse {
 		ContributorId:   t.ContributorID,
 		Title:           t.Title,
 		Description:     t.Description,
-		Category:        api.TestDetailResponseCategory(t.Category),
+		CategoryId:      t.CategoryID,
+			CategoryName:    t.CategoryName,
 		DurationMinutes: t.DurationMinutes,
 		Difficulty:      api.TestDetailResponseDifficulty(t.Difficulty),
 		Status:          api.TestDetailResponseStatus(t.Status),

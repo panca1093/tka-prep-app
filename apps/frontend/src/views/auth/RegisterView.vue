@@ -10,7 +10,6 @@ const router = useRouter()
 const name = ref('')
 const email = ref('')
 const password = ref('')
-const role = ref<'student' | 'contributor'>('student')
 const educationLevel = ref<'sd' | 'smp' | 'sma' | 'smk' | ''>('')
 const isLoading = ref(false)
 const errorMsg = ref('')
@@ -21,7 +20,7 @@ async function handleSubmit() {
   isLoading.value = true
   try {
     const el = educationLevel.value ? educationLevel.value : undefined
-    const result = await auth.register({ name: name.value, email: email.value, password: password.value, role: role.value, education_level: el })
+    const result = await auth.register({ name: name.value, email: email.value, password: password.value, role: 'student', education_level: el })
     if (result.isPending) {
       isPending.value = true
     } else {
@@ -54,8 +53,8 @@ async function handleSubmit() {
     </template>
 
     <template v-else>
-      <h1 class="page-title">Create account</h1>
-      <p class="page-sub">Join thousands of students preparing for TKA &amp; SMBT</p>
+      <h1 class="page-title">Daftar sebagai Siswa</h1>
+      <p class="page-sub">Bergabung dengan ribuan siswa mempersiapkan TKA &amp; SMBT</p>
 
       <form @submit.prevent="handleSubmit" class="form">
         <div class="field">
@@ -70,7 +69,7 @@ async function handleSubmit() {
           <label>Password</label>
           <input v-model="password" type="password" autocomplete="new-password" placeholder="min. 8 characters" required minlength="8" maxlength="72" />
         </div>
-        <div v-if="role === 'student'" class="field">
+        <div class="field">
           <label>Education Level</label>
           <select v-model="educationLevel" class="edu-select">
             <option value="">Select your level</option>
@@ -79,22 +78,6 @@ async function handleSubmit() {
             <option value="sma">SMA — Sekolah Menengah Atas</option>
             <option value="smk">SMK — Sekolah Menengah Kejuruan</option>
           </select>
-        </div>
-
-        <div class="field">
-          <label>I am a…</label>
-          <div class="role-group">
-            <label class="role-option" :class="{ active: role === 'student' }">
-              <input v-model="role" type="radio" value="student" />
-              <span>Student</span>
-              <span class="role-sub">Takes tests, tracks progress</span>
-            </label>
-            <label class="role-option" :class="{ active: role === 'contributor' }">
-              <input v-model="role" type="radio" value="contributor" />
-              <span>Contributor</span>
-              <span class="role-sub">Authors questions &amp; tests</span>
-            </label>
-          </div>
         </div>
 
         <p v-if="errorMsg" class="error-msg">{{ errorMsg }}</p>

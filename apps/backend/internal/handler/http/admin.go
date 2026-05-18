@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
+
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
@@ -25,11 +27,19 @@ func (s *APIServer) GetAdminStats(ctx context.Context, _ api.GetAdminStatsReques
 		return nil, err
 	}
 	return api.GetAdminStats200JSONResponse(api.PlatformStatsResponse{
-		TotalStudents:     stats.TotalStudents,
-		TotalContributors: stats.TotalContributors,
-		TotalTests:        stats.TotalTests,
-		TotalQuestions:    stats.TotalQuestions,
-		PendingApprovals:  stats.PendingApprovals,
+		TotalStudents:           stats.TotalStudents,
+		TotalContributors:       stats.TotalContributors,
+		TotalTests:              stats.TotalTests,
+		TotalQuestions:          stats.TotalQuestions,
+		PendingApprovals:        stats.PendingApprovals,
+		StudentsThisWeek:        stats.StudentsThisWeek,
+		ContributorsThisWeek:    stats.ContributorsThisWeek,
+		AttemptsByTopic:         toAPIAttemptsByTopic(stats.AttemptsByTopic),
+		TopicPerformance:        toAPITopicPerformance(stats.TopicPerformance),
+		QuestionCounts:          toAPIQuestionCounts(stats.QuestionCounts),
+		ContributorProductivity: toAPIContributorProductivity(stats.ContributorProductivity),
+		TestCompletion:          toAPITestCompletion(stats.TestCompletion),
+		ActivityFeed:            toAPIActivityFeed(stats.ActivityFeed),
 	}), nil
 }
 
@@ -100,6 +110,28 @@ func (s *APIServer) UpdateAdminUserStatus(ctx context.Context, req api.UpdateAdm
 		return nil, err
 	}
 	return api.UpdateAdminUserStatus200JSONResponse(toUserResponse(user)), nil
+}
+
+func (s *APIServer) AdminCreateContributor(ctx context.Context, req api.AdminCreateContributorRequestObject) (api.AdminCreateContributorResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.AdminCreateContributor401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleAdmin {
+		return api.AdminCreateContributor403JSONResponse(errBody("FORBIDDEN", "admin only")), nil
+	}
+
+	user, err := s.adminSvc.CreateContributor(ctx, req.Body.Name, string(req.Body.Email), req.Body.Password)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrConflict):
+			return api.AdminCreateContributor409JSONResponse(errBody("CONFLICT", "email already registered")), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.AdminCreateContributor400JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.AdminCreateContributor201JSONResponse(toUserResponse(user)), nil
 }
 
 func (s *APIServer) ListPendingContributors(ctx context.Context, req api.ListPendingContributorsRequestObject) (api.ListPendingContributorsResponseObject, error) {
@@ -196,8 +228,13 @@ func (s *APIServer) ListAdminTests(ctx context.Context, req api.ListAdminTestsRe
 		el := domain.EducationLevel(string(*req.Params.EducationLevel))
 		eduLevel = &el
 	}
+	var categoryID *uuid.UUID
+	if req.Params.CategoryId != nil {
+		cid := uuid.UUID(*req.Params.CategoryId)
+		categoryID = &cid
+	}
 
-	tests, total, err := s.adminSvc.ListTestsWithAttempts(ctx, page, limit, eduLevel)
+	tests, total, err := s.adminSvc.ListTestsWithAttempts(ctx, page, limit, eduLevel, categoryID)
 	if err != nil {
 		return nil, err
 	}
@@ -219,7 +256,8 @@ func toAdminTestResponse(t *domain.TestWithAttempts) api.AdminTestResponse {
 		Id:              t.ID,
 		ContributorId:   t.ContributorID,
 		Title:           t.Title,
-		Category:        api.AdminTestResponseCategory(t.Category),
+		CategoryId:      t.CategoryID,
+		CategoryName:    t.CategoryName,
 		Difficulty:      api.AdminTestResponseDifficulty(t.Difficulty),
 		Status:          api.AdminTestResponseStatus(t.Status),
 		DurationMinutes: t.DurationMinutes,
@@ -231,6 +269,118 @@ func toAdminTestResponse(t *domain.TestWithAttempts) api.AdminTestResponse {
 		resp.EducationLevel = &el
 	}
 	return resp
+}
+
+func toAPIAttemptsByTopic(items []domain.AttemptsByTopic) []api.AttemptsByTopic {
+	if items == nil {
+		return []api.AttemptsByTopic{}
+	}
+	out := make([]api.AttemptsByTopic, len(items))
+	for i, v := range items {
+		out[i] = api.AttemptsByTopic{
+			Topic: v.Topic,
+			Sd:    v.SD,
+			Smp:   v.SMP,
+			Sma:   v.SMA,
+			Smk:   v.SMK,
+		}
+	}
+	return out
+}
+
+func toAPITopicPerformance(items []domain.TopicPerformance) []api.TopicPerformance {
+	if items == nil {
+		return []api.TopicPerformance{}
+	}
+	out := make([]api.TopicPerformance, len(items))
+	for i, v := range items {
+		out[i] = api.TopicPerformance{
+			Topic:     v.Topic,
+			AvgScore:  float32(v.AvgScore),
+			BestScore: float32(v.BestScore),
+		}
+	}
+	return out
+}
+
+func toAPIQuestionCounts(items []domain.QuestionCountGroup) []api.QuestionCountGroup {
+	if items == nil {
+		return []api.QuestionCountGroup{}
+	}
+	out := make([]api.QuestionCountGroup, len(items))
+	for i, v := range items {
+		topics := make([]api.TopicQuestionCount, len(v.Topics))
+		for j, t := range v.Topics {
+			topics[j] = api.TopicQuestionCount{
+				Topic:  t.Topic,
+				Total:  t.Total,
+				Used:   t.Used,
+				Unused: t.Unused,
+			}
+		}
+		out[i] = api.QuestionCountGroup{
+			EducationLevel: api.QuestionCountGroupEducationLevel(v.EducationLevel),
+			Topics:         topics,
+		}
+	}
+	return out
+}
+
+func toAPIContributorProductivity(items []domain.ContributorProductivity) []api.ContributorProductivity {
+	if items == nil {
+		return []api.ContributorProductivity{}
+	}
+	out := make([]api.ContributorProductivity, len(items))
+	for i, v := range items {
+		out[i] = api.ContributorProductivity{
+			Name:          v.Name,
+			Email:         v.Email,
+			QuestionCount: v.QuestionCount,
+			TestCount:     v.TestCount,
+			OutputScore:   v.OutputScore,
+		}
+	}
+	return out
+}
+
+func toAPITestCompletion(items []domain.TestCompletion) []api.TestCompletion {
+	if items == nil {
+		return []api.TestCompletion{}
+	}
+	out := make([]api.TestCompletion, len(items))
+	for i, v := range items {
+		out[i] = api.TestCompletion{
+			TestTitle:     v.TestTitle,
+			Started:       v.Started,
+			Submitted:     v.Submitted,
+			Expired:       v.Expired,
+			CompletionPct: float32(v.CompletionPct),
+		}
+	}
+	return out
+}
+
+func toAPIActivityFeed(items []domain.ActivityFeedEntry) []api.ActivityFeedEntry {
+	if items == nil {
+		return []api.ActivityFeedEntry{}
+	}
+	out := make([]api.ActivityFeedEntry, len(items))
+	for i, v := range items {
+		out[i] = api.ActivityFeedEntry{
+			ActorName: v.ActorName,
+			Detail:    v.Detail,
+			Timestamp: v.Timestamp,
+		}
+		switch v.EventType {
+		case "registration":
+			out[i].EventType = api.Registration
+		case "publication":
+			out[i].EventType = api.Publication
+		case "submission":
+			out[i].EventType = api.Submission
+		}
+	}
+	return out
 }
 
 func derefInt(p *int, def int) int {

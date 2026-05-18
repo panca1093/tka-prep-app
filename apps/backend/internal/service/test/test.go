@@ -26,7 +26,7 @@ type CreateInput struct {
 	ContributorID   uuid.UUID
 	Title           string
 	Description     *string
-	Category        domain.TestCategory
+	CategoryID      uuid.UUID
 	DurationMinutes int
 	Difficulty      domain.Difficulty
 	EducationLevel  *domain.EducationLevel
@@ -42,7 +42,7 @@ type ScoringConfigInput struct {
 type UpdateInput struct {
 	Title           *string
 	Description     *string
-	Category        *domain.TestCategory
+	CategoryID      *uuid.UUID
 	DurationMinutes *int
 	Difficulty      *domain.Difficulty
 	EducationLevel  *domain.EducationLevel
@@ -54,7 +54,7 @@ type SetQuestionsInput struct {
 
 type ListFilter struct {
 	ContributorID  *uuid.UUID
-	Category       *domain.TestCategory
+	CategoryID     *uuid.UUID
 	Difficulty     *domain.Difficulty
 	Status         *domain.TestStatus
 	EducationLevel *domain.EducationLevel
@@ -78,7 +78,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Test, err
 		ContributorID:   in.ContributorID,
 		Title:           in.Title,
 		Description:     in.Description,
-		Category:        in.Category,
+		CategoryID:      in.CategoryID,
 		DurationMinutes: in.DurationMinutes,
 		Difficulty:      in.Difficulty,
 		EducationLevel:  in.EducationLevel,
@@ -117,7 +117,7 @@ func (s *Service) Get(ctx context.Context, id uuid.UUID) (*domain.Test, error) {
 func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Test, int, error) {
 	return s.tests.List(ctx, repository.TestFilter{
 		ContributorID:  f.ContributorID,
-		Category:       f.Category,
+		CategoryID:     f.CategoryID,
 		Difficulty:     f.Difficulty,
 		Status:         f.Status,
 		EducationLevel: f.EducationLevel,
@@ -150,8 +150,8 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	if in.Description != nil {
 		t.Description = in.Description
 	}
-	if in.Category != nil {
-		t.Category = *in.Category
+	if in.CategoryID != nil {
+		t.CategoryID = *in.CategoryID
 	}
 	if in.DurationMinutes != nil {
 		if *in.DurationMinutes <= 0 {
@@ -224,7 +224,6 @@ func (s *Service) Unpublish(ctx context.Context, id uuid.UUID, callerID uuid.UUI
 		return nil, err
 	}
 
-	// Contributors can only unpublish their own tests.
 	if callerRole == domain.RoleContributor && t.ContributorID != callerID {
 		return nil, apierr.ErrForbidden
 	}

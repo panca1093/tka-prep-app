@@ -73,7 +73,7 @@ type QuestionRepository interface {
 // TestFilter holds optional filters for listing tests.
 type TestFilter struct {
 	ContributorID  *uuid.UUID
-	Category       *domain.TestCategory
+	CategoryID     *uuid.UUID
 	Difficulty     *domain.Difficulty
 	Status         *domain.TestStatus
 	EducationLevel *domain.EducationLevel
@@ -125,7 +125,16 @@ type AdminRepository interface {
 	// GetStats returns aggregate platform statistics.
 	GetStats(ctx context.Context) (*domain.PlatformStats, error)
 	// ListTestsWithAttempts returns tests with their attempt counts, ordered by attempt count desc.
-	ListTestsWithAttempts(ctx context.Context, page, limit int, educationLevel *domain.EducationLevel) ([]*domain.TestWithAttempts, int, error)
+	ListTestsWithAttempts(ctx context.Context, page, limit int, educationLevel *domain.EducationLevel, categoryID *uuid.UUID) ([]*domain.TestWithAttempts, int, error)
+}
+
+type CategoryRepository interface {
+	List(ctx context.Context) ([]*domain.Category, error)
+	Create(ctx context.Context, name string) (*domain.Category, error)
+	Update(ctx context.Context, id uuid.UUID, name string) (*domain.Category, error)
+	Delete(ctx context.Context, id uuid.UUID) error
+	FindByID(ctx context.Context, id uuid.UUID) (*domain.Category, error)
+	TestCount(ctx context.Context, id uuid.UUID) (int, error)
 }
 
 type ResultRepository interface {
