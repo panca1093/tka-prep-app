@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, RouterLink } from 'vue-router'
 import { useTestStore } from '@/stores/test'
 import { useSessionStore } from '@/stores/session'
+import { useAuthStore } from '@/stores/auth'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
 
@@ -10,7 +11,10 @@ type Category = components['schemas']['Category']
 
 const testStore = useTestStore()
 const sessionStore = useSessionStore()
+const auth = useAuthStore()
 const router = useRouter()
+
+const needsEducationLevel = computed(() => auth.role === 'student' && !auth.user?.education_level)
 
 const categoryFilter = ref<string>('all')
 const startingId = ref<string | null>(null)
@@ -35,8 +39,8 @@ async function handleStart(testId: string) {
   try {
     const sessionId = await sessionStore.startOrResume(testId)
     router.push({ name: 'test-session', params: { sessionId } })
-  } catch {
-    startError.value = 'Tidak dapat memulai sesi. Coba lagi.'
+  } catch (e) {
+    startError.value = (e as Error).message || 'Tidak dapat memulai sesi. Coba lagi.'
   } finally {
     startingId.value = null
   }
@@ -70,6 +74,24 @@ const completed = computed(() => testStore.tests.filter(t => t.student_status ==
 
 <template>
   <div class="tests-page">
+    <!-- Education level guard -->
+    <div v-if="needsEducationLevel" class="edu-guard-card">
+      <div class="edu-guard-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="32" height="32">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+      </div>
+      <h2 class="edu-guard-title">Lengkapi Profil Anda</h2>
+      <p class="edu-guard-desc">
+        Anda perlu mengisi jenjang pendidikan sebelum dapat mengakses ujian.
+        Hal ini membantu kami menampilkan soal yang sesuai dengan tingkat Anda.
+      </p>
+      <RouterLink to="/profile" class="edu-guard-btn">Isi Jenjang Pendidikan</RouterLink>
+    </div>
+
+    <template v-else>
     <div class="page-header">
       <h1 class="page-title">Ujian Tersedia</h1>
       <p class="page-sub">Pilih paket ujian dan mulai berlatih</p>
@@ -201,11 +223,29 @@ const completed = computed(() => testStore.tests.filter(t => t.student_status ==
         </div>
       </div>
     </template>
+    </template>
   </div>
 </template>
 
 <style scoped>
 .tests-page { display: flex; flex-direction: column; gap: 1.5rem; }
+
+/* ─── Education level guard ─────────────────────────────────────────────── */
+.edu-guard-card {
+  display: flex; flex-direction: column; align-items: center; gap: 1rem;
+  padding: 3rem 2rem; border-radius: 14px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  text-align: center; max-width: 480px; margin: 2rem auto;
+}
+.edu-guard-icon { color: var(--warm); }
+.edu-guard-title { margin: 0; font-size: 1.1rem; font-weight: 700; color: var(--text-heading); }
+.edu-guard-desc { margin: 0; font-size: 0.85rem; color: var(--text-muted); line-height: 1.6; max-width: 360px; }
+.edu-guard-btn {
+  display: inline-block; padding: 0.65rem 1.5rem; border-radius: 8px;
+  background: var(--accent); color: #fff; font-size: 0.875rem; font-weight: 600;
+  text-decoration: none; transition: background 0.15s;
+}
+.edu-guard-btn:hover { background: var(--accent-hover); }
 
 .page-header { }
 .page-title {

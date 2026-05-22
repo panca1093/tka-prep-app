@@ -72,6 +72,15 @@ router.beforeEach(async (to) => {
     return roleHome(auth.role)
   }
 
+  // Student must have education_level to access tests & leaderboard
+  if (
+    auth.role === 'student' &&
+    !auth.user?.education_level &&
+    ['test-list', 'test-session', 'leaderboard'].includes(to.name as string)
+  ) {
+    return { name: 'student-profile' }
+  }
+
   return true
 })
 

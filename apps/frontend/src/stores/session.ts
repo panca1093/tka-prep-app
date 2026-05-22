@@ -46,7 +46,10 @@ export const useSessionStore = defineStore('session', () => {
     const { data, error: err } = await client.POST('/tests/{testId}/sessions', {
       params: { path: { testId } },
     })
-    if (err) throw new Error('Failed to start session')
+    if (err) {
+      const msg = (err as any)?.error?.message || (err as any)?.message
+      throw new Error(msg ? String(msg) : 'Failed to start session')
+    }
     return data.id
   }
 

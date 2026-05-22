@@ -123,6 +123,8 @@ async function handleLogout() {
         <svg v-else-if="item.icon === 'doc'" class="bn-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clip-rule="evenodd"/></svg>
         <svg v-else-if="item.icon === 'trophy'" class="bn-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M2 4a1 1 0 011-1h1V2a1 1 0 012 0v1h8V2a1 1 0 112 0v1h1a1 1 0 011 1v2a4 4 0 01-3.16 3.906A6.01 6.01 0 0111 13.32V15h1a1 1 0 110 2H8a1 1 0 110-2h1v-1.68a6.01 6.01 0 01-3.84-3.414A4 4 0 012 6V4zm2 2v.354A2 2 0 006 8.236V5H4v1zm12 0v-.999h-2v3.236A2 2 0 0016 6.354V6z"/></svg>
         <svg v-else-if="item.icon === 'user'" class="bn-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/></svg>
+        <svg v-else-if="item.icon === 'bank'" class="bn-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM2 11a2 2 0 012-2h12a2 2 0 012 2v4a2 2 0 01-2 2H4a2 2 0 01-2-2v-4z"/></svg>
+        <svg v-else-if="item.icon === 'users'" class="bn-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"/></svg>
         <span class="bn-label">{{ item.label }}</span>
       </RouterLink>
     </nav>

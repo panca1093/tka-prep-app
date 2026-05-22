@@ -243,8 +243,16 @@ paths:
                 $ref: '#/components/schemas/UserResponse'
         '400':
           description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /topics:
     get:
@@ -1159,6 +1167,12 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Student has already completed this test
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Test has no questions
           content:
             application/json:
               schema:

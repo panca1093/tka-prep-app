@@ -107,7 +107,7 @@ func (s *APIServer) GetAuthMe(ctx context.Context, _ api.GetAuthMeRequestObject)
 func (s *APIServer) PatchAuthMe(ctx context.Context, req api.PatchAuthMeRequestObject) (api.PatchAuthMeResponseObject, error) {
 	claims, ok := pkgjwt.FromContext(ctx)
 	if !ok {
-		return api.PatchAuthMe401Response{}, nil
+		return api.PatchAuthMe401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
 
 	in := auth.UpdateProfileInput{}
@@ -132,7 +132,7 @@ func (s *APIServer) PatchAuthMe(ctx context.Context, req api.PatchAuthMeRequestO
 		case errors.Is(err, apierr.ErrNotFound):
 			return nil, apierr.ErrNotFound
 		case errors.Is(err, apierr.ErrValidation):
-			return api.PatchAuthMe400Response{}, nil
+			return api.PatchAuthMe400JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
 		}
 		return nil, err
 	}

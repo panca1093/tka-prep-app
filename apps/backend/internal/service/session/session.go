@@ -53,6 +53,12 @@ func (s *Service) Start(ctx context.Context, studentID, testID uuid.UUID) (*doma
 		return nil, fmt.Errorf("%w: test is not published", apierr.ErrNotFound)
 	}
 
+	// Guard against empty tests — should not happen with publish validation
+	// but protects against stale data or direct DB manipulation.
+	if len(t.Questions) == 0 {
+		return nil, fmt.Errorf("%w: test has no questions", apierr.ErrValidation)
+	}
+
 	existing, err := s.sessions.FindActiveByStudentAndTest(ctx, studentID, testID)
 	if err != nil {
 		return nil, err

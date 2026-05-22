@@ -8,6 +8,7 @@ import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
 type CreateReq = components['schemas']['CreateQuestionRequest']
+type UpdateReq = components['schemas']['UpdateQuestionRequest']
 type QuestionType = 'mcq' | 'multi_correct' | 'true_false'
 
 const questions = ref<Question[]>([])
@@ -132,7 +133,7 @@ const emptyForm = (): FormState => ({
   image_url: null,
   difficulty: 'medium',
   education_level: '',
-  options: 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
   statements: [
     { text: '', is_correct: true, image_url: null },
     { text: '', is_correct: false, image_url: null },
@@ -194,7 +195,7 @@ function openEdit(q: Question) {
     education_level: (q as any).education_level ?? '',
     options: q.question_type !== 'true_false'
       ? q.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? null }))
-      : 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+      : 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
     statements: q.question_type === 'true_false'
       ? q.statements.map(s => ({ text: s.text, is_correct: s.is_correct, image_url: s.image_url ?? null }))
       : [{ text: '', is_correct: true, image_url: null }, { text: '', is_correct: false, image_url: null }],
@@ -242,62 +243,14 @@ function addOption() {
   })
 }
 
-async function saveQuestion() {
-  formError.value = ''
-  if (!form.value.topic_id) { formError.value = 'Please select a topic.'; return }
-  const plainText = form.value.text.replace(/<[^>]*>/g, '').trim()
-  if (!plainText) { formError.value = 'Question text is required.'; return }
-
-  let body: CreateReq
-
-  if (form.value.question_type === 'mcq') {
-    const correctCount = form.value.options.filter((o) => o.is_correct).length
-    if (correctCount !== 1) { formError.value = 'Exactly one option must be marked correct.'; return }
-    body = {
-      question_type: 'mcq',
-      topic_id: form.value.topic_id,
-      text: form.value.text,
-      explanation: form.value.explanation || undefined,
-      image_url: form.value.image_url ?? undefined,
-      difficulty: form.value.difficulty,
-      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
-      options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
-    }
-  } else if (form.value.question_type === 'multi_correct') {
-    const correctCount = form.value.options.filter((o) => o.is_correct).length
-    if (correctCount < 1) { formError.value = 'At least one option must be marked correct for PGK.'; return }
-    body = {
-      question_type: 'multi_correct',
-      topic_id: form.value.topic_id,
-      text: form.value.text,
-      explanation: form.value.explanation || undefined,
-      image_url: form.value.image_url ?? undefined,
-      difficulty: form.value.difficulty,
-      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
-      options: form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined })),
-    }
-  } else {
-    const stmts = form.value.statements
-    if (stmts.length < 2) { formError.value = 'Add at least 2 statements.'; return }
-    if (stmts.some(s => !s.text.replace(/<[^>]*>/g, '').trim())) { formError.value = 'All statement texts are required.'; return }
-    body = {
-      question_type: 'true_false',
-      topic_id: form.value.topic_id,
-      text: form.value.text,
-      explanation: form.value.explanation || undefined,
-      image_url: form.value.image_url ?? undefined,
-      difficulty: form.value.difficulty,
-      education_level: (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined,
-      statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
-    }
-  }
-
+async function saveOrFail(fn: () => Promise<any>) {
   isSaving.value = true
   try {
-    if (editTarget.value) {
-      await client.PATCH('/questions/{questionId}', { params: { path: { questionId: editTarget.value.id } }, body })
-    } else {
-      await client.POST('/questions', { body })
+    const result = await fn()
+    if (result.error) {
+      const msg = (result.error as any)?.error?.message || (result.error as any)?.message
+      formError.value = msg ? String(msg) : 'Failed to save question.'
+      return
     }
     showForm.value = false
     await fetchQuestions()
@@ -305,6 +258,108 @@ async function saveQuestion() {
     formError.value = 'Failed to save question.'
   } finally {
     isSaving.value = false
+  }
+}
+
+async function saveQuestion() {
+  formError.value = ''
+  if (!form.value.topic_id) { formError.value = 'Please select a topic.'; return }
+  const plainText = form.value.text.replace(/<[^>]*>/g, '').trim()
+  if (!plainText) { formError.value = 'Question text is required.'; return }
+
+  const eduLevel = (form.value.education_level || undefined) as 'sd' | 'smp' | 'sma' | undefined
+
+  if (form.value.question_type === 'mcq') {
+    const correctCount = form.value.options.filter((o) => o.is_correct).length
+    if (correctCount !== 1) { formError.value = 'Exactly one option must be marked correct.'; return }
+    const opts = form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined }))
+    if (editTarget.value) {
+      const body: UpdateReq = {
+        topic_id: form.value.topic_id,
+        text: form.value.text,
+        explanation: form.value.explanation || undefined,
+        image_url: form.value.image_url ?? undefined,
+        difficulty: form.value.difficulty,
+        education_level: eduLevel,
+        options: opts,
+      }
+      await saveOrFail(() => client.PATCH('/questions/{questionId}', { params: { path: { questionId: editTarget.value!.id } }, body }))
+      return
+    }
+    const body: CreateReq = {
+      question_type: 'mcq',
+      topic_id: form.value.topic_id,
+      text: form.value.text,
+      explanation: form.value.explanation || undefined,
+      image_url: form.value.image_url ?? undefined,
+      difficulty: form.value.difficulty,
+      education_level: eduLevel,
+      options: opts,
+    }
+    await saveOrFail(() => client.POST('/questions', { body }))
+    return
+  }
+
+  if (form.value.question_type === 'multi_correct') {
+    const correctCount = form.value.options.filter((o) => o.is_correct).length
+    if (correctCount < 1) { formError.value = 'At least one option must be marked correct for PGK.'; return }
+    const opts = form.value.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? undefined }))
+    if (editTarget.value) {
+      const body: UpdateReq = {
+        topic_id: form.value.topic_id,
+        text: form.value.text,
+        explanation: form.value.explanation || undefined,
+        image_url: form.value.image_url ?? undefined,
+        difficulty: form.value.difficulty,
+        education_level: eduLevel,
+        options: opts,
+      }
+      await saveOrFail(() => client.PATCH('/questions/{questionId}', { params: { path: { questionId: editTarget.value!.id } }, body }))
+      return
+    }
+    const body: CreateReq = {
+      question_type: 'multi_correct',
+      topic_id: form.value.topic_id,
+      text: form.value.text,
+      explanation: form.value.explanation || undefined,
+      image_url: form.value.image_url ?? undefined,
+      difficulty: form.value.difficulty,
+      education_level: eduLevel,
+      options: opts,
+    }
+    await saveOrFail(() => client.POST('/questions', { body }))
+    return
+  }
+
+  // true_false
+  {
+    const stmts = form.value.statements
+    if (stmts.length < 2) { formError.value = 'Add at least 2 statements.'; return }
+    if (stmts.some(s => !s.text.replace(/<[^>]*>/g, '').trim())) { formError.value = 'All statement texts are required.'; return }
+    if (editTarget.value) {
+      const body: UpdateReq = {
+        topic_id: form.value.topic_id,
+        text: form.value.text,
+        explanation: form.value.explanation || undefined,
+        image_url: form.value.image_url ?? undefined,
+        difficulty: form.value.difficulty,
+        education_level: eduLevel,
+        statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
+      }
+      await saveOrFail(() => client.PATCH('/questions/{questionId}', { params: { path: { questionId: editTarget.value!.id } }, body }))
+      return
+    }
+    const body: CreateReq = {
+      question_type: 'true_false',
+      topic_id: form.value.topic_id,
+      text: form.value.text,
+      explanation: form.value.explanation || undefined,
+      image_url: form.value.image_url ?? undefined,
+      difficulty: form.value.difficulty,
+      education_level: eduLevel,
+      statements: stmts.map((s, i) => ({ text: s.text, is_correct: s.is_correct, position: i, image_url: s.image_url ?? undefined })),
+    }
+    await saveOrFail(() => client.POST('/questions', { body }))
   }
 }
 

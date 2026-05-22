@@ -38,7 +38,11 @@ async function setStatus(testId: string, publish: boolean) {
   actionError.value = ''
   const path = publish ? '/tests/{testId}/publish' : '/tests/{testId}/unpublish'
   const { error } = await client.POST(path as '/tests/{testId}/publish', { params: { path: { testId } } })
-  if (error) { actionError.value = 'Gagal mengubah status.'; return }
+  if (error) {
+    const msg = (error as any)?.error?.message || (error as any)?.message
+    actionError.value = msg ? String(msg) : (publish ? 'Gagal menerbitkan tes.' : 'Gagal membatalkan terbit.')
+    return
+  }
   await fetchTests()
 }
 

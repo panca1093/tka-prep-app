@@ -10,16 +10,11 @@ const router = useRouter()
 const gender = ref<string>(auth.user?.gender ?? '')
 const phone = ref<string>(auth.user?.phone ?? '')
 const avatarUrl = ref<string>(auth.user?.avatar_url ?? '')
+const educationLevel = ref<string>(auth.user?.education_level ?? '')
+const educationLocked = ref<boolean>(!!auth.user?.education_level)
 const isSaving = ref(false)
 const message = ref('')
 const isError = ref(false)
-
-const levelLabel: Record<string, string> = {
-  sd: 'SD — Sekolah Dasar',
-  smp: 'SMP — Sekolah Menengah Pertama',
-  sma: 'SMA — Sekolah Menengah Atas',
-  smk: 'SMK — Sekolah Menengah Kejuruan',
-}
 
 const genderOptions = [
   { value: '', label: 'Prefer not to say' },
@@ -75,6 +70,10 @@ async function save() {
     else body.gender = null
     body.phone = phone.value || null
     body.avatar_url = avatarUrl.value || null
+    if (!educationLocked.value) {
+      if (educationLevel.value) body.education_level = educationLevel.value
+      else body.education_level = null
+    }
 
     const { data, error } = await client.PATCH('/auth/me', { body })
     if (error) {
@@ -86,6 +85,7 @@ async function save() {
       auth.user.gender = data.gender
       auth.user.phone = data.phone
       auth.user.avatar_url = data.avatar_url
+      auth.user.education_level = data.education_level
     }
     isError.value = false
     message.value = 'Profile updated successfully.'
@@ -133,10 +133,20 @@ async function handleLogout() {
       </div>
       <div class="field">
         <label>Education Level</label>
-        <div class="readonly">
-          {{ auth.user?.education_level ? levelLabel[auth.user.education_level] ?? auth.user.education_level : 'All Levels (not set)' }}
-        </div>
-        <p class="help-text">Set during registration. Contact support to change.</p>
+        <template v-if="educationLocked">
+          <div class="readonly">{{ educationLevel.toUpperCase() }}</div>
+          <p class="help-text">Jenjang pendidikan tidak dapat diubah setelah ditetapkan. Hubungi dukungan untuk perubahan.</p>
+        </template>
+        <template v-else>
+          <select v-model="educationLevel" class="profile-select">
+            <option value="">Pilih jenjang…</option>
+            <option value="sd">SD — Sekolah Dasar</option>
+            <option value="smp">SMP — Sekolah Menengah Pertama</option>
+            <option value="sma">SMA — Sekolah Menengah Atas</option>
+            <option value="smk">SMK — Sekolah Menengah Kejuruan</option>
+          </select>
+          <p class="help-text">Digunakan untuk menampilkan ujian yang sesuai dengan jenjang Anda. Hanya dapat diatur satu kali.</p>
+        </template>
       </div>
 
       <!-- Editable fields -->

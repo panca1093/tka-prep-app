@@ -183,6 +183,10 @@ const watermarkStyle = computed(() => {
 
   <div v-else-if="store.error" class="state-screen err">{{ store.error }}</div>
 
+  <div v-else-if="store.session && !store.questions.length" class="state-screen warn">
+    Ujian ini belum memiliki soal. Silakan kembali dan pilih ujian lain.
+  </div>
+
   <div v-else-if="store.session && store.questions.length" class="session-shell">
     <!-- Watermark -->
     <div class="session-watermark" :style="watermarkStyle" aria-hidden="true" />
@@ -414,8 +418,10 @@ const watermarkStyle = computed(() => {
 .state-screen {
   display: flex; align-items: center; justify-content: center;
   height: 100vh; color: var(--text-muted);
+  font-size: 1rem; text-align: center; padding: 2rem;
 }
 .err { color: var(--danger); }
+.warn { color: var(--warm); }
 .loading-card {
   padding: 2rem 3rem;
   background: var(--bg-surface);

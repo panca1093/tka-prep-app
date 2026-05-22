@@ -27,6 +27,8 @@ func (s *APIServer) PostTestsTestIdSessions(ctx context.Context, req api.PostTes
 			return api.PostTestsTestIdSessions404JSONResponse(errBody("NOT_FOUND", "test not found or not published")), nil
 		case errors.Is(err, apierr.ErrConflict):
 			return api.PostTestsTestIdSessions409JSONResponse(errBody("ALREADY_COMPLETED", "you have already completed this test")), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.PostTestsTestIdSessions422JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
 		}
 		return nil, err
 	}

@@ -193,6 +193,11 @@ func (s *Service) UpdateProfile(ctx context.Context, userID uuid.UUID, in Update
 		return nil, fmt.Errorf("%w: education_level is only applicable for student role", apierr.ErrValidation)
 	}
 
+	// Education level can only be set once. Once a student has a level, it is frozen.
+	if in.EducationLevel != nil && user.EducationLevel != nil {
+		return nil, fmt.Errorf("%w: education level can only be set when empty — contact support to change", apierr.ErrValidation)
+	}
+
 	// Validate gender if provided
 	if in.Gender != nil {
 		switch *in.Gender {
