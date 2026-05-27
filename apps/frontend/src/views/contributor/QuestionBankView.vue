@@ -528,7 +528,7 @@ const typeColor: Record<string, string> = {
         <div v-else-if="questions.length === 0" class="empty-state">Belum ada soal. Tambahkan soal pertama Anda!</div>
 
         <div v-else class="question-list">
-          <div v-for="q in questions" :key="q.id" class="question-card">
+          <div v-for="q in questions" :key="q.id" class="question-card" @click="previewQuestion = q">
             <div class="q-top">
               <span class="q-type" :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] }">{{ typeLabel[q.question_type] ?? q.question_type }}</span>
               <span class="q-topic-name">
@@ -542,9 +542,8 @@ const typeColor: Record<string, string> = {
               <span v-if="(q as any).usage && auth.user?.id === q.contributor_id" class="q-usage">
                 {{ (q as any).usage.own_test_count }} tes kamu · {{ (q as any).usage.other_test_count }} kontributor lain
               </span>
-              <button class="q-act q-act--preview" @click="previewQuestion = q">Preview</button>
-              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act" @click="openEdit(q)">Edit</button>
-              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act q-act--del" @click="deleteQuestion(q.id)">Hapus</button>
+              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act" @click.stop="openEdit(q)">Edit</button>
+              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act q-act--del" @click.stop="deleteQuestion(q.id)">Hapus</button>
             </div>
             <div class="q-text"><RichTextViewer :html="q.text" /></div>
             <div v-if="q.question_type !== 'true_false'" class="q-options">
@@ -847,7 +846,7 @@ const typeColor: Record<string, string> = {
 .empty-state { color: var(--text-muted); text-align: center; padding: 2rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; }
 
 .question-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.question-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; transition: border-color 0.15s; }
+.question-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; transition: border-color 0.15s; cursor: pointer; }
 .question-card:hover { border-color: color-mix(in srgb, var(--accent) 25%, var(--border)); }
 .q-top { display: flex; align-items: center; gap: 0.5rem; }
 .q-type { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; background: color-mix(in srgb, currentColor 10%, transparent); }
@@ -862,7 +861,6 @@ const typeColor: Record<string, string> = {
 .q-act { padding: 0.25rem 0.55rem; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: all 0.12s; font-family: inherit; }
 .q-act:hover { border-color: var(--accent); color: var(--accent); }
 .q-act--del:hover { border-color: var(--danger); color: var(--danger); }
-.q-act--preview:hover { border-color: var(--success); color: var(--success); }
 .q-owner { font-size: 0.65rem; color: var(--text-muted); font-style: italic; }
 .q-usage { font-size: 0.62rem; font-weight: 600; color: var(--success); background: rgba(0,210,160,0.08); padding: 0.1rem 0.4rem; border-radius: 4px; }
 .q-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
