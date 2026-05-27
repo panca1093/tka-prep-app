@@ -7,6 +7,7 @@ import type { components } from '@tkaprep/shared-types'
 const auth = useAuthStore()
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
+import QuestionPreviewModal from '@/components/QuestionPreviewModal.vue'
 
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
@@ -61,6 +62,9 @@ const topicEditSaving = ref(false)
 
 // Delete confirmation modal
 const deleteModal = ref<{ id: string; name: string; questionCount: number } | null>(null)
+
+// Preview modal
+const previewQuestion = ref<Question | null>(null)
 
 async function createTopic() {
   const name = newTopicName.value.trim()
@@ -538,6 +542,7 @@ const typeColor: Record<string, string> = {
               <span v-if="(q as any).usage && auth.user?.id === q.contributor_id" class="q-usage">
                 {{ (q as any).usage.own_test_count }} tes kamu · {{ (q as any).usage.other_test_count }} kontributor lain
               </span>
+              <button class="q-act q-act--preview" @click="previewQuestion = q">Preview</button>
               <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act" @click="openEdit(q)">Edit</button>
               <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act q-act--del" @click="deleteQuestion(q.id)">Hapus</button>
             </div>
@@ -550,6 +555,14 @@ const typeColor: Record<string, string> = {
         </div>
       </main>
     </div>
+
+    <!-- Question preview modal -->
+    <QuestionPreviewModal
+      v-if="previewQuestion"
+      :question="previewQuestion"
+      :topic-name="topics.find(t => t.id === previewQuestion!.topic_id)?.name ?? '—'"
+      @close="previewQuestion = null"
+    />
 
     <!-- Delete topic confirmation modal -->
     <Teleport to="body">
@@ -849,6 +862,7 @@ const typeColor: Record<string, string> = {
 .q-act { padding: 0.25rem 0.55rem; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: all 0.12s; font-family: inherit; }
 .q-act:hover { border-color: var(--accent); color: var(--accent); }
 .q-act--del:hover { border-color: var(--danger); color: var(--danger); }
+.q-act--preview:hover { border-color: var(--success); color: var(--success); }
 .q-owner { font-size: 0.65rem; color: var(--text-muted); font-style: italic; }
 .q-usage { font-size: 0.62rem; font-weight: 600; color: var(--success); background: rgba(0,210,160,0.08); padding: 0.1rem 0.4rem; border-radius: 4px; }
 .q-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }

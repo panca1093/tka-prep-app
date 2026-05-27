@@ -93,6 +93,10 @@ function fmtAttempts(n: number | undefined): string {
         <span class="stat-val">{{ fmtScore(analytics.min_score) }}</span>
         <span class="stat-lbl">Terendah</span>
       </div>
+      <div class="stat-item stat-item--irt">
+        <span class="stat-val stat-val--irt">{{ fmtScore((analytics as any).avg_irt_theta) }}</span>
+        <span class="stat-lbl">Rata-rata IRT θ</span>
+      </div>
     </div>
 
     <!-- Per-Topic Breakdown -->
@@ -125,6 +129,7 @@ function fmtAttempts(n: number | undefined): string {
             <th>Benar</th>
             <th>Salah</th>
             <th>Kosong</th>
+            <th class="th-irt" title="Item Response Theory ability estimate">IRT θ</th>
             <th>Selesai</th>
           </tr>
         </thead>
@@ -136,6 +141,7 @@ function fmtAttempts(n: number | undefined): string {
             <td>{{ r.correct_count }}</td>
             <td>{{ r.wrong_count }}</td>
             <td>{{ r.blank_count }}</td>
+            <td class="cell-irt">{{ r.irt_theta != null ? Number(r.irt_theta).toFixed(2) : '—' }}</td>
             <td class="cell-date">{{ new Date(r.completed_at).toLocaleDateString('id-ID') }}</td>
           </tr>
         </tbody>
@@ -158,7 +164,7 @@ function fmtAttempts(n: number | undefined): string {
 .page-title { margin: 0; font-size: 1.35rem; font-weight: 800; }
 
 .analytics-bar {
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.75rem;
+  display: grid; grid-template-columns: repeat(4, 1fr) 1.2fr; gap: 0.75rem;
   margin-bottom: 1.5rem;
 }
 .stat-item {
@@ -190,6 +196,10 @@ function fmtAttempts(n: number | undefined): string {
 .cell-email { font-size: 0.72rem; color: var(--text-muted); }
 .cell-score { font-weight: 700; color: var(--accent); }
 .cell-date { font-size: 0.72rem; color: var(--text-muted); white-space: nowrap; }
+.th-irt { color: color-mix(in srgb, var(--accent) 80%, var(--text-muted)); font-style: italic; }
+.cell-irt { font-size: 0.8rem; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.stat-item--irt { border-color: color-mix(in srgb, var(--accent) 30%, var(--border)); }
+.stat-val--irt { font-size: 1.1rem; color: color-mix(in srgb, var(--accent) 75%, var(--text-heading)); }
 
 .pagination { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-top: 1rem; }
 .pagination button {

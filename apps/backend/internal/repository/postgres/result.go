@@ -392,7 +392,8 @@ func (r *ResultRepository) ListByTestID(ctx context.Context, f repository.Contri
 
 	rows, err := r.pool.Query(ctx,
 		`SELECT tr.id, tr.session_id, tr.student_id, u.name, u.email,
-		        tr.test_id, t.title, tr.total_score, tr.correct_count, tr.wrong_count, tr.blank_count, tr.completed_at
+		        tr.test_id, t.title, tr.total_score, tr.correct_count, tr.wrong_count, tr.blank_count, tr.completed_at,
+		        tr.irt_theta
 		 FROM test_results tr
 		 JOIN users u ON u.id = tr.student_id
 		 JOIN tests t ON t.id = tr.test_id
@@ -410,7 +411,8 @@ func (r *ResultRepository) ListByTestID(ctx context.Context, f repository.Contri
 	for rows.Next() {
 		var e domain.ContributorResultEntry
 		if err := rows.Scan(&e.ID, &e.SessionID, &e.StudentID, &e.StudentName, &e.StudentEmail,
-			&e.TestID, &e.TestTitle, &e.TotalScore, &e.CorrectCount, &e.WrongCount, &e.BlankCount, &e.CompletedAt); err != nil {
+			&e.TestID, &e.TestTitle, &e.TotalScore, &e.CorrectCount, &e.WrongCount, &e.BlankCount, &e.CompletedAt,
+			&e.IRTTheta); err != nil {
 			return nil, 0, fmt.Errorf("scan result entry: %w", err)
 		}
 		out = append(out, e)
@@ -424,9 +426,10 @@ func (r *ResultRepository) GetTestAnalytics(ctx context.Context, testID uuid.UUI
 		`SELECT COUNT(*),
 		        AVG(total_score),
 		        MAX(total_score),
-		        MIN(total_score)
+		        MIN(total_score),
+		        AVG(irt_theta)
 		 FROM test_results WHERE test_id = $1`, testID,
-	).Scan(&a.TotalAttempts, &a.AvgScore, &a.MaxScore, &a.MinScore)
+	).Scan(&a.TotalAttempts, &a.AvgScore, &a.MaxScore, &a.MinScore, &a.AvgIRTTheta)
 	if err != nil {
 		return nil, fmt.Errorf("get test analytics: %w", err)
 	}

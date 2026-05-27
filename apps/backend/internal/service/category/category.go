@@ -40,6 +40,14 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, name string) (*domai
 	return s.repo.Update(ctx, id, name)
 }
 
+func (s *Service) UpdateOwned(ctx context.Context, callerID, id uuid.UUID, name string, description *string) (*domain.Category, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, fmt.Errorf("category name is required: %w", apierr.ErrValidation)
+	}
+	return s.repo.UpdateOwned(ctx, callerID, id, name, description)
+}
+
 func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {
 	n, err := s.repo.TestCount(ctx, id)
 	if err != nil {
