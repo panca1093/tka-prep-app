@@ -80,9 +80,11 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
-		fmt.Sprintf(`SELECT q.id, q.contributor_id, q.topic_id, q.question_type, q.education_level, q.text, q.explanation,
+		fmt.Sprintf(`SELECT q.id, q.contributor_id, u_owner.name, q.topic_id, q.question_type, q.education_level, q.text, q.explanation,
 		       q.image_url, q.difficulty, q.created_at, q.updated_at
-		  FROM questions q %s
+		  FROM questions q
+		  JOIN users u_owner ON u_owner.id = q.contributor_id
+		  %s
 		  ORDER BY q.created_at DESC
 		  LIMIT $%d OFFSET $%d`, where, i, i+1),
 		args...,
@@ -96,12 +98,19 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 	for rows.Next() {
 		q := &domain.Question{}
 		var diff, qtype string
-		if err := rows.Scan(&q.ID, &q.ContributorID, &q.TopicID, &qtype, &q.EducationLevel, &q.Text, &q.Explanation,
+		if err := rows.Scan(&q.ID, &q.ContributorID, &q.ContributorName, &q.TopicID, &qtype, &q.EducationLevel, &q.Text, &q.Explanation,
 			&q.ImageURL, &diff, &q.CreatedAt, &q.UpdatedAt); err != nil {
 			return nil, 0, fmt.Errorf("scan question: %w", err)
 		}
 		q.Difficulty = domain.Difficulty(diff)
 		q.Type = domain.QuestionType(qtype)
+
+		// Populate usage stats only for the question owner.
+		if f.CallerID != uuid.Nil && q.ContributorID == f.CallerID {
+			if err := r.loadUsageStats(ctx, q); err != nil {
+				return nil, 0, err
+			}
+		}
 		qs = append(qs, q)
 	}
 	if err := rows.Err(); err != nil {
@@ -114,6 +123,23 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 		}
 	}
 	return qs, total, nil
+}
+
+func (r *QuestionRepository) loadUsageStats(ctx context.Context, q *domain.Question) error {
+	stats := &domain.QuestionUsageStats{}
+	err := r.pool.QueryRow(ctx,
+		`SELECT
+			COUNT(DISTINCT CASE WHEN t.contributor_id = $2 THEN tq.test_id END)::int,
+			COUNT(DISTINCT CASE WHEN t.contributor_id != $2 THEN tq.test_id END)::int
+		 FROM test_questions tq
+		 JOIN tests t ON t.id = tq.test_id AND t.status = 'published'
+		 WHERE tq.question_id = $1`, q.ID, q.ContributorID,
+	).Scan(&stats.OwnTestCount, &stats.OtherTestCount)
+	if err != nil {
+		return fmt.Errorf("load usage stats: %w", err)
+	}
+	q.UsageStats = stats
+	return nil
 }
 
 func (r *QuestionRepository) Create(ctx context.Context, q *domain.Question) error {
@@ -306,4 +332,38 @@ func insertStatements(ctx context.Context, tx pgx.Tx, questionID uuid.UUID, stmt
 		}
 	}
 	return nil
+}
+
+func (r *QuestionRepository) ListUsageStats(ctx context.Context, contributorID uuid.UUID, limit int) ([]domain.QuestionUsageEntry, error) {
+	if limit <= 0 {
+		limit = 10
+	}
+	rows, err := r.pool.Query(ctx,
+		`SELECT q.id, LEFT(q.text, 100), tp.name,
+		        COUNT(DISTINCT CASE WHEN t.contributor_id = q.contributor_id THEN tq.test_id END)::int,
+		        COUNT(DISTINCT CASE WHEN t.contributor_id != q.contributor_id THEN tq.test_id END)::int
+		 FROM questions q
+		 JOIN topics tp ON tp.id = q.topic_id
+		 JOIN test_questions tq ON tq.question_id = q.id
+		 JOIN tests t ON t.id = tq.test_id AND t.status = 'published'
+		 WHERE q.contributor_id = $1
+		 GROUP BY q.id, tp.name
+		 ORDER BY (COUNT(DISTINCT CASE WHEN t.contributor_id = q.contributor_id THEN tq.test_id END) +
+		           COUNT(DISTINCT CASE WHEN t.contributor_id != q.contributor_id THEN tq.test_id END)) DESC
+		 LIMIT $2`,
+		contributorID, limit)
+	if err != nil {
+		return nil, fmt.Errorf("list usage stats: %w", err)
+	}
+	defer rows.Close()
+
+	var out []domain.QuestionUsageEntry
+	for rows.Next() {
+		var e domain.QuestionUsageEntry
+		if err := rows.Scan(&e.QuestionID, &e.QuestionText, &e.TopicName, &e.OwnTestCount, &e.OtherTestCount); err != nil {
+			return nil, fmt.Errorf("scan usage entry: %w", err)
+		}
+		out = append(out, e)
+	}
+	return out, rows.Err()
 }

@@ -23,10 +23,11 @@ const (
 type Service struct {
 	results  repository.ResultRepository
 	sessions repository.SessionRepository
+	tests    repository.TestRepository
 }
 
-func NewService(results repository.ResultRepository, sessions repository.SessionRepository) *Service {
-	return &Service{results: results, sessions: sessions}
+func NewService(results repository.ResultRepository, sessions repository.SessionRepository, tests repository.TestRepository) *Service {
+	return &Service{results: results, sessions: sessions, tests: tests}
 }
 
 // List returns results scoped by caller role: students see own, admin sees all.
@@ -89,4 +90,31 @@ func (s *Service) GetReview(ctx context.Context, resultID, callerID uuid.UUID, c
 		}
 	}
 	return filtered, nil
+}
+
+// ListByTestID returns paginated results for a test. Only the test owner (or admin) can access.
+func (s *Service) ListByTestID(ctx context.Context, testID, callerID uuid.UUID, callerRole domain.Role, page, limit int) ([]domain.ContributorResultEntry, int, *domain.TestAnalytics, error) {
+	t, err := s.tests.FindByID(ctx, testID)
+	if err != nil {
+		return nil, 0, nil, err
+	}
+	if callerRole != domain.RoleAdmin && t.ContributorID != callerID {
+		return nil, 0, nil, apierr.ErrForbidden
+	}
+
+	results, total, err := s.results.ListByTestID(ctx, repository.ContributorResultFilter{
+		TestID: testID,
+		Page:   page,
+		Limit:  limit,
+	})
+	if err != nil {
+		return nil, 0, nil, fmt.Errorf("list results by test: %w", err)
+	}
+
+	analytics, err := s.results.GetTestAnalytics(ctx, testID)
+	if err != nil {
+		return nil, 0, nil, fmt.Errorf("get test analytics: %w", err)
+	}
+
+	return results, total, analytics, nil
 }

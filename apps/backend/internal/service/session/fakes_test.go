@@ -197,7 +197,8 @@ func (r *fakeTestRepo) SetQuestions(_ context.Context, _ uuid.UUID, _ []domain.T
 func (r *fakeTestRepo) UpdateScoringConfig(_ context.Context, _ *domain.ScoringConfig) error {
 	return nil
 }
-func (r *fakeTestRepo) QuestionCount(_ context.Context, _ uuid.UUID) (int, error) { return 0, nil }
+func (r *fakeTestRepo) QuestionCount(_ context.Context, _ uuid.UUID) (int, error) { return 5, nil }
+
 
 // ─── fakeResultRepo ───────────────────────────────────────────────────────────
 
@@ -220,6 +221,16 @@ func (r *fakeResultRepo) FindDetailByID(_ context.Context, _ uuid.UUID) (*domain
 func (r *fakeResultRepo) GetReview(_ context.Context, _, _ uuid.UUID) ([]domain.ReviewItem, error) {
 	return nil, nil
 }
+func (r *fakeResultRepo) ListByTestID(_ context.Context, _ repository.ContributorResultFilter) ([]domain.ContributorResultEntry, int, error) {
+	return nil, 0, nil
+}
+func (r *fakeResultRepo) GetTestAnalytics(_ context.Context, _ uuid.UUID) (*domain.TestAnalytics, error) {
+	return nil, nil
+}
+
+func (r *fakeResultRepo) ExistsByStudentAndTest(_ context.Context, _, _ uuid.UUID) (bool, error) {
+	return false, nil
+}
 
 // ─── builder helpers ──────────────────────────────────────────────────────────
 
@@ -231,16 +242,22 @@ func makePublishedTest(id uuid.UUID, durationMinutes int) *domain.Test {
 		WrongPoints:   -1.0,
 		BlankPoints:   0.0,
 	}
+	// Populate 5 stub questions so the session service "test has no questions" guard passes.
+	questions := make([]domain.TestQuestion, 5)
+	for i := range questions {
+		questions[i] = domain.TestQuestion{ID: uuid.New(), TestID: id, QuestionID: uuid.New(), OrderIndex: i}
+	}
 	return &domain.Test{
 		ID:              id,
 		ContributorID:   uuid.New(),
 		Title:           "Sample Test",
-		Category:        domain.CategoryTKASaintek,
+		CategoryID:      uuid.New(),
 		DurationMinutes: durationMinutes,
 		Difficulty:      domain.DifficultyMedium,
 		Status:          domain.TestStatusPublished,
 		CreatedAt:       time.Now().UTC(),
 		ScoringConfig:   sc,
+		Questions:       questions,
 	}
 }
 

@@ -64,11 +64,10 @@ func (s *Service) Start(ctx context.Context, studentID, testID uuid.UUID) (*doma
 		return nil, err
 	}
 	// Prevent re-taking: check if student already has a completed result.
-	var alreadyCompleted bool
-	_ = s.pool.QueryRow(ctx,
-		`SELECT EXISTS(SELECT 1 FROM test_results WHERE student_id = $1 AND test_id = $2)`,
-		studentID, testID,
-	).Scan(&alreadyCompleted)
+	alreadyCompleted, err := s.results.ExistsByStudentAndTest(ctx, studentID, testID)
+	if err != nil {
+		return nil, err
+	}
 	if alreadyCompleted {
 		return nil, fmt.Errorf("%w: test already completed", apierr.ErrConflict)
 	}

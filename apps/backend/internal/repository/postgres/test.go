@@ -147,8 +147,10 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 	args = append(args, f.Limit, offset)
 	rows, err := r.pool.Query(ctx,
 		fmt.Sprintf(`SELECT t.id, t.contributor_id, t.title, t.description, t.category_id, COALESCE(c.name,''), t.duration_minutes,
-		             t.difficulty, t.status, t.education_level, t.created_at, t.published_at
-		             FROM tests t JOIN categories c ON c.id = t.category_id %s ORDER BY t.created_at DESC LIMIT $%d OFFSET $%d`,
+		             t.difficulty, t.status, t.education_level, t.created_at, t.published_at,
+		             COUNT(ts.id) FILTER (WHERE ts.status = 'submitted')::int,
+		             AVG(tr.total_score)
+		             FROM tests t JOIN categories c ON c.id = t.category_id LEFT JOIN test_sessions ts ON ts.test_id = t.id AND ts.status = 'submitted' LEFT JOIN test_results tr ON tr.test_id = t.id %s GROUP BY t.id, c.name ORDER BY t.created_at DESC LIMIT $%d OFFSET $%d`,
 			where, i, i+1),
 		args...,
 	)
@@ -163,7 +165,7 @@ func (r *TestRepository) List(ctx context.Context, f repository.TestFilter) ([]*
 		var diff, status string
 		var edulevel *string
 		if err := rows.Scan(&t.ID, &t.ContributorID, &t.Title, &t.Description, &t.CategoryID, &t.CategoryName,
-			&t.DurationMinutes, &diff, &status, &edulevel, &t.CreatedAt, &t.PublishedAt); err != nil {
+			&t.DurationMinutes, &diff, &status, &edulevel, &t.CreatedAt, &t.PublishedAt, &t.AttemptCount, &t.AvgScore); err != nil {
 			return nil, 0, fmt.Errorf("scan test: %w", err)
 		}
 		t.Difficulty = domain.Difficulty(diff)

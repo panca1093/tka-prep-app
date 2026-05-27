@@ -31,6 +31,9 @@ type Test struct {
 	// Populated only for student callers — computed from test_sessions + test_results.
 	StudentStatus string     // "not_started" | "in_progress" | "completed"
 	ResultID      *uuid.UUID // set when StudentStatus == "completed"
+	// Populated for contributor callers — computed from test_sessions + test_results.
+	AttemptCount int      // number of submitted attempts
+	AvgScore     *float64 // null when no submissions
 }
 
 type TestQuestion struct {

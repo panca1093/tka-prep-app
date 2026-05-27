@@ -127,6 +127,36 @@ type TestLeaderboardEntry struct {
 	CompletedAt time.Time
 }
 
+type ContributorResultEntry struct {
+	ID           uuid.UUID
+	SessionID    uuid.UUID
+	StudentID    uuid.UUID
+	StudentName  string
+	StudentEmail string
+	TestID       uuid.UUID
+	TestTitle    string
+	TotalScore   float64
+	CorrectCount int
+	WrongCount   int
+	BlankCount   int
+	CompletedAt  time.Time
+}
+
+type TopicAnalytics struct {
+	TopicID         uuid.UUID
+	TopicName       string
+	QuestionCount   int
+	AvgCorrectCount float64
+}
+
+type TestAnalytics struct {
+	TotalAttempts int
+	AvgScore      *float64
+	MaxScore      *float64
+	MinScore      *float64
+	PerTopic      []TopicAnalytics
+}
+
 type ReviewItem struct {
 	QuestionID   uuid.UUID
 	QuestionType QuestionType

@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
+
+const auth = useAuthStore()
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 
@@ -133,7 +136,7 @@ const emptyForm = (): FormState => ({
   image_url: null,
   difficulty: 'medium',
   education_level: '',
-  options: 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+  options: 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
   statements: [
     { text: '', is_correct: true, image_url: null },
     { text: '', is_correct: false, image_url: null },
@@ -195,7 +198,7 @@ function openEdit(q: Question) {
     education_level: (q as any).education_level ?? '',
     options: q.question_type !== 'true_false'
       ? q.options.map(o => ({ label: o.label, text: o.text, is_correct: o.is_correct, image_url: o.image_url ?? null }))
-      : 'ABCDE'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
+      : 'ABCD'.split('').map(l => ({ label: l, text: '', is_correct: false, image_url: null })),
     statements: q.question_type === 'true_false'
       ? q.statements.map(s => ({ text: s.text, is_correct: s.is_correct, image_url: s.image_url ?? null }))
       : [{ text: '', is_correct: true, image_url: null }, { text: '', is_correct: false, image_url: null }],
@@ -531,8 +534,12 @@ const typeColor: Record<string, string> = {
               <span v-if="(q as any).education_level" class="q-edu">{{ ((q as any).education_level as string).toUpperCase() }}</span>
               <span class="q-diff" :class="'q-diff--' + q.difficulty">{{ q.difficulty }}</span>
               <span class="q-spacer" />
-              <button class="q-act" @click="openEdit(q)">Edit</button>
-              <button class="q-act q-act--del" @click="deleteQuestion(q.id)">Hapus</button>
+              <span v-if="(q as any).contributor_name" class="q-owner">oleh: {{ (q as any).contributor_name }}</span>
+              <span v-if="(q as any).usage && auth.user?.id === q.contributor_id" class="q-usage">
+                {{ (q as any).usage.own_test_count }} tes kamu · {{ (q as any).usage.other_test_count }} kontributor lain
+              </span>
+              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act" @click="openEdit(q)">Edit</button>
+              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act q-act--del" @click="deleteQuestion(q.id)">Hapus</button>
             </div>
             <div class="q-text"><RichTextViewer :html="q.text" /></div>
             <div v-if="q.question_type !== 'true_false'" class="q-options">
@@ -842,6 +849,8 @@ const typeColor: Record<string, string> = {
 .q-act { padding: 0.25rem 0.55rem; border-radius: 5px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.68rem; font-weight: 600; cursor: pointer; transition: all 0.12s; font-family: inherit; }
 .q-act:hover { border-color: var(--accent); color: var(--accent); }
 .q-act--del:hover { border-color: var(--danger); color: var(--danger); }
+.q-owner { font-size: 0.65rem; color: var(--text-muted); font-style: italic; }
+.q-usage { font-size: 0.62rem; font-weight: 600; color: var(--success); background: rgba(0,210,160,0.08); padding: 0.1rem 0.4rem; border-radius: 4px; }
 .q-text { font-size: 0.85rem; color: var(--text-primary); line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .q-options { display: flex; gap: 0.3rem; }
 .q-opt { width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--bg-input); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: var(--text-muted); }

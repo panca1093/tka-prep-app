@@ -21,7 +21,7 @@ func (s *APIServer) GetQuestions(ctx context.Context, req api.GetQuestionsReques
 	}
 
 	p := req.Params
-	f := question.ListFilter{Page: 1, Limit: 20}
+	f := question.ListFilter{Page: 1, Limit: 20, CallerID: claims.UserID}
 	if p.Page != nil {
 		f.Page = *p.Page
 	}
@@ -203,6 +203,38 @@ func (s *APIServer) DeleteQuestionsQuestionId(ctx context.Context, req api.Delet
 	return api.DeleteQuestionsQuestionId200JSONResponse{Message: "deleted"}, nil
 }
 
+func (s *APIServer) GetQuestionsUsageStats(ctx context.Context, req api.GetQuestionsUsageStatsRequestObject) (api.GetQuestionsUsageStatsResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.GetQuestionsUsageStats401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.GetQuestionsUsageStats403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	limit := 10
+	if req.Params.Limit != nil {
+		limit = *req.Params.Limit
+	}
+
+	entries, err := s.questionSvc.ListUsageStats(ctx, claims.UserID, limit)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make([]api.QuestionUsageEntry, 0, len(entries))
+	for _, e := range entries {
+		data = append(data, api.QuestionUsageEntry{
+			QuestionId:     e.QuestionID,
+			QuestionText:   e.QuestionText,
+			TopicName:      e.TopicName,
+			OwnTestCount:   e.OwnTestCount,
+			OtherTestCount: e.OtherTestCount,
+		})
+	}
+	return api.GetQuestionsUsageStats200JSONResponse{Data: data}, nil
+}
+
 func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 	opts := make([]api.QuestionOptionResponse, len(q.Options))
 	for i, o := range q.Options {
@@ -213,22 +245,34 @@ func toQuestionDetailResponse(q *domain.Question) api.QuestionDetailResponse {
 		stmts[i] = api.QuestionStatementResponse{Id: s.ID, Text: s.Text, IsCorrect: s.IsCorrect, Position: s.Position, ImageUrl: s.ImageURL}
 	}
 	resp := api.QuestionDetailResponse{
-		Id:            q.ID,
-		ContributorId: q.ContributorID,
-		TopicId:       q.TopicID,
-		QuestionType:  api.QuestionDetailResponseQuestionType(q.Type),
-		Text:          q.Text,
-		Explanation:   q.Explanation,
-		ImageUrl:      q.ImageURL,
-		Difficulty:    api.QuestionDetailResponseDifficulty(q.Difficulty),
-		Options:       opts,
-		Statements:    stmts,
-		CreatedAt:     q.CreatedAt,
-		UpdatedAt:     q.UpdatedAt,
+		Id:              q.ID,
+		ContributorId:   q.ContributorID,
+		ContributorName: &q.ContributorName,
+		TopicId:         q.TopicID,
+		QuestionType:    api.QuestionDetailResponseQuestionType(q.Type),
+		Text:            q.Text,
+		Explanation:     q.Explanation,
+		ImageUrl:        q.ImageURL,
+		Difficulty:      api.QuestionDetailResponseDifficulty(q.Difficulty),
+		Options:         opts,
+		Statements:      stmts,
+		CreatedAt:       q.CreatedAt,
+		UpdatedAt:       q.UpdatedAt,
 	}
 	if q.EducationLevel != nil {
 		el := api.QuestionDetailResponseEducationLevel(*q.EducationLevel)
 		resp.EducationLevel = &el
+	}
+	if q.UsageStats != nil {
+		ownCount := q.UsageStats.OwnTestCount
+		otherCount := q.UsageStats.OtherTestCount
+		resp.Usage = &struct {
+			OtherTestCount *int `json:"other_test_count,omitempty"`
+			OwnTestCount   *int `json:"own_test_count,omitempty"`
+		}{
+			OwnTestCount:   &ownCount,
+			OtherTestCount: &otherCount,
+		}
 	}
 	return resp
 }

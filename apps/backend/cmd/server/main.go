@@ -73,7 +73,7 @@ func main() {
 	questionService := questionsvc.NewService(questionRepo, cfg.UploadDir)
 	testService := testsvc.NewService(testRepo)
 	sessionService := sessionsvc.NewService(sessionRepo, resultRepo, testRepo, pool)
-	resultService := resultsvc.NewService(resultRepo, sessionRepo)
+	resultService := resultsvc.NewService(resultRepo, sessionRepo, testRepo)
 	adminService := adminsvc.New(userRepo, adminRepo)
 	categoryRepo := pgstore.NewCategoryRepository(pool)
 	categoryService := categorysvc.New(categoryRepo)

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { RouterLink } from 'vue-router'
 import client from '@/api/client'
 import type { components } from '@tkaprep/shared-types'
 
@@ -164,11 +165,13 @@ onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); is
               <span :style="{ color: diffColor[t.difficulty] }">{{ t.difficulty }}</span>
               <span>{{ t.duration_minutes }} mnt</span>
               <span>{{ t.questions.length }} soal</span>
+              <span v-if="t.status === 'published' && (t as any).attempt_count > 0">{{ (t as any).attempt_count }} siswa</span>
             </div>
             <div class="tc-actions">
               <button v-if="t.status === 'draft'" class="btn-sm btn-questions" @click="openQSelector(t)">Pilih Soal</button>
               <button v-if="t.status === 'draft'" class="btn-sm btn-publish" :disabled="t.questions.length === 0" @click="setStatus(t.id, true)">Terbitkan</button>
-              <button v-else class="btn-sm btn-unpublish" @click="setStatus(t.id, false)">Batalkan Terbit</button>
+              <RouterLink v-if="t.status === 'published'" :to="'/contrib/tests/' + t.id + '/results'" class="btn-sm btn-results">Lihat Hasil</RouterLink>
+              <button v-if="t.status === 'published'" class="btn-sm btn-unpublish" @click="setStatus(t.id, false)">Batalkan Terbit</button>
               <button v-if="t.status === 'draft'" class="btn-sm btn-delete" @click="deleteTest(t.id)">Hapus</button>
             </div>
           </div>
@@ -223,7 +226,15 @@ onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); is
         <div v-else class="qs-list">
           <div v-for="q in selectorQuestions" :key="q.id" class="qs-item" :class="{ selected: selectorSelectedIds.has(q.id) }" @click="toggleQ(q.id)">
             <div class="qs-item-left"><span class="qs-type">{{ {mcq:'PG',multi_correct:'PGK',true_false:'B/S'}[q.question_type] }}</span><span class="qs-item-topic">{{ topicName(q.topic_id) }}</span></div>
-            <div class="qs-item-text" v-html="q.text.substring(0, 120) + (q.text.length > 120 ? '…' : '')"></div>
+            <div class="qs-item-body">
+              <div class="qs-item-text" v-html="q.text.substring(0, 120) + (q.text.length > 120 ? '…' : '')"></div>
+              <div class="qs-item-meta">
+                <span v-if="(q as any).contributor_name" class="qs-owner">oleh: {{ (q as any).contributor_name }}</span>
+                <span v-if="(q as any).usage && (q as any).usage.own_test_count + (q as any).usage.other_test_count > 0" class="qs-usage">
+                  {{ (q as any).usage.own_test_count + (q as any).usage.other_test_count }} tes
+                </span>
+              </div>
+            </div>
             <div class="qs-check" :class="{ on: selectorSelectedIds.has(q.id) }">{{ selectorSelectedIds.has(q.id) ? '✓' : '' }}</div>
           </div>
         </div>
@@ -264,6 +275,8 @@ onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); is
 .btn-unpublish { background: transparent; border: 1px solid var(--warning); color: var(--warning); }
 .btn-delete { background: transparent; border: 1px solid var(--border); color: var(--danger); }
 .btn-delete:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-results { background: var(--accent); color: #fff; text-decoration: none; display: inline-block; }
+.btn-results:hover { opacity: 0.85; }
 .empty-state { color: var(--text-muted); text-align: center; padding: 2rem; }
 .top5-empty { font-size: 0.72rem; color: var(--text-muted); text-align: center; padding: 1rem 0; }
 .top5-list { display: flex; flex-direction: column; gap: 0.5rem; }
@@ -309,7 +322,11 @@ onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); is
 .qs-item-left { display: flex; gap: 0.4rem; align-items: center; flex-shrink: 0; }
 .qs-type { font-size: 0.6rem; font-weight: 800; padding: 0.12rem 0.35rem; border-radius: 3px; border: 1px solid var(--accent); color: var(--accent); }
 .qs-item-topic { font-size: 0.65rem; color: var(--text-muted); }
-.qs-item-text { flex: 1; font-size: 0.78rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qs-item-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.qs-item-text { font-size: 0.78rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.qs-item-meta { display: flex; gap: 0.5rem; align-items: center; }
+.qs-owner { font-size: 0.62rem; color: var(--text-muted); font-style: italic; }
+.qs-usage { font-size: 0.6rem; font-weight: 600; color: var(--success); background: rgba(0,210,160,0.08); padding: 0.05rem 0.35rem; border-radius: 3px; }
 .qs-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; flex-shrink: 0; }
 .qs-check.on { background: var(--accent); border-color: var(--accent); color: #fff; }
 

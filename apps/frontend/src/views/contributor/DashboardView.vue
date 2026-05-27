@@ -2,14 +2,17 @@
 import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import MostUsedQuestions from '@/components/MostUsedQuestions.vue'
 import client from '@/api/client'
 
 const auth = useAuthStore()
 
 const questionCount = ref(0)
 const testCount = ref(0)
+const totalAttempts = ref(0)
 const displayQuestionCount = ref(0)
 const displayTestCount = ref(0)
+const displayAttempts = ref(0)
 
 const firstName = computed(() => {
   const name = auth.user?.name ?? 'Kontributor'
@@ -39,17 +42,23 @@ function animateCount(target: number, displayRef: { value: number }, duration = 
 onMounted(async () => {
   try {
     const [resTests, resQuestions] = await Promise.allSettled([
-      client.GET('/tests', { params: { query: { limit: 50 } } }),
+      client.GET('/tests', { params: { query: { status: 'published', limit: 50 } } }),
       client.GET('/questions', { params: { query: { limit: 1 } } }),
     ])
     if (resTests.status === 'fulfilled' && resTests.value.data) {
       testCount.value = resTests.value.data.total
+      let sum = 0
+      for (const t of resTests.value.data.data) {
+        if ((t as any).attempt_count) sum += (t as any).attempt_count
+      }
+      totalAttempts.value = sum
     }
     if (resQuestions.status === 'fulfilled' && resQuestions.value.data) {
       questionCount.value = resQuestions.value.data.total
     }
     animateCount(questionCount.value, displayQuestionCount)
     animateCount(testCount.value, displayTestCount)
+    animateCount(totalAttempts.value, displayAttempts)
   } catch (_) {
     // keep defaults at 0
   }
@@ -111,7 +120,8 @@ onMounted(async () => {
             </svg>
           </div>
         </div>
-        <div class="stat-value stat-value--muted">—</div>
+        <div class="stat-value">{{ displayAttempts }}</div>
+        <!-- stat-value styles remain via stat-value class -->
         <div class="stat-label">Percobaan Siswa</div>
       </div>
     </div>
@@ -146,6 +156,9 @@ onMounted(async () => {
         <span class="action-arrow">→</span>
       </RouterLink>
     </div>
+
+    <div class="section-label">Pertanyaan Teratas</div>
+    <MostUsedQuestions />
   </div>
 </template>
 

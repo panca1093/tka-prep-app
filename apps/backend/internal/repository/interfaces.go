@@ -56,6 +56,7 @@ type QuestionFilter struct {
 	Difficulty     *domain.Difficulty
 	QuestionType   *domain.QuestionType
 	EducationLevel *string
+	CallerID       uuid.UUID // if set, usage stats populated when CallerID == question.contributor_id
 	Page           int
 	Limit          int
 }
@@ -68,6 +69,8 @@ type QuestionRepository interface {
 	Delete(ctx context.Context, id uuid.UUID) error
 	// IsUsedInPublishedTest reports whether the question is referenced by any published test.
 	IsUsedInPublishedTest(ctx context.Context, id uuid.UUID) (bool, error)
+	// ListUsageStats returns questions owned by contributor ranked by total test attachment count.
+	ListUsageStats(ctx context.Context, contributorID uuid.UUID, limit int) ([]domain.QuestionUsageEntry, error)
 }
 
 // TestFilter holds optional filters for listing tests.
@@ -152,4 +155,17 @@ type ResultRepository interface {
 	FindDetailByID(ctx context.Context, id uuid.UUID) (*domain.ResultDetail, error)
 	// GetReview returns per-question review items for a completed session.
 	GetReview(ctx context.Context, sessionID, testID uuid.UUID) ([]domain.ReviewItem, error)
+	// ListByTestID returns paginated results for a test, with student name/email joined.
+	ListByTestID(ctx context.Context, f ContributorResultFilter) ([]domain.ContributorResultEntry, int, error)
+	// GetTestAnalytics returns aggregate stats + per-topic breakdown for a test.
+	GetTestAnalytics(ctx context.Context, testID uuid.UUID) (*domain.TestAnalytics, error)
+	// ExistsByStudentAndTest reports whether the student has a completed result for the test.
+	ExistsByStudentAndTest(ctx context.Context, studentID, testID uuid.UUID) (bool, error)
+}
+
+// ContributorResultFilter holds pagination for listing results by test.
+type ContributorResultFilter struct {
+	TestID uuid.UUID
+	Page   int
+	Limit  int
 }
