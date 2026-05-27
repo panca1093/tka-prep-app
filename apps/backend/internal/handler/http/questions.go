@@ -38,6 +38,10 @@ func (s *APIServer) GetQuestions(ctx context.Context, req api.GetQuestionsReques
 		d := domain.Difficulty(*p.Difficulty)
 		f.Difficulty = &d
 	}
+	if p.QuestionType != nil {
+		qt := domain.QuestionType(*p.QuestionType)
+		f.QuestionType = &qt
+	}
 	if p.EducationLevel != nil {
 		el := string(*p.EducationLevel)
 		f.EducationLevel = &el

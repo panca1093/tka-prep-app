@@ -434,6 +434,13 @@ paths:
           schema:
             type: string
             enum: [easy, medium, hard]
+        - name: question_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [mcq, multi_correct, true_false]
+          description: Filter by question type.
         - name: education_level
           in: query
           required: false

@@ -390,19 +390,19 @@ func (e ReviewItemResponseDifficulty) Valid() bool {
 
 // Defines values for ReviewItemResponseQuestionType.
 const (
-	Mcq          ReviewItemResponseQuestionType = "mcq"
-	MultiCorrect ReviewItemResponseQuestionType = "multi_correct"
-	TrueFalse    ReviewItemResponseQuestionType = "true_false"
+	ReviewItemResponseQuestionTypeMcq          ReviewItemResponseQuestionType = "mcq"
+	ReviewItemResponseQuestionTypeMultiCorrect ReviewItemResponseQuestionType = "multi_correct"
+	ReviewItemResponseQuestionTypeTrueFalse    ReviewItemResponseQuestionType = "true_false"
 )
 
 // Valid indicates whether the value is a known member of the ReviewItemResponseQuestionType enum.
 func (e ReviewItemResponseQuestionType) Valid() bool {
 	switch e {
-	case Mcq:
+	case ReviewItemResponseQuestionTypeMcq:
 		return true
-	case MultiCorrect:
+	case ReviewItemResponseQuestionTypeMultiCorrect:
 		return true
-	case TrueFalse:
+	case ReviewItemResponseQuestionTypeTrueFalse:
 		return true
 	default:
 		return false
@@ -907,6 +907,27 @@ func (e GetQuestionsParamsDifficulty) Valid() bool {
 	case GetQuestionsParamsDifficultyHard:
 		return true
 	case GetQuestionsParamsDifficultyMedium:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for GetQuestionsParamsQuestionType.
+const (
+	GetQuestionsParamsQuestionTypeMcq          GetQuestionsParamsQuestionType = "mcq"
+	GetQuestionsParamsQuestionTypeMultiCorrect GetQuestionsParamsQuestionType = "multi_correct"
+	GetQuestionsParamsQuestionTypeTrueFalse    GetQuestionsParamsQuestionType = "true_false"
+)
+
+// Valid indicates whether the value is a known member of the GetQuestionsParamsQuestionType enum.
+func (e GetQuestionsParamsQuestionType) Valid() bool {
+	switch e {
+	case GetQuestionsParamsQuestionTypeMcq:
+		return true
+	case GetQuestionsParamsQuestionTypeMultiCorrect:
+		return true
+	case GetQuestionsParamsQuestionTypeTrueFalse:
 		return true
 	default:
 		return false
@@ -1818,6 +1839,9 @@ type GetQuestionsParams struct {
 	TopicId    *openapi_types.UUID           `form:"topic_id,omitempty" json:"topic_id,omitempty"`
 	Difficulty *GetQuestionsParamsDifficulty `form:"difficulty,omitempty" json:"difficulty,omitempty"`
 
+	// QuestionType Filter by question type.
+	QuestionType *GetQuestionsParamsQuestionType `form:"question_type,omitempty" json:"question_type,omitempty"`
+
 	// EducationLevel Filter by education level. Omit to return all (including untagged).
 	EducationLevel *GetQuestionsParamsEducationLevel `form:"education_level,omitempty" json:"education_level,omitempty"`
 	Page           *int                              `form:"page,omitempty" json:"page,omitempty"`
@@ -1826,6 +1850,9 @@ type GetQuestionsParams struct {
 
 // GetQuestionsParamsDifficulty defines parameters for GetQuestions.
 type GetQuestionsParamsDifficulty string
+
+// GetQuestionsParamsQuestionType defines parameters for GetQuestions.
+type GetQuestionsParamsQuestionType string
 
 // GetQuestionsParamsEducationLevel defines parameters for GetQuestions.
 type GetQuestionsParamsEducationLevel string
@@ -3192,6 +3219,19 @@ func (siw *ServerInterfaceWrapper) GetQuestions(w http.ResponseWriter, r *http.R
 			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "difficulty"})
 		} else {
 			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "difficulty", Err: err})
+		}
+		return
+	}
+
+	// ------------- Optional query parameter "question_type" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "question_type", r.URL.Query(), &params.QuestionType, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		var requiredError *runtime.RequiredParameterError
+		if errors.As(err, &requiredError) {
+			siw.ErrorHandlerFunc(w, r, &RequiredParamError{ParamName: "question_type"})
+		} else {
+			siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "question_type", Err: err})
 		}
 		return
 	}
@@ -9699,40 +9739,40 @@ var swaggerSpec = []string{
 	"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",
-	"tSLL437GK5t/3kpu1osRPkor3qHadE5Rpb5vf8XXM5b9DkEjhahn+Tc5un2271TWhjQkas+FHIOfEiwZ",
-	"HmBIZIyovI9nmIRxprJ/MyLUQ3XPj1Ulp7VkKR5ynXoWnBye6lRSxpPim+8om+Ioyv20gxKdCpCBZ1XD",
-	"WSUqVNlQyU/8NYkuKLf4zuacYvUaslv2h+XT1x/TaB5N3tL2jj1BxHxUyTyFNyqnDos4GiK6ShuWgD7J",
-	"OJyjo86LIMUAH2X7/EZID7HdwtBfVBn6633g5+XmWi90QXJdYekJ5eJIlYI5MPehGqgDdkX1Qzu7wO1b",
-	"9eP1Xf7neZ+qV8U4fy969fKu/l5t/mhvKL7dUf2rPeL8T6PyVSHrMQeK6jABEBSv0KkrJauVw6rIIXqr",
-	"80f/BKYxDSWnxDM5kT2NX3PrFEFfHo2uoK1FqumBZPe6dJQUcb/XTsxrsLQkx+0D6m8qCLiSobRT0rOi",
-	"gQfa2664fIT3LZqisf7K9AhAor9s9WpIDdd4gNtstUvTZINU43jcsaU+d77mg1XU0+WVu/kVwlSedBop",
-	"768TT/JDt7Dk5E7/YWygDoS5NG17iRZWNt5PnUrvpput63YHfeqx6FOsel767muK2JEK8oBp/ozlAMo4",
-	"YegGo9sBBHKpO2yNTPpfZS8DzzCuRp31J/NSU/5EU/4207YDzxp87TQpWwD9+NeBJL9wNSvP7TcXUfUF",
-	"9mGM4QKxo0LN0vSsWYNBeQAJv0WMqzyqyoN53MsnzAu9/OTO/NUhQ69M+6u8dS/2wCut91OMmv20Z3Kp",
-	"Jur80BMlV/Dvf/5LpQEuacaAOdbHJFZ59RDBM008+T2/CvEInCDAUAIxwWRe1UB1rSc/9ZyYYdpv0jTo",
-	"6Mz02jI5rd/dcQVvkN7MjlwdPUhZrw9weHPwb3z54YCccUu+hQlIGZ0zxHnlkt3WdYHCyWbWpNLbhocl",
-	"JK3JbWTGB0MMDwPPlMYL8AxwFKuynBNdOWeCI0ATLASKBjG1WQznAznaO9nl0bMzuYv9ZWRydQdH7RNn",
-	"ZMN4xgc6n8cISIIGlFT8tkPYAc+mCRYDGcKV7vRlGAz6HWdpSvXwusn+2YFEnwCJnpmrl5pABIosLWOQ",
-	"bFcjqBSh3GiRholBJfOUqsQuD922l679AYmHFK1dT87zw2vTrlo4duNp7wNrckYMzhRnzJNHhhTPLQNs",
-	"+1Q/t0/p3PfVgrmHuFnfuJkwlFsn+7Z08JzaN5cKriXiTtLA5dTdIbAP6m3RQ/r3I0z/Lp6Gbb8b0ZB/",
-	"J3fyv165sarvB9W6l4oq8qaHfNiDUrrfSqlifJiXqakrJb966G8ElPLSuItRCqVWBfTLobgBQuiQhfFI",
-	"wkUK56dLcP7WrW61JLPuCrs3lcA6WL3bNmXllSW1G/1AWk9Opj3GtFnFYBIkYAQFXEG6NjXdvsViKvyp",
-	"u27M2lnVaIVrlI2L8Wu/PJkyCSZhyg7KI5H/6/ysPu6OWqkRiZJmjZAxqCv/mC/oVD0j2H3vsqyFwaph",
-	"wi0TuiI3srogrVbYUIm9gKcoxDMc6v20ldmo4beh+PbgQwW7L0z7p6Vi2nzxIAqfQMxhd6JQYdwCckBo",
-	"9Xb4oNRGvXgAjcB7kLfHrszjLDR5kVV5RFeRnseiql9V7o/utbJerPKQvXDwQvV8EDaNYYjU1aCyioK6",
-	"2b2iZ8rBN3pcO6twjfIG2i515t0HZ7eTZzG8CpWtOhtjy35GDhIYL3fywO6B/6x8X1AbEA2qB7cLCugt",
-	"0SbSCBT3B4/BuSokh3h53uB2gYgpC2g6GQw57scqeEgVXfrfDqy7Aa9Mjy/BG2j28oaSGZ7vtaZhVgpC",
-	"tdSDunFQN4b457iNPWtRMvKMyt4ejDyTcncujBc7umjFTAad5PzJgWp34+2TByA/1FxKf9x+PeIF5MXj",
-	"FnIclb9Q84o+Mr/HlUTyaoZLnuz5rEB7/Y6H5EKYHBW3V0y7njwnI0Pdph+LHk/LcVpA6sBuno7r1Hgd",
-	"B6oIOabkxsgUhtdAUKMRPHO/MWwRKU2l6dnmbdAtdhjXkgsoQegIaJUU/7Me+lOPIFeR+av3Zz+JUTz8",
-	"LvLdF8DTX3SkupYw21iuq4bKbpJd7RNxvWKY4vCQ6PooE111fRcf68ixv+QdJ3fq/34ZrqrHB92+n1Qv",
-	"2h6SXA+ifM/tfUU5mICMoxWLu/Yjvo60v90R2cYy/wYLu/G2hd3Bq/dEqPwNJbMYhwI8izI9CVIvxz1/",
-	"rFUz+wv8LI0pjPz2+0f1+zv9DLifGyRZLHAKmTiRTOUoNwZ8xoJ6VrzKgaaYQBU5bIQnLUtA9XNbAuvl",
-	"HvZyMxare5WfYZLKhedg4ydfz+C3r2ffvDr+LZ13rl4O08eM0TCvPAS99bcz86pi5Tv6j+QZewU4qNYN",
-	"nuEEztFz5/OHalR2kwvQmhlJQxiDCN2gmKaJ3PBIo0CwECI9PTmJZYMF5eL02/G34xOY4pObF4Fci5mp",
-	"PqJ5jhGSCBTkBWOASJRSTFSw38hts8TmI1dn5YsO+a1tGIY0IwIkkMA5Mgs14ygANUfRgq3sYHjE87Kj",
-	"4Q7NrkV1mSkk11bMotL775VXPO4cjjBdB4uXoYd8VnNX19WniNDKriwvH2k6Xhblce8cGa86MGqaVnNA",
-	"m82vshSZ0G55RpUVnslfgvtP9/8fAAD//w==",
+	"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",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,
