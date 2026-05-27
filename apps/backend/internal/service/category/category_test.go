@@ -39,6 +39,9 @@ func (r *fakeCategoryRepo) List(_ context.Context) ([]*domain.Category, error) {
 func (r *fakeCategoryRepo) Create(_ context.Context, _ string) (*domain.Category, error) {
 	return nil, nil
 }
+func (r *fakeCategoryRepo) CreateOwned(_ context.Context, _ uuid.UUID, _ string, _ *string) (*domain.Category, error) {
+	return &domain.Category{ID: uuid.New()}, nil
+}
 func (r *fakeCategoryRepo) Update(_ context.Context, _ uuid.UUID, _ string) (*domain.Category, error) {
 	return nil, nil
 }
