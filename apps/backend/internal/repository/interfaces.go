@@ -134,6 +134,8 @@ type AdminRepository interface {
 type CategoryRepository interface {
 	List(ctx context.Context) ([]*domain.Category, error)
 	Create(ctx context.Context, name string) (*domain.Category, error)
+	// CreateOwned inserts a new category with created_by = ownerID.
+	CreateOwned(ctx context.Context, ownerID uuid.UUID, name string, description *string) (*domain.Category, error)
 	Update(ctx context.Context, id uuid.UUID, name string) (*domain.Category, error)
 	// UpdateOwned updates name + description only when created_by matches callerID.
 	// Returns ErrForbidden when the category exists but is not owned by callerID.

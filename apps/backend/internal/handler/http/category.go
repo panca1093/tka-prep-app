@@ -79,6 +79,29 @@ func (s *APIServer) UpdateCategory(ctx context.Context, req api.UpdateCategoryRe
 	return api.UpdateCategory200JSONResponse(domainCategoryToAPI(cat)), nil
 }
 
+func (s *APIServer) CreateOwnedCategory(ctx context.Context, req api.CreateOwnedCategoryRequestObject) (api.CreateOwnedCategoryResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.CreateOwnedCategory401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor {
+		return api.CreateOwnedCategory403JSONResponse(errBody("FORBIDDEN", "contributor only")), nil
+	}
+
+	ownerID := uuid.UUID(claims.UserID)
+	cat, err := s.categorySvc.CreateOwned(ctx, ownerID, req.Body.Name, req.Body.Description)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrConflict):
+			return api.CreateOwnedCategory409JSONResponse(errBody("CONFLICT", "nama kategori sudah digunakan")), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.CreateOwnedCategory400JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.CreateOwnedCategory201JSONResponse(domainCategoryToAPI(cat)), nil
+}
+
 func (s *APIServer) UpdateOwnedCategory(ctx context.Context, req api.UpdateOwnedCategoryRequestObject) (api.UpdateOwnedCategoryResponseObject, error) {
 	claims, ok := pkgjwt.FromContext(ctx)
 	if !ok {

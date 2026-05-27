@@ -61,6 +61,22 @@ func (r *CategoryRepository) Create(ctx context.Context, name string) (*domain.C
 	return &c, nil
 }
 
+func (r *CategoryRepository) CreateOwned(ctx context.Context, ownerID uuid.UUID, name string, description *string) (*domain.Category, error) {
+	var c domain.Category
+	err := r.pool.QueryRow(ctx, `
+		INSERT INTO categories (name, description, created_by) VALUES ($1, $2, $3)
+		RETURNING id, name, description, created_by, 0, created_at`, name, description, ownerID,
+	).Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, apierr.ErrConflict
+		}
+		return nil, fmt.Errorf("create owned category: %w", err)
+	}
+	return &c, nil
+}
+
 func (r *CategoryRepository) Update(ctx context.Context, id uuid.UUID, name string) (*domain.Category, error) {
 	var c domain.Category
 	err := r.pool.QueryRow(ctx, `

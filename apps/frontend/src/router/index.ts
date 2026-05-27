@@ -40,7 +40,8 @@ const router = createRouter({
         { path: 'contrib/dashboard', name: 'contrib-dashboard', component: () => import('@/views/contributor/DashboardView.vue'), meta: { role: 'contributor' } },
         { path: 'contrib/questions', name: 'question-bank', component: () => import('@/views/contributor/QuestionBankView.vue'), meta: { role: 'contributor' } },
         { path: 'contrib/tests', name: 'test-builder', component: () => import('@/views/contributor/TestBuilderView.vue'), meta: { role: 'contributor' } },
-{ path: 'contrib/tests/:testId/results', name: 'test-results', component: () => import('@/views/contributor/TestResultsView.vue'), meta: { role: 'contributor' } },
+        { path: 'contrib/tests/:testId/results', name: 'test-results', component: () => import('@/views/contributor/TestResultsView.vue'), meta: { role: 'contributor' } },
+        { path: 'contrib/categories', name: 'contrib-categories', component: () => import('@/views/contributor/CategoriesView.vue'), meta: { role: 'contributor' } },
 
         // Admin
         { path: 'admin', redirect: { name: 'admin-dashboard' } },
