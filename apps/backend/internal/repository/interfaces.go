@@ -159,6 +159,8 @@ type ResultRepository interface {
 	ListByTestID(ctx context.Context, f ContributorResultFilter) ([]domain.ContributorResultEntry, int, error)
 	// GetTestAnalytics returns aggregate stats + per-topic breakdown for a test.
 	GetTestAnalytics(ctx context.Context, testID uuid.UUID) (*domain.TestAnalytics, error)
+	// ExistsByStudentAndTest reports whether the student has a completed result for the test.
+	ExistsByStudentAndTest(ctx context.Context, studentID, testID uuid.UUID) (bool, error)
 }
 
 // ContributorResultFilter holds pagination for listing results by test.
