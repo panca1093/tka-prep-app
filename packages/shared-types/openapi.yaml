@@ -645,6 +645,41 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /questions/usage-stats:
+    get:
+      tags: [Questions]
+      summary: Get most-used questions for the authenticated contributor
+      operationId: getQuestionsUsageStats
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Ranked list of most-used questions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuestionUsageStatsResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /tests:
     get:
       tags: [Tests]
@@ -1121,6 +1156,57 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
           description: Test is published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tests/{testId}/results:
+    get:
+      tags: [Tests]
+      summary: List results for a test (contributor who owns test, or admin). Includes analytics when caller owns the test.
+      operationId: getTestsTestIdResults
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: testId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: Paginated list of results for the test with optional analytics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TestResultListResponse'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Not found
           content:
             application/json:
               schema:
@@ -2545,6 +2631,18 @@ components:
         updated_at:
           type: string
           format: date-time
+        contributor_name:
+          type: string
+          description: Display name of the question creator. Always present.
+        usage:
+          type: object
+          nullable: true
+          description: Usage stats — null when caller is not the question owner.
+          properties:
+            own_test_count:
+              type: integer
+            other_test_count:
+              type: integer
 
     QuestionListResponse:
       type: object
@@ -2767,6 +2865,14 @@ components:
         scoring_config:
           $ref: '#/components/schemas/ScoringConfigResponse'
           nullable: true
+        attempt_count:
+          type: integer
+          description: Number of submitted attempts. Populated for contributor callers.
+        avg_score:
+          type: number
+          format: double
+          nullable: true
+          description: Average score across all submissions. Null if no submissions.
 
 
     TestLeaderboardEntry:
@@ -3339,6 +3445,118 @@ components:
           type: integer
         limit:
           type: integer
+
+    ContributorResultEntry:
+      type: object
+      required: [id, session_id, student_id, student_name, student_email, test_id, test_title, total_score, correct_count, wrong_count, blank_count, completed_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        session_id:
+          type: string
+          format: uuid
+        student_id:
+          type: string
+          format: uuid
+        student_name:
+          type: string
+        student_email:
+          type: string
+          format: email
+        test_id:
+          type: string
+          format: uuid
+        test_title:
+          type: string
+        total_score:
+          type: number
+          format: double
+        correct_count:
+          type: integer
+        wrong_count:
+          type: integer
+        blank_count:
+          type: integer
+        completed_at:
+          type: string
+          format: date-time
+
+    TestAnalyticsResponse:
+      type: object
+      properties:
+        total_attempts:
+          type: integer
+        avg_score:
+          type: number
+          format: double
+          nullable: true
+        max_score:
+          type: number
+          format: double
+          nullable: true
+        min_score:
+          type: number
+          format: double
+          nullable: true
+        per_topic:
+          type: array
+          items:
+            type: object
+            properties:
+              topic_id:
+                type: string
+                format: uuid
+              topic_name:
+                type: string
+              question_count:
+                type: integer
+              avg_correct_count:
+                type: number
+                format: double
+
+    TestResultListResponse:
+      type: object
+      required: [data, total, page, limit]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/ContributorResultEntry'
+        total:
+          type: integer
+        page:
+          type: integer
+        limit:
+          type: integer
+        analytics:
+          $ref: '#/components/schemas/TestAnalyticsResponse'
+          nullable: true
+
+    QuestionUsageEntry:
+      type: object
+      required: [question_id, question_text, topic_name, own_test_count, other_test_count]
+      properties:
+        question_id:
+          type: string
+          format: uuid
+        question_text:
+          type: string
+        topic_name:
+          type: string
+        own_test_count:
+          type: integer
+        other_test_count:
+          type: integer
+
+    QuestionUsageStatsResponse:
+      type: object
+      required: [data]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/QuestionUsageEntry'
 
   securitySchemes:
     bearerAuth:

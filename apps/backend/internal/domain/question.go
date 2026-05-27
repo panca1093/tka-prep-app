@@ -33,6 +33,7 @@ type Topic struct {
 type Question struct {
 	ID             uuid.UUID
 	ContributorID  uuid.UUID
+	ContributorName string            // joined from users.name
 	TopicID        uuid.UUID
 	Type           QuestionType
 	EducationLevel *string
@@ -42,8 +43,22 @@ type Question struct {
 	Difficulty     Difficulty
 	Options        []QuestionOption    // MCQ and multi_correct
 	Statements     []QuestionStatement // true_false only
+	UsageStats     *QuestionUsageStats // nil when caller is not the question owner
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+type QuestionUsageStats struct {
+	OwnTestCount   int
+	OtherTestCount int
+}
+
+type QuestionUsageEntry struct {
+	QuestionID     uuid.UUID
+	QuestionText   string
+	TopicName      string
+	OwnTestCount   int
+	OtherTestCount int
 }
 
 type QuestionOption struct {

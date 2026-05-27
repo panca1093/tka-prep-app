@@ -11,6 +11,7 @@ import (
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
+	"github.com/yourorg/tkaprep/apps/backend/internal/repository"
 )
 
 type ResultRepository struct {
@@ -371,6 +372,96 @@ func (r *ResultRepository) GetReview(ctx context.Context, sessionID, testID uuid
 	}
 
 	return items, nil
+}
+
+func (r *ResultRepository) ListByTestID(ctx context.Context, f repository.ContributorResultFilter) ([]domain.ContributorResultEntry, int, error) {
+	if f.Limit <= 0 {
+		f.Limit = 20
+	}
+	if f.Page <= 0 {
+		f.Page = 1
+	}
+	offset := (f.Page - 1) * f.Limit
+
+	var total int
+	if err := r.pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM test_results WHERE test_id = $1`, f.TestID,
+	).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("count results by test: %w", err)
+	}
+
+	rows, err := r.pool.Query(ctx,
+		`SELECT tr.id, tr.session_id, tr.student_id, u.name, u.email,
+		        tr.test_id, t.title, tr.total_score, tr.correct_count, tr.wrong_count, tr.blank_count, tr.completed_at
+		 FROM test_results tr
+		 JOIN users u ON u.id = tr.student_id
+		 JOIN tests t ON t.id = tr.test_id
+		 WHERE tr.test_id = $1
+		 ORDER BY tr.completed_at DESC
+		 LIMIT $2 OFFSET $3`,
+		f.TestID, f.Limit, offset,
+	)
+	if err != nil {
+		return nil, 0, fmt.Errorf("list results by test: %w", err)
+	}
+	defer rows.Close()
+
+	var out []domain.ContributorResultEntry
+	for rows.Next() {
+		var e domain.ContributorResultEntry
+		if err := rows.Scan(&e.ID, &e.SessionID, &e.StudentID, &e.StudentName, &e.StudentEmail,
+			&e.TestID, &e.TestTitle, &e.TotalScore, &e.CorrectCount, &e.WrongCount, &e.BlankCount, &e.CompletedAt); err != nil {
+			return nil, 0, fmt.Errorf("scan result entry: %w", err)
+		}
+		out = append(out, e)
+	}
+	return out, total, rows.Err()
+}
+
+func (r *ResultRepository) GetTestAnalytics(ctx context.Context, testID uuid.UUID) (*domain.TestAnalytics, error) {
+	a := &domain.TestAnalytics{}
+	err := r.pool.QueryRow(ctx,
+		`SELECT COUNT(*),
+		        AVG(total_score),
+		        MAX(total_score),
+		        MIN(total_score)
+		 FROM test_results WHERE test_id = $1`, testID,
+	).Scan(&a.TotalAttempts, &a.AvgScore, &a.MaxScore, &a.MinScore)
+	if err != nil {
+		return nil, fmt.Errorf("get test analytics: %w", err)
+	}
+
+	rows, err := r.pool.Query(ctx,
+		`SELECT tp.id, tp.name,
+		        COUNT(DISTINCT q.id)::int,
+		        COALESCE(AVG(
+		            CASE WHEN tq.question_id IS NOT NULL THEN
+		                (SELECT COUNT(*) FROM session_answers sa
+		                 JOIN question_options co ON co.question_id = sa.question_id AND co.is_correct = true AND co.id = sa.selected_option_id
+		                 WHERE sa.session_id IN (SELECT id FROM test_sessions WHERE test_id = $1 AND status = 'submitted')
+		                 AND sa.question_id = q.id)
+		            END
+		        ), 0)
+		 FROM test_questions tq
+		 JOIN questions q ON q.id = tq.question_id
+		 JOIN topics tp ON tp.id = q.topic_id
+		 WHERE tq.test_id = $1
+		 GROUP BY tp.id, tp.name
+		 ORDER BY tp.name`, testID,
+	)
+	if err != nil {
+		return a, fmt.Errorf("per-topic analytics: %w", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var ta domain.TopicAnalytics
+		if err := rows.Scan(&ta.TopicID, &ta.TopicName, &ta.QuestionCount, &ta.AvgCorrectCount); err != nil {
+			return a, fmt.Errorf("scan topic analytics: %w", err)
+		}
+		a.PerTopic = append(a.PerTopic, ta)
+	}
+	return a, rows.Err()
 }
 
 func setsEqualUUID(a, b []uuid.UUID) bool {

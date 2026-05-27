@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	openapi_types "github.com/oapi-codegen/runtime/types"
+
 	"github.com/google/uuid"
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
@@ -79,7 +81,7 @@ func (s *APIServer) PostTests(ctx context.Context, req api.PostTestsRequestObjec
 	if !ok {
 		return api.PostTests401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
 		return api.PostTests403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -151,7 +153,7 @@ func (s *APIServer) PatchTestsTestId(ctx context.Context, req api.PatchTestsTest
 	if !ok {
 		return api.PatchTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
 		return api.PatchTestsTestId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -196,7 +198,7 @@ func (s *APIServer) DeleteTestsTestId(ctx context.Context, req api.DeleteTestsTe
 	if !ok {
 		return api.DeleteTestsTestId401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
 		return api.DeleteTestsTestId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -219,7 +221,7 @@ func (s *APIServer) PostTestsTestIdPublish(ctx context.Context, req api.PostTest
 	if !ok {
 		return api.PostTestsTestIdPublish401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
 		return api.PostTestsTestIdPublish403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -270,7 +272,7 @@ func (s *APIServer) PutTestsTestIdQuestions(ctx context.Context, req api.PutTest
 	if !ok {
 		return api.PutTestsTestIdQuestions401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
 		return api.PutTestsTestIdQuestions403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -294,7 +296,7 @@ func (s *APIServer) PatchTestsTestIdScoring(ctx context.Context, req api.PatchTe
 	if !ok {
 		return api.PatchTestsTestIdScoring401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
 	}
-	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin && claims.Role != domain.RoleContributor {
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
 		return api.PatchTestsTestIdScoring403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
@@ -315,6 +317,96 @@ func (s *APIServer) PatchTestsTestIdScoring(ctx context.Context, req api.PatchTe
 		return nil, err
 	}
 	return api.PatchTestsTestIdScoring200JSONResponse(toTestDetailResponse(t)), nil
+}
+
+func (s *APIServer) GetTestsTestIdResults(ctx context.Context, req api.GetTestsTestIdResultsRequestObject) (api.GetTestsTestIdResultsResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.GetTestsTestIdResults401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
+		return api.GetTestsTestIdResults403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
+	}
+
+	page, limit := 1, 20
+	if req.Params.Page != nil {
+		page = *req.Params.Page
+	}
+	if req.Params.Limit != nil {
+		limit = *req.Params.Limit
+	}
+
+	results, total, analytics, err := s.resultSvc.ListByTestID(ctx, req.TestId, claims.UserID, claims.Role, page, limit)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.GetTestsTestIdResults404JSONResponse(errBody("NOT_FOUND", "test not found")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.GetTestsTestIdResults403JSONResponse(errBody("FORBIDDEN", "not your test")), nil
+		}
+		return nil, err
+	}
+
+	data := make([]api.ContributorResultEntry, 0, len(results))
+	for _, r := range results {
+		data = append(data, api.ContributorResultEntry{
+			Id:           r.ID,
+			SessionId:    r.SessionID,
+			StudentId:    r.StudentID,
+			StudentName:  r.StudentName,
+			StudentEmail: openapi_types.Email(r.StudentEmail),
+			TestId:       r.TestID,
+			TestTitle:    r.TestTitle,
+			TotalScore:   r.TotalScore,
+			CorrectCount: r.CorrectCount,
+			WrongCount:   r.WrongCount,
+			BlankCount:   r.BlankCount,
+			CompletedAt:  r.CompletedAt,
+		})
+	}
+
+	resp := api.GetTestsTestIdResults200JSONResponse{
+		Data:  data,
+		Total: total,
+		Page:  page,
+		Limit: limit,
+	}
+
+	if analytics != nil {
+		perTopic := make([]struct {
+			AvgCorrectCount *float64            `json:"avg_correct_count,omitempty"`
+			QuestionCount   *int                `json:"question_count,omitempty"`
+			TopicId         *openapi_types.UUID `json:"topic_id,omitempty"`
+			TopicName       *string             `json:"topic_name,omitempty"`
+		}, 0, len(analytics.PerTopic))
+		for _, pt := range analytics.PerTopic {
+			ac := pt.AvgCorrectCount
+			qc := pt.QuestionCount
+			tid := openapi_types.UUID(pt.TopicID)
+			tn := pt.TopicName
+			perTopic = append(perTopic, struct {
+				AvgCorrectCount *float64            `json:"avg_correct_count,omitempty"`
+				QuestionCount   *int                `json:"question_count,omitempty"`
+				TopicId         *openapi_types.UUID `json:"topic_id,omitempty"`
+				TopicName       *string             `json:"topic_name,omitempty"`
+			}{
+				AvgCorrectCount: &ac,
+				QuestionCount:   &qc,
+				TopicId:         &tid,
+				TopicName:       &tn,
+			})
+		}
+		ta := int(analytics.TotalAttempts)
+		var analyticsResp api.TestAnalyticsResponse
+		analyticsResp.TotalAttempts = &ta
+		analyticsResp.AvgScore = analytics.AvgScore
+		analyticsResp.MaxScore = analytics.MaxScore
+		analyticsResp.MinScore = analytics.MinScore
+		analyticsResp.PerTopic = &perTopic
+		resp.Analytics = &analyticsResp
+	}
+
+	return resp, nil
 }
 
 func toTestDetailResponse(t *domain.Test) api.TestDetailResponse {
@@ -345,6 +437,10 @@ func toTestDetailResponse(t *domain.Test) api.TestDetailResponse {
 	if t.EducationLevel != nil {
 		el := api.TestDetailResponseEducationLevel(string(*t.EducationLevel))
 		resp.EducationLevel = &el
+	}
+	if t.AttemptCount > 0 || t.AvgScore != nil {
+		resp.AttemptCount = &t.AttemptCount
+		resp.AvgScore = t.AvgScore
 	}
 	if t.StudentStatus != "" {
 		st := api.TestDetailResponseStudentStatus(t.StudentStatus)

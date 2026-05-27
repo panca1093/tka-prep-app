@@ -220,6 +220,12 @@ func (r *fakeResultRepo) FindDetailByID(_ context.Context, _ uuid.UUID) (*domain
 func (r *fakeResultRepo) GetReview(_ context.Context, _, _ uuid.UUID) ([]domain.ReviewItem, error) {
 	return nil, nil
 }
+func (r *fakeResultRepo) ListByTestID(_ context.Context, _ repository.ContributorResultFilter) ([]domain.ContributorResultEntry, int, error) {
+	return nil, 0, nil
+}
+func (r *fakeResultRepo) GetTestAnalytics(_ context.Context, _ uuid.UUID) (*domain.TestAnalytics, error) {
+	return nil, nil
+}
 
 // ─── builder helpers ──────────────────────────────────────────────────────────
 
@@ -235,7 +241,7 @@ func makePublishedTest(id uuid.UUID, durationMinutes int) *domain.Test {
 		ID:              id,
 		ContributorID:   uuid.New(),
 		Title:           "Sample Test",
-		Category:        domain.CategoryTKASaintek,
+		CategoryID:      uuid.New(),
 		DurationMinutes: durationMinutes,
 		Difficulty:      domain.DifficultyMedium,
 		Status:          domain.TestStatusPublished,

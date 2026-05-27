@@ -71,6 +71,7 @@ type ListFilter struct {
 	Difficulty     *domain.Difficulty
 	QuestionType   *domain.QuestionType
 	EducationLevel *string
+	CallerID       uuid.UUID
 	Page           int
 	Limit          int
 }
@@ -82,6 +83,7 @@ func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Question, i
 		Difficulty:     f.Difficulty,
 		QuestionType:   f.QuestionType,
 		EducationLevel: f.EducationLevel,
+		CallerID:       f.CallerID,
 		Page:           f.Page,
 		Limit:          f.Limit,
 	})
@@ -244,15 +246,15 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 }
 
 func validateMCQOptions(opts []OptionInput) error {
-	if len(opts) != 5 {
-		return fmt.Errorf("%w: exactly 5 options required", apierr.ErrValidation)
+	if len(opts) != 4 {
+		return fmt.Errorf("%w: exactly 4 options required", apierr.ErrValidation)
 	}
 	labels := map[string]bool{}
 	correct := 0
 	for _, o := range opts {
 		l := strings.ToUpper(strings.TrimSpace(o.Label))
-		if len(l) != 1 || !strings.ContainsAny(l, "ABCDE") {
-			return fmt.Errorf("%w: option label must be A-E", apierr.ErrValidation)
+		if len(l) != 1 || !strings.ContainsAny(l, "ABCD") {
+			return fmt.Errorf("%w: option label must be A-D", apierr.ErrValidation)
 		}
 		if labels[l] {
 			return fmt.Errorf("%w: duplicate label %s", apierr.ErrValidation, l)
@@ -272,8 +274,8 @@ func validateMCQOptions(opts []OptionInput) error {
 }
 
 func validatePGKOptions(opts []OptionInput) error {
-	if len(opts) != 5 {
-		return fmt.Errorf("%w: exactly 5 options required", apierr.ErrValidation)
+	if len(opts) < 4 || len(opts) > 5 {
+		return fmt.Errorf("%w: 4-5 options required", apierr.ErrValidation)
 	}
 	labels := map[string]bool{}
 	correct := 0
@@ -398,6 +400,10 @@ func cleanupOrphanImages(uploadDir string, oldHTML, newHTML string) {
 		filename := filepath.Base(url)
 		_ = os.Remove(filepath.Join(uploadDir, filename))
 	}
+}
+
+func (s *Service) ListUsageStats(ctx context.Context, callerID uuid.UUID, limit int) ([]domain.QuestionUsageEntry, error) {
+	return s.questions.ListUsageStats(ctx, callerID, limit)
 }
 
 func makeSet(urls []string) map[string]bool {
