@@ -197,7 +197,8 @@ func (r *fakeTestRepo) SetQuestions(_ context.Context, _ uuid.UUID, _ []domain.T
 func (r *fakeTestRepo) UpdateScoringConfig(_ context.Context, _ *domain.ScoringConfig) error {
 	return nil
 }
-func (r *fakeTestRepo) QuestionCount(_ context.Context, _ uuid.UUID) (int, error) { return 0, nil }
+func (r *fakeTestRepo) QuestionCount(_ context.Context, _ uuid.UUID) (int, error) { return 5, nil }
+
 
 // ─── fakeResultRepo ───────────────────────────────────────────────────────────
 
@@ -227,6 +228,10 @@ func (r *fakeResultRepo) GetTestAnalytics(_ context.Context, _ uuid.UUID) (*doma
 	return nil, nil
 }
 
+func (r *fakeResultRepo) ExistsByStudentAndTest(_ context.Context, _, _ uuid.UUID) (bool, error) {
+	return false, nil
+}
+
 // ─── builder helpers ──────────────────────────────────────────────────────────
 
 func makePublishedTest(id uuid.UUID, durationMinutes int) *domain.Test {
@@ -236,6 +241,11 @@ func makePublishedTest(id uuid.UUID, durationMinutes int) *domain.Test {
 		CorrectPoints: 4.0,
 		WrongPoints:   -1.0,
 		BlankPoints:   0.0,
+	}
+	// Populate 5 stub questions so the session service "test has no questions" guard passes.
+	questions := make([]domain.TestQuestion, 5)
+	for i := range questions {
+		questions[i] = domain.TestQuestion{ID: uuid.New(), TestID: id, QuestionID: uuid.New(), OrderIndex: i}
 	}
 	return &domain.Test{
 		ID:              id,
@@ -247,6 +257,7 @@ func makePublishedTest(id uuid.UUID, durationMinutes int) *domain.Test {
 		Status:          domain.TestStatusPublished,
 		CreatedAt:       time.Now().UTC(),
 		ScoringConfig:   sc,
+		Questions:       questions,
 	}
 }
 

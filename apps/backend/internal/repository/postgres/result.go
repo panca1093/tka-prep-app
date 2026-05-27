@@ -479,3 +479,15 @@ func setsEqualUUID(a, b []uuid.UUID) bool {
 	}
 	return true
 }
+
+func (r *ResultRepository) ExistsByStudentAndTest(ctx context.Context, studentID, testID uuid.UUID) (bool, error) {
+	var exists bool
+	err := r.pool.QueryRow(ctx,
+		`SELECT EXISTS(SELECT 1 FROM test_results WHERE student_id = $1 AND test_id = $2)`,
+		studentID, testID,
+	).Scan(&exists)
+	if err != nil {
+		return false, fmt.Errorf("check result exists: %w", err)
+	}
+	return exists, nil
+}
