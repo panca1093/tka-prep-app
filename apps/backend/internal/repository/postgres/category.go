@@ -24,10 +24,10 @@ func NewCategoryRepository(pool *pgxpool.Pool) *CategoryRepository {
 
 func (r *CategoryRepository) List(ctx context.Context) ([]*domain.Category, error) {
 	rows, err := r.pool.Query(ctx, `
-		SELECT c.id, c.name, COUNT(t.id)::int AS test_count, c.created_at
+		SELECT c.id, c.name, c.description, c.created_by, COUNT(t.id)::int AS test_count, c.created_at
 		FROM categories c
 		LEFT JOIN tests t ON t.category_id = c.id
-		GROUP BY c.id, c.name, c.created_at
+		GROUP BY c.id, c.name, c.description, c.created_by, c.created_at
 		ORDER BY c.name`)
 	if err != nil {
 		return nil, fmt.Errorf("list categories: %w", err)
@@ -37,7 +37,7 @@ func (r *CategoryRepository) List(ctx context.Context) ([]*domain.Category, erro
 	var out []*domain.Category
 	for rows.Next() {
 		var c domain.Category
-		if err := rows.Scan(&c.ID, &c.Name, &c.TestCount, &c.CreatedAt); err != nil {
+		if err := rows.Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt); err != nil {
 			return nil, fmt.Errorf("scan category: %w", err)
 		}
 		out = append(out, &c)
@@ -49,8 +49,8 @@ func (r *CategoryRepository) Create(ctx context.Context, name string) (*domain.C
 	var c domain.Category
 	err := r.pool.QueryRow(ctx, `
 		INSERT INTO categories (name) VALUES ($1)
-		RETURNING id, name, 0, created_at`, name,
-	).Scan(&c.ID, &c.Name, &c.TestCount, &c.CreatedAt)
+		RETURNING id, name, description, created_by, 0, created_at`, name,
+	).Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt)
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
@@ -61,13 +61,30 @@ func (r *CategoryRepository) Create(ctx context.Context, name string) (*domain.C
 	return &c, nil
 }
 
+func (r *CategoryRepository) CreateOwned(ctx context.Context, ownerID uuid.UUID, name string, description *string) (*domain.Category, error) {
+	var c domain.Category
+	err := r.pool.QueryRow(ctx, `
+		INSERT INTO categories (name, description, created_by) VALUES ($1, $2, $3)
+		RETURNING id, name, description, created_by, 0, created_at`, name, description, ownerID,
+	).Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, apierr.ErrConflict
+		}
+		return nil, fmt.Errorf("create owned category: %w", err)
+	}
+	return &c, nil
+}
+
 func (r *CategoryRepository) Update(ctx context.Context, id uuid.UUID, name string) (*domain.Category, error) {
 	var c domain.Category
 	err := r.pool.QueryRow(ctx, `
 		UPDATE categories SET name = $2 WHERE id = $1
-		RETURNING id, name, (SELECT COUNT(*) FROM tests WHERE category_id = $1)::int, created_at`,
+		RETURNING id, name, description, created_by,
+		          (SELECT COUNT(*) FROM tests WHERE category_id = $1)::int, created_at`,
 		id, name,
-	).Scan(&c.ID, &c.Name, &c.TestCount, &c.CreatedAt)
+	).Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound
@@ -77,6 +94,37 @@ func (r *CategoryRepository) Update(ctx context.Context, id uuid.UUID, name stri
 			return nil, apierr.ErrConflict
 		}
 		return nil, fmt.Errorf("update category: %w", err)
+	}
+	return &c, nil
+}
+
+func (r *CategoryRepository) UpdateOwned(ctx context.Context, callerID, id uuid.UUID, name string, description *string) (*domain.Category, error) {
+	var c domain.Category
+	err := r.pool.QueryRow(ctx, `
+		UPDATE categories SET name = $3, description = $4
+		WHERE id = $2 AND created_by = $1
+		RETURNING id, name, description, created_by,
+		          (SELECT COUNT(*) FROM tests WHERE category_id = $2)::int, created_at`,
+		callerID, id, name, description,
+	).Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			// Could be: category doesn't exist, or it exists but is not owned by callerID.
+			// Distinguish by checking existence.
+			var exists bool
+			_ = r.pool.QueryRow(ctx,
+				`SELECT EXISTS(SELECT 1 FROM categories WHERE id = $1)`, id,
+			).Scan(&exists)
+			if !exists {
+				return nil, apierr.ErrNotFound
+			}
+			return nil, apierr.ErrForbidden
+		}
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return nil, apierr.ErrConflict
+		}
+		return nil, fmt.Errorf("update owned category: %w", err)
 	}
 	return &c, nil
 }
@@ -99,9 +147,10 @@ func (r *CategoryRepository) Delete(ctx context.Context, id uuid.UUID) error {
 func (r *CategoryRepository) FindByID(ctx context.Context, id uuid.UUID) (*domain.Category, error) {
 	var c domain.Category
 	err := r.pool.QueryRow(ctx, `
-		SELECT id, name, (SELECT COUNT(*) FROM tests WHERE category_id = $1)::int, created_at
+		SELECT id, name, description, created_by,
+		       (SELECT COUNT(*) FROM tests WHERE category_id = $1)::int, created_at
 		FROM categories WHERE id = $1`, id,
-	).Scan(&c.ID, &c.Name, &c.TestCount, &c.CreatedAt)
+	).Scan(&c.ID, &c.Name, &c.Description, &c.CreatedBy, &c.TestCount, &c.CreatedAt)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, apierr.ErrNotFound

@@ -7,8 +7,10 @@ import (
 )
 
 type Category struct {
-	ID        uuid.UUID
-	Name      string
-	TestCount int
-	CreatedAt time.Time
+	ID          uuid.UUID
+	Name        string
+	Description *string
+	CreatedBy   *uuid.UUID
+	TestCount   int
+	CreatedAt   time.Time
 }

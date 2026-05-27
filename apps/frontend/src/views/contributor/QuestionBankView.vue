@@ -7,6 +7,7 @@ import type { components } from '@tkaprep/shared-types'
 const auth = useAuthStore()
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
+import QuestionPreviewModal from '@/components/QuestionPreviewModal.vue'
 
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
@@ -61,6 +62,9 @@ const topicEditSaving = ref(false)
 
 // Delete confirmation modal
 const deleteModal = ref<{ id: string; name: string; questionCount: number } | null>(null)
+
+// Preview modal
+const previewQuestion = ref<Question | null>(null)
 
 async function createTopic() {
   const name = newTopicName.value.trim()
@@ -524,7 +528,7 @@ const typeColor: Record<string, string> = {
         <div v-else-if="questions.length === 0" class="empty-state">Belum ada soal. Tambahkan soal pertama Anda!</div>
 
         <div v-else class="question-list">
-          <div v-for="q in questions" :key="q.id" class="question-card">
+          <div v-for="q in questions" :key="q.id" class="question-card" @click="previewQuestion = q">
             <div class="q-top">
               <span class="q-type" :style="{ color: typeColor[q.question_type], borderColor: typeColor[q.question_type] }">{{ typeLabel[q.question_type] ?? q.question_type }}</span>
               <span class="q-topic-name">
@@ -538,8 +542,8 @@ const typeColor: Record<string, string> = {
               <span v-if="(q as any).usage && auth.user?.id === q.contributor_id" class="q-usage">
                 {{ (q as any).usage.own_test_count }} tes kamu · {{ (q as any).usage.other_test_count }} kontributor lain
               </span>
-              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act" @click="openEdit(q)">Edit</button>
-              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act q-act--del" @click="deleteQuestion(q.id)">Hapus</button>
+              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act" @click.stop="openEdit(q)">Edit</button>
+              <button v-if="auth.user?.id === q.contributor_id || auth.role === 'admin'" class="q-act q-act--del" @click.stop="deleteQuestion(q.id)">Hapus</button>
             </div>
             <div class="q-text"><RichTextViewer :html="q.text" /></div>
             <div v-if="q.question_type !== 'true_false'" class="q-options">
@@ -550,6 +554,14 @@ const typeColor: Record<string, string> = {
         </div>
       </main>
     </div>
+
+    <!-- Question preview modal -->
+    <QuestionPreviewModal
+      v-if="previewQuestion"
+      :question="previewQuestion"
+      :topic-name="topics.find(t => t.id === previewQuestion!.topic_id)?.name ?? '—'"
+      @close="previewQuestion = null"
+    />
 
     <!-- Delete topic confirmation modal -->
     <Teleport to="body">
@@ -834,7 +846,7 @@ const typeColor: Record<string, string> = {
 .empty-state { color: var(--text-muted); text-align: center; padding: 2rem; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 12px; }
 
 .question-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.question-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; transition: border-color 0.15s; }
+.question-card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 10px; padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.45rem; transition: border-color 0.15s; cursor: pointer; }
 .question-card:hover { border-color: color-mix(in srgb, var(--accent) 25%, var(--border)); }
 .q-top { display: flex; align-items: center; gap: 0.5rem; }
 .q-type { font-size: 0.58rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.15rem 0.45rem; border-radius: 3px; border: 1px solid; background: color-mix(in srgb, currentColor 10%, transparent); }

@@ -362,6 +362,7 @@ func (s *APIServer) GetTestsTestIdResults(ctx context.Context, req api.GetTestsT
 			WrongCount:   r.WrongCount,
 			BlankCount:   r.BlankCount,
 			CompletedAt:  r.CompletedAt,
+			IrtTheta:     r.IRTTheta,
 		})
 	}
 
@@ -402,6 +403,7 @@ func (s *APIServer) GetTestsTestIdResults(ctx context.Context, req api.GetTestsT
 		analyticsResp.AvgScore = analytics.AvgScore
 		analyticsResp.MaxScore = analytics.MaxScore
 		analyticsResp.MinScore = analytics.MinScore
+		analyticsResp.AvgIrtTheta = analytics.AvgIRTTheta
 		analyticsResp.PerTopic = &perTopic
 		resp.Analytics = &analyticsResp
 	}

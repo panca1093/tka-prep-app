@@ -32,12 +32,28 @@ func (s *Service) Create(ctx context.Context, name string) (*domain.Category, er
 	return s.repo.Create(ctx, name)
 }
 
+func (s *Service) CreateOwned(ctx context.Context, ownerID uuid.UUID, name string, description *string) (*domain.Category, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, fmt.Errorf("category name is required: %w", apierr.ErrValidation)
+	}
+	return s.repo.CreateOwned(ctx, ownerID, name, description)
+}
+
 func (s *Service) Update(ctx context.Context, id uuid.UUID, name string) (*domain.Category, error) {
 	name = strings.TrimSpace(name)
 	if name == "" {
 		return nil, fmt.Errorf("category name is required: %w", apierr.ErrValidation)
 	}
 	return s.repo.Update(ctx, id, name)
+}
+
+func (s *Service) UpdateOwned(ctx context.Context, callerID, id uuid.UUID, name string, description *string) (*domain.Category, error) {
+	name = strings.TrimSpace(name)
+	if name == "" {
+		return nil, fmt.Errorf("category name is required: %w", apierr.ErrValidation)
+	}
+	return s.repo.UpdateOwned(ctx, callerID, id, name, description)
 }
 
 func (s *Service) Delete(ctx context.Context, id uuid.UUID) error {

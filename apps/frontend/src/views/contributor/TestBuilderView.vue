@@ -2,6 +2,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import client from '@/api/client'
+import { updateOwnedCategory } from '@/api/contributor'
+import { useAuthStore } from '@/stores/auth'
 import type { components } from '@tkaprep/shared-types'
 
 type Test = components['schemas']['TestDetailResponse']
@@ -138,6 +140,61 @@ const top5 = computed(() =>
 
 const diffColor: Record<string, string> = { easy: 'var(--success)', medium: 'var(--warning)', hard: 'var(--danger)' }
 
+const auth = useAuthStore()
+
+// Category edit
+const catEditId = ref('')
+const catEditName = ref('')
+const catEditDesc = ref('')
+const catEditSaving = ref(false)
+const catEditError = ref('')
+const catToast = ref('')
+let catToastTimer: ReturnType<typeof setTimeout> | null = null
+
+const ownedCategories = computed(() =>
+  categories.value.filter((c) => (c as any).created_by === auth.user?.id)
+)
+
+function startEditCat(cat: Category) {
+  catEditId.value = cat.id
+  catEditName.value = cat.name
+  catEditDesc.value = (cat as any).description ?? ''
+  catEditError.value = ''
+}
+
+function cancelEditCat() {
+  catEditId.value = ''
+  catEditError.value = ''
+}
+
+function showToast(msg: string) {
+  catToast.value = msg
+  if (catToastTimer) clearTimeout(catToastTimer)
+  catToastTimer = setTimeout(() => { catToast.value = '' }, 3500)
+}
+
+async function saveEditCat() {
+  const name = catEditName.value.trim()
+  if (!name) { catEditError.value = 'Nama kategori tidak boleh kosong.'; return }
+  catEditSaving.value = true; catEditError.value = ''
+  const result = await updateOwnedCategory(catEditId.value, name, catEditDesc.value.trim() || undefined)
+  catEditSaving.value = false
+  if (!result.ok) {
+    if (result.status === 403) {
+      showToast('Tidak diizinkan: bukan pemilik kategori.')
+    } else {
+      catEditError.value = result.message ?? 'Gagal menyimpan.'
+    }
+    return
+  }
+  // Update in-place without refetch
+  const idx = categories.value.findIndex((c) => c.id === catEditId.value)
+  if (idx !== -1 && result.data) {
+    categories.value[idx] = result.data
+  }
+  cancelEditCat()
+}
+
 onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); isLoading.value = false })
 </script>
 
@@ -188,8 +245,37 @@ onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); is
             <div class="top5-right"><div class="top5-bar-wrap"><div class="top5-bar" :style="{ width: top5[0] && getAttempts(top5[0]) > 0 ? (getAttempts(t) / getAttempts(top5[0]) * 100) + '%' : '0%' }"></div></div><span class="attempt-count">{{ getAttempts(t) }}</span><span class="attempt-label">soal</span></div>
           </div>
         </div>
+
+        <!-- Category manager — only shows owned categories -->
+        <template v-if="ownedCategories.length > 0">
+          <div class="section-label cat-section-label">Kategori Saya</div>
+          <div class="cat-list">
+            <template v-for="cat in ownedCategories" :key="cat.id">
+              <!-- Editing row -->
+              <div v-if="catEditId === cat.id" class="cat-edit-row">
+                <input v-model="catEditName" class="cat-edit-input" placeholder="Nama kategori" maxlength="100" @keyup.enter="saveEditCat" @keyup.escape="cancelEditCat" />
+                <input v-model="catEditDesc" class="cat-edit-input cat-edit-desc" placeholder="Deskripsi (opsional)" maxlength="300" />
+                <p v-if="catEditError" class="cat-err">{{ catEditError }}</p>
+                <div class="cat-edit-actions">
+                  <button class="cat-btn-cancel" @click="cancelEditCat">Batal</button>
+                  <button class="cat-btn-save" :disabled="catEditSaving" @click="saveEditCat">{{ catEditSaving ? '…' : 'Simpan' }}</button>
+                </div>
+              </div>
+              <!-- Normal row -->
+              <div v-else class="cat-row">
+                <span class="cat-name">{{ cat.name }}</span>
+                <button class="cat-edit-btn" title="Edit" @click="startEditCat(cat)">✎</button>
+              </div>
+            </template>
+          </div>
+        </template>
       </div>
     </div>
+
+    <!-- Category edit error toast -->
+    <Teleport to="body">
+      <div v-if="catToast" class="cat-toast">{{ catToast }}</div>
+    </Teleport>
 
     <!-- Create modal -->
     <div v-if="showCreate" class="modal-backdrop" @click.self="showCreate = false">
@@ -340,4 +426,33 @@ onMounted(async () => { await Promise.all([fetchCategories(), fetchTests()]); is
 .qs-new-topic-save:disabled { opacity: 0.5; cursor: not-allowed; }
 
 @media (max-width: 768px) { .modal { max-width: 100%; border-radius: 12px; } .form-row { flex-direction: column; } .test-layout { flex-direction: column; } .top5-col { width: 100%; } }
+
+/* ── Category manager ── */
+.cat-section-label { margin-top: 0.25rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+.cat-list { display: flex; flex-direction: column; gap: 0.25rem; }
+.cat-row { display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.45rem; border-radius: 6px; background: var(--bg-input); }
+.cat-name { flex: 1; font-size: 0.75rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cat-edit-btn { width: 22px; height: 22px; border-radius: 4px; border: 1px solid var(--border); background: transparent; color: var(--text-muted); font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.12s; }
+.cat-edit-btn:hover { border-color: var(--accent); color: var(--accent); }
+.cat-edit-row { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.5rem 0.45rem; border-radius: 6px; background: color-mix(in srgb, var(--accent) 5%, var(--bg-input)); border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border)); }
+.cat-edit-input { padding: 0.3rem 0.45rem; border-radius: 5px; border: 1px solid var(--border); background: var(--bg-input); color: var(--text-primary); font-size: 0.75rem; font-family: inherit; outline: none; }
+.cat-edit-input:focus { border-color: var(--accent); }
+.cat-edit-desc { font-size: 0.7rem; }
+.cat-err { margin: 0; font-size: 0.65rem; color: var(--danger); }
+.cat-edit-actions { display: flex; gap: 0.25rem; justify-content: flex-end; }
+.cat-btn-save, .cat-btn-cancel { padding: 0.2rem 0.5rem; border-radius: 4px; border: none; font-size: 0.65rem; font-weight: 700; cursor: pointer; font-family: inherit; }
+.cat-btn-save { background: var(--accent); color: #fff; }
+.cat-btn-save:disabled { opacity: 0.5; cursor: not-allowed; }
+.cat-btn-cancel { background: transparent; border: 1px solid var(--border); color: var(--text-muted); }
+
+/* ── Toast ── */
+@keyframes toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.cat-toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: var(--danger); color: #fff;
+  padding: 0.6rem 1.25rem; border-radius: 9px; font-size: 0.82rem; font-weight: 600;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3); z-index: 9999;
+  animation: toast-in 0.2s ease both;
+  white-space: nowrap;
+}
 </style>

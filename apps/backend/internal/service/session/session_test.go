@@ -284,6 +284,29 @@ func TestToggleFlag(t *testing.T) {
 	})
 }
 
+// ─── TestComputePercentageScore ──────────────────────────────────────────────
+
+func TestComputePercentageScore(t *testing.T) {
+	tests := []struct {
+		name    string
+		correct int
+		total   int
+		want    float64
+	}{
+		{"S-30: 3 correct out of 5 → 60.00", 3, 5, 60.00},
+		{"S-31: 0 correct out of 5 → 0.00", 0, 5, 0.00},
+		{"S-32: all correct → 100.00", 5, 5, 100.00},
+		{"S-33: total=0 → 0.00 (no divide-by-zero)", 0, 0, 0.00},
+		{"S-34: 2 correct out of 3 → 66.67", 2, 3, 66.67},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := computePercentageScore(tc.correct, tc.total)
+			require.InDelta(t, tc.want, got, 0.005)
+		})
+	}
+}
+
 // ─── TestComputeRemaining ─────────────────────────────────────────────────────
 
 func TestComputeRemaining(t *testing.T) {

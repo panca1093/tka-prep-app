@@ -434,6 +434,13 @@ paths:
           schema:
             type: string
             enum: [easy, medium, hard]
+        - name: question_type
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [mcq, multi_correct, true_false]
+          description: Filter by question type.
         - name: education_level
           in: query
           required: false
@@ -1998,6 +2005,103 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /contributor/categories:
+    post:
+      operationId: createOwnedCategory
+      summary: Create a new category owned by the contributor
+      tags: [Contributor]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOwnedCategoryRequest'
+      responses:
+        '201':
+          description: Category created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Contributor only
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Name already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /contributor/categories/{id}:
+    put:
+      operationId: updateOwnedCategory
+      summary: Update a contributor-owned category's name and description
+      tags: [Contributor]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOwnedCategoryRequest'
+      responses:
+        '200':
+          description: Category updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Category'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Not authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Not the category owner (or seeded category)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Category not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
   /admin/contributors/pending:
     get:
       operationId: listPendingContributors
@@ -2383,6 +2487,13 @@ components:
           format: uuid
         name:
           type: string
+        description:
+          type: string
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
         test_count:
           type: integer
         created_at:
@@ -2407,6 +2518,18 @@ components:
           minLength: 1
           maxLength: 100
 
+    CreateOwnedCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
+
     UpdateCategoryRequest:
       type: object
       properties:
@@ -2414,6 +2537,18 @@ components:
           type: string
           minLength: 1
           maxLength: 100
+
+    UpdateOwnedCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          nullable: true
 
     CreateContributorRequest:
       type: object
@@ -3448,7 +3583,7 @@ components:
 
     ContributorResultEntry:
       type: object
-      required: [id, session_id, student_id, student_name, student_email, test_id, test_title, total_score, correct_count, wrong_count, blank_count, completed_at]
+      required: [id, session_id, student_id, student_name, student_email, test_id, test_title, total_score, correct_count, wrong_count, blank_count, completed_at, irt_theta]
       properties:
         id:
           type: string
@@ -3481,6 +3616,10 @@ components:
         completed_at:
           type: string
           format: date-time
+        irt_theta:
+          type: number
+          format: double
+          nullable: true
 
     TestAnalyticsResponse:
       type: object
@@ -3496,6 +3635,10 @@ components:
           format: double
           nullable: true
         min_score:
+          type: number
+          format: double
+          nullable: true
+        avg_irt_theta:
           type: number
           format: double
           nullable: true

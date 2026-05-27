@@ -60,6 +60,7 @@ type TestResult struct {
 	CorrectCount int
 	WrongCount   int
 	BlankCount   int
+	IRTTheta     *float64 // nil until enough historical data (Rasch 1PL estimate)
 	CompletedAt  time.Time
 }
 
@@ -140,6 +141,7 @@ type ContributorResultEntry struct {
 	WrongCount   int
 	BlankCount   int
 	CompletedAt  time.Time
+	IRTTheta     *float64
 }
 
 type TopicAnalytics struct {
@@ -154,6 +156,7 @@ type TestAnalytics struct {
 	AvgScore      *float64
 	MaxScore      *float64
 	MinScore      *float64
+	AvgIRTTheta   *float64
 	PerTopic      []TopicAnalytics
 }
 

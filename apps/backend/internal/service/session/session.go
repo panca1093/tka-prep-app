@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"fmt"
+	"math"
 	"sort"
 	"time"
 
@@ -215,9 +216,7 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 	if err != nil {
 		return nil, err
 	}
-	if t.ScoringConfig == nil {
-		return nil, fmt.Errorf("test has no scoring config")
-	}
+	_ = t // test loaded to validate it exists; scoring no longer uses ScoringConfig weights
 
 	scoringData, err := pgstore.LoadScoringData(ctx, s.pool, sess.TestID)
 	if err != nil {
@@ -244,60 +243,58 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 		}
 	}
 
-	sc := t.ScoringConfig
-	totalScore := 0.0
 	correct, wrong, blank := 0, 0, 0
+	// questionCorrect tracks per-question correctness for IRT param updates.
+	questionCorrect := make(map[uuid.UUID]bool, len(scoringData))
 
 	for qID, sd := range scoringData {
 		g := groups[qID]
+		var wasCorrect bool
 		switch sd.Type {
 		case domain.QuestionTypeMCQ:
 			if g == nil || len(g.optionIDs) == 0 {
 				blank++
-				totalScore += sc.BlankPoints
 			} else if len(sd.CorrectOptionIDs) > 0 && g.optionIDs[0] == sd.CorrectOptionIDs[0] {
 				correct++
-				totalScore += sc.CorrectPoints
+				wasCorrect = true
 			} else {
 				wrong++
-				totalScore += sc.WrongPoints
 			}
 
 		case domain.QuestionTypeMultiCorrect:
 			if g == nil || len(g.optionIDs) == 0 {
 				blank++
-				totalScore += sc.BlankPoints
 			} else if setsEqual(g.optionIDs, sd.CorrectOptionIDs) {
 				correct++
-				totalScore += sc.CorrectPoints
+				wasCorrect = true
 			} else {
 				wrong++
-				totalScore += sc.WrongPoints
 			}
 
 		case domain.QuestionTypeTrueFalse:
 			if g == nil || len(g.stmtAnswers) == 0 {
 				blank++
-				totalScore += sc.BlankPoints
 			} else {
-				total := len(sd.Statements)
+				totalStmts := len(sd.Statements)
 				correctStmts := 0
 				for _, stmt := range sd.Statements {
 					if ans, answered := g.stmtAnswers[stmt.ID]; answered && ans == stmt.IsCorrect {
 						correctStmts++
 					}
 				}
-				proportion := float64(correctStmts) / float64(total)
-				qScore := proportion * sc.CorrectPoints
-				totalScore += qScore
-				if correctStmts == total {
+				if correctStmts == totalStmts {
 					correct++
+					wasCorrect = true
 				} else {
 					wrong++
 				}
 			}
 		}
+		questionCorrect[qID] = wasCorrect
 	}
+
+	total := correct + wrong + blank
+	totalScore := computePercentageScore(correct, total)
 
 	now := time.Now().UTC()
 	result := &domain.TestResult{
@@ -324,11 +321,43 @@ func (s *Service) Submit(ctx context.Context, sessionID, callerID uuid.UUID) (*d
 	); err != nil {
 		return nil, fmt.Errorf("update session: %w", err)
 	}
+
+	// Upsert IRT params for each question, then estimate student theta.
+	for qID, wasCorrect := range questionCorrect {
+		if err := pgstore.UpsertIRTParam(ctx, tx, qID, wasCorrect); err != nil {
+			return nil, fmt.Errorf("upsert irt param: %w", err)
+		}
+	}
+	qIDs := make([]uuid.UUID, 0, len(questionCorrect))
+	for qID := range questionCorrect {
+		qIDs = append(qIDs, qID)
+	}
+	irtParams, err := pgstore.GetIRTParams(ctx, tx, qIDs)
+	if err != nil {
+		return nil, fmt.Errorf("get irt params: %w", err)
+	}
+	irtInputs := make([]irtQuestion, 0, len(qIDs))
+	for qID, wasCorrect := range questionCorrect {
+		p, ok := irtParams[qID]
+		if !ok {
+			// No params yet (upsert should have created them) — treat as cold start.
+			irtInputs = append(irtInputs, irtQuestion{difficulty: 0, correct: wasCorrect, sampleSize: 0})
+			continue
+		}
+		irtInputs = append(irtInputs, irtQuestion{
+			difficulty: p.DifficultyB,
+			correct:    wasCorrect,
+			sampleSize: p.SampleSize,
+		})
+	}
+	result.IRTTheta = computeIRTTheta(irtInputs)
+
 	if _, err := tx.Exec(ctx,
-		`INSERT INTO test_results (id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, completed_at)
-		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+		`INSERT INTO test_results (id, session_id, student_id, test_id, total_score, correct_count, wrong_count, blank_count, irt_theta, completed_at)
+		 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
 		result.ID, result.SessionID, result.StudentID, result.TestID,
-		result.TotalScore, result.CorrectCount, result.WrongCount, result.BlankCount, result.CompletedAt,
+		result.TotalScore, result.CorrectCount, result.WrongCount, result.BlankCount,
+		result.IRTTheta, result.CompletedAt,
 	); err != nil {
 		return nil, fmt.Errorf("insert result: %w", err)
 	}
@@ -361,6 +390,16 @@ func questionType(ctx context.Context, pool *pgxpool.Pool, questionID uuid.UUID)
 		return "", fmt.Errorf("get question type: %w", err)
 	}
 	return domain.QuestionType(qt), nil
+}
+
+// computePercentageScore returns (correct/total)*100 rounded to 2 decimal places.
+// Returns 0.00 when total is 0 to avoid divide-by-zero.
+func computePercentageScore(correct, total int) float64 {
+	if total == 0 {
+		return 0.00
+	}
+	raw := float64(correct) / float64(total) * 100
+	return math.Round(raw*100) / 100
 }
 
 func setsEqual(a, b []uuid.UUID) bool {

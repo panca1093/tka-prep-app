@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	openapi_types "github.com/oapi-codegen/runtime/types"
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
@@ -26,12 +27,7 @@ func (s *APIServer) ListCategories(ctx context.Context, _ api.ListCategoriesRequ
 
 	resp := api.ListCategories200JSONResponse{Data: make([]api.Category, 0, len(cats))}
 	for _, c := range cats {
-		resp.Data = append(resp.Data, api.Category{
-			Id:        c.ID,
-			Name:      c.Name,
-			TestCount: c.TestCount,
-			CreatedAt: c.CreatedAt,
-		})
+		resp.Data = append(resp.Data, domainCategoryToAPI(c))
 	}
 	return resp, nil
 }
@@ -52,12 +48,7 @@ func (s *APIServer) CreateCategory(ctx context.Context, req api.CreateCategoryRe
 		}
 		return nil, err
 	}
-	return api.CreateCategory201JSONResponse(api.Category{
-		Id:        cat.ID,
-		Name:      cat.Name,
-		TestCount: cat.TestCount,
-		CreatedAt: cat.CreatedAt,
-	}), nil
+	return api.CreateCategory201JSONResponse(domainCategoryToAPI(cat)), nil
 }
 
 func (s *APIServer) UpdateCategory(ctx context.Context, req api.UpdateCategoryRequestObject) (api.UpdateCategoryResponseObject, error) {
@@ -85,12 +76,57 @@ func (s *APIServer) UpdateCategory(ctx context.Context, req api.UpdateCategoryRe
 		}
 		return nil, err
 	}
-	return api.UpdateCategory200JSONResponse(api.Category{
-		Id:        cat.ID,
-		Name:      cat.Name,
-		TestCount: cat.TestCount,
-		CreatedAt: cat.CreatedAt,
-	}), nil
+	return api.UpdateCategory200JSONResponse(domainCategoryToAPI(cat)), nil
+}
+
+func (s *APIServer) CreateOwnedCategory(ctx context.Context, req api.CreateOwnedCategoryRequestObject) (api.CreateOwnedCategoryResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.CreateOwnedCategory401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor {
+		return api.CreateOwnedCategory403JSONResponse(errBody("FORBIDDEN", "contributor only")), nil
+	}
+
+	ownerID := uuid.UUID(claims.UserID)
+	cat, err := s.categorySvc.CreateOwned(ctx, ownerID, req.Body.Name, req.Body.Description)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrConflict):
+			return api.CreateOwnedCategory409JSONResponse(errBody("CONFLICT", "nama kategori sudah digunakan")), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.CreateOwnedCategory400JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.CreateOwnedCategory201JSONResponse(domainCategoryToAPI(cat)), nil
+}
+
+func (s *APIServer) UpdateOwnedCategory(ctx context.Context, req api.UpdateOwnedCategoryRequestObject) (api.UpdateOwnedCategoryResponseObject, error) {
+	claims, ok := pkgjwt.FromContext(ctx)
+	if !ok {
+		return api.UpdateOwnedCategory401JSONResponse(errBody("UNAUTHORIZED", "not authenticated")), nil
+	}
+	if claims.Role != domain.RoleContributor {
+		return api.UpdateOwnedCategory403JSONResponse(errBody("FORBIDDEN", "contributor only")), nil
+	}
+
+	callerID := uuid.UUID(claims.UserID)
+	categoryID := uuid.UUID(req.Id)
+
+	cat, err := s.categorySvc.UpdateOwned(ctx, callerID, categoryID, req.Body.Name, req.Body.Description)
+	if err != nil {
+		switch {
+		case errors.Is(err, apierr.ErrNotFound):
+			return api.UpdateOwnedCategory404JSONResponse(errBody("NOT_FOUND", "kategori tidak ditemukan")), nil
+		case errors.Is(err, apierr.ErrForbidden):
+			return api.UpdateOwnedCategory403JSONResponse(errBody("FORBIDDEN", "bukan pemilik kategori")), nil
+		case errors.Is(err, apierr.ErrValidation):
+			return api.UpdateOwnedCategory400JSONResponse(errBody("VALIDATION_ERROR", err.Error())), nil
+		}
+		return nil, err
+	}
+	return api.UpdateOwnedCategory200JSONResponse(domainCategoryToAPI(cat)), nil
 }
 
 func (s *APIServer) DeleteCategory(ctx context.Context, req api.DeleteCategoryRequestObject) (api.DeleteCategoryResponseObject, error) {
@@ -114,4 +150,20 @@ func (s *APIServer) DeleteCategory(ctx context.Context, req api.DeleteCategoryRe
 		return nil, err
 	}
 	return api.DeleteCategory200JSONResponse(api.MessageResponse{Message: "kategori dihapus"}), nil
+}
+
+func domainCategoryToAPI(c *domain.Category) api.Category {
+	var createdBy *openapi_types.UUID
+	if c.CreatedBy != nil {
+		uid := openapi_types.UUID(*c.CreatedBy)
+		createdBy = &uid
+	}
+	return api.Category{
+		Id:          c.ID,
+		Name:        c.Name,
+		Description: c.Description,
+		CreatedBy:   createdBy,
+		TestCount:   c.TestCount,
+		CreatedAt:   c.CreatedAt,
+	}
 }

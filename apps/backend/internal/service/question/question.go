@@ -246,15 +246,15 @@ func (s *Service) Delete(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 }
 
 func validateMCQOptions(opts []OptionInput) error {
-	if len(opts) != 4 {
-		return fmt.Errorf("%w: exactly 4 options required", apierr.ErrValidation)
+	if len(opts) < 4 || len(opts) > 5 {
+		return fmt.Errorf("%w: 4-5 options required", apierr.ErrValidation)
 	}
 	labels := map[string]bool{}
 	correct := 0
 	for _, o := range opts {
 		l := strings.ToUpper(strings.TrimSpace(o.Label))
-		if len(l) != 1 || !strings.ContainsAny(l, "ABCD") {
-			return fmt.Errorf("%w: option label must be A-D", apierr.ErrValidation)
+		if len(l) != 1 || !strings.ContainsAny(l, "ABCDE") {
+			return fmt.Errorf("%w: option label must be A-E", apierr.ErrValidation)
 		}
 		if labels[l] {
 			return fmt.Errorf("%w: duplicate label %s", apierr.ErrValidation, l)
