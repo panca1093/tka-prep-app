@@ -5,6 +5,7 @@ import { useSessionStore } from '@/stores/session'
 import { useAuthStore } from '@/stores/auth'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 import { resolveUrl } from '@/utils/url'
+import { useAntiCheat } from '@/composables/useAntiCheat'
 
 const route = useRoute()
 const router = useRouter()
@@ -134,11 +135,16 @@ function handleVisibilityChange() {
   }
 }
 
+// ─── Anti-cheat ───────────────────────────────────────────────────────────────
+let antiCheat: ReturnType<typeof useAntiCheat> | null = null
+
 // ─── Lifecycle ────────────────────────────────────────────────────────────────
 onMounted(async () => {
   await store.load(sessionId)
   if (store.session) {
     startTimer(store.session.time_remaining_seconds)
+    // Activate anti-cheat only after session successfully loads.
+    antiCheat = useAntiCheat()
   }
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
@@ -147,6 +153,7 @@ onUnmounted(() => {
   if (timerInterval) clearInterval(timerInterval)
   if (tabWarningTimer) clearTimeout(tabWarningTimer)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
+  antiCheat?.cleanup()
 })
 
 const answeredCount = computed(() => store.answeredCount())
@@ -198,6 +205,16 @@ const watermarkStyle = computed(() => {
           <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
         </svg>
         Peringatan: Kamu beralih tab. Aktivitas ini tercatat oleh sistem.
+      </div>
+    </Transition>
+
+    <!-- Fullscreen exit warning banner -->
+    <Transition name="tab-warn">
+      <div v-if="antiCheat?.fullscreenWarning" class="tab-warning fullscreen-warn">
+        <svg viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+        </svg>
+        Keluar dari mode fokus. Kembali ke layar penuh untuk melanjutkan ujian.
       </div>
     </Transition>
 
