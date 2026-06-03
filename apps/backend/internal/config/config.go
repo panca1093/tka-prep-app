@@ -5,6 +5,8 @@ import (
 	"os"
 	"strings"
 	"time"
+
+	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/storage"
 )
 
 // Config holds all runtime configuration loaded from environment variables.
@@ -18,6 +20,41 @@ type Config struct {
 	JWTRefreshTTL  time.Duration
 	AllowedOrigins []string
 	UploadDir      string
+	StorageBackend string // "local" (default) or "gcs"
+	GCSBucket      string
+}
+
+// Storage returns a FileStorage implementation based on StorageBackend.
+// Defaults to local if unset; panics on misconfigured GCS so the app fails fast.
+func (c *Config) Storage() storage.FileStorage {
+	backend := c.StorageBackend
+	if backend == "" {
+		backend = "local"
+	}
+	switch backend {
+	case "gcs":
+		return c.gcsStorage()
+	default:
+		return c.localStorage()
+	}
+}
+
+func (c *Config) localStorage() storage.FileStorage {
+	s, err := storage.NewLocalStorage(c.UploadDir)
+	if err != nil {
+		panic(fmt.Sprintf("local storage: %v", err))
+	}
+	return s
+}
+
+func (c *Config) gcsStorage() storage.FileStorage {
+	s, err := storage.NewGCSStorage(storage.GCSConfig{
+		Bucket: c.GCSBucket,
+	})
+	if err != nil {
+		panic(fmt.Sprintf("gcs storage: %v", err))
+	}
+	return s
 }
 
 // Load reads configuration from environment variables, applying sensible defaults
@@ -32,6 +69,8 @@ func Load() (*Config, error) {
 		JWTSecret:      getEnv("JWT_SECRET", ""),
 		AllowedOrigins: strings.Split(getEnv("FRONTEND_ORIGIN", "http://localhost:5173"), ","),
 		UploadDir:      getEnv("UPLOAD_DIR", "./uploads"),
+		StorageBackend: getEnv("STORAGE_BACKEND", "local"),
+		GCSBucket:      getEnv("GCS_BUCKET", ""),
 	}
 
 	accessTTL, err := time.ParseDuration(getEnv("JWT_ACCESS_TTL", "15m"))

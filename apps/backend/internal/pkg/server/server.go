@@ -12,10 +12,21 @@ import (
 	"github.com/yourorg/tkaprep/apps/backend/internal/config"
 	httphandler "github.com/yourorg/tkaprep/apps/backend/internal/handler/http"
 	"github.com/yourorg/tkaprep/apps/backend/internal/handler/middleware"
+	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/storage"
 )
 
 type Server struct {
 	router chi.Router
+}
+
+// storageAdapter bridges the FileStorage interface to the chi static file
+// handler or a GCS proxy, depending on the backend.
+type storageAdapter struct {
+	store storage.FileStorage
+}
+
+func (a *storageAdapter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	a.store.ServeHTTP(w, r, r.URL.Path)
 }
 
 func New(cfg *config.Config, handler *httphandler.APIServer) *Server {
@@ -37,11 +48,14 @@ func New(cfg *config.Config, handler *httphandler.APIServer) *Server {
 	r.Use(middleware.Authenticate(cfg.JWTSecret))
 	r.Use(middleware.RateLimit)
 
+	// Bootstrap storage backend.
+	store := cfg.Storage()
+
 	// Upload endpoint (raw route — multipart doesn't fit strict handler pattern).
-	r.Post("/api/v1/upload", httphandler.UploadHandler(cfg.UploadDir))
+	r.Post("/api/v1/upload", httphandler.UploadHandler(store))
 
 	// Static file serving for uploaded images.
-	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir(cfg.UploadDir))))
+	r.Handle("/uploads/*", &storageAdapter{store: store})
 
 	strict := api.NewStrictHandler(handler, nil)
 	r.Mount("/api/v1", api.HandlerFromMux(strict, chi.NewRouter()))

@@ -61,6 +61,12 @@ func (r *QuestionRepository) List(ctx context.Context, f repository.QuestionFilt
 		args = append(args, *f.EducationLevel)
 		i++
 	}
+	// Contributors see only their own questions. Admins see all.
+	if f.CallerRole != domain.RoleAdmin {
+		conds = append(conds, fmt.Sprintf("q.contributor_id = $%d", i))
+		args = append(args, f.CallerID)
+		i++
+	}
 
 	where := ""
 	if len(conds) > 0 {

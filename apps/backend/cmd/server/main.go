@@ -70,7 +70,7 @@ func main() {
 		JWTRefreshTTL: cfg.JWTRefreshTTL,
 	}, userRepo, tokenRepo)
 	topicService := topicsvc.NewService(topicRepo)
-	questionService := questionsvc.NewService(questionRepo, cfg.UploadDir)
+	questionService := questionsvc.NewService(questionRepo, cfg.Storage())
 	testService := testsvc.NewService(testRepo)
 	sessionService := sessionsvc.NewService(sessionRepo, resultRepo, testRepo, pool)
 	resultService := resultsvc.NewService(resultRepo, sessionRepo, testRepo)

@@ -3,20 +3,20 @@ package http
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"path/filepath"
 	"strings"
 
 	"github.com/google/uuid"
+
 	"github.com/yourorg/tkaprep/apps/backend/internal/api"
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	pkgjwt "github.com/yourorg/tkaprep/apps/backend/internal/pkg/jwt"
+	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/storage"
 )
 
-const maxUploadSize = 2 << 20 // 2 MB
+const maxUploadSize = storage.MaxUploadSize
 
 var allowedMIME = map[string]string{
 	"image/jpeg": ".jpg",
@@ -28,10 +28,7 @@ var allowedMIME = map[string]string{
 // UploadHandler handles POST /api/v1/upload.
 // It is registered as a raw chi route (not via the strict generated handler)
 // because multipart form data doesn't fit cleanly in the generated interface.
-func UploadHandler(uploadDir string) http.HandlerFunc {
-	if err := os.MkdirAll(uploadDir, 0o755); err != nil {
-		panic(fmt.Sprintf("failed to create upload dir: %v", err))
-	}
+func UploadHandler(store storage.FileStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := pkgjwt.FromContext(r.Context())
 		if !ok {
@@ -80,19 +77,13 @@ func UploadHandler(uploadDir string) http.HandlerFunc {
 		}
 
 		filename := uuid.New().String() + ext
-		dst, err := os.Create(filepath.Join(uploadDir, filename))
+		urlPath, err := store.Save(r.Context(), filename, file, mime)
 		if err != nil {
 			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not save file"})
 			return
 		}
-		defer dst.Close()
 
-		if _, err := io.Copy(dst, file); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not write file"})
-			return
-		}
-
-		writeJSON(w, http.StatusOK, map[string]string{"url": "/uploads/" + filename})
+		writeJSON(w, http.StatusOK, map[string]string{"url": urlPath})
 	}
 }
 
