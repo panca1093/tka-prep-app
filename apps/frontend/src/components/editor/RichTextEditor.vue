@@ -73,6 +73,9 @@ const editor = useEditor({
 
 // ─── Formula Dialog ─────────────────────────────────────────────────────────
 
+// Standard max rendered width for question images.
+const MAX_IMAGE_WIDTH = 800
+
 const showFormulaDialog = ref(false)
 const formulaInput = ref('')
 
@@ -112,6 +115,31 @@ function uploadImage(file: File): Promise<string> {
   })
 }
 
+// Resize image on a canvas so it's no wider than maxWidth, keeping aspect ratio.
+function resizeImage(file: File, maxWidth: number): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => {
+      if (img.width <= maxWidth) {
+        resolve(file)
+        return
+      }
+      const ratio = maxWidth / img.width
+      const canvas = document.createElement('canvas')
+      canvas.width = maxWidth
+      canvas.height = Math.round(img.height * ratio)
+      const ctx = canvas.getContext('2d')!
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob)
+        else reject(new Error('Resize failed'))
+      }, file.type, 0.85)
+    }
+    img.onerror = () => reject(new Error('Failed to load image'))
+    img.src = URL.createObjectURL(file)
+  })
+}
+
 function handleImageUpload() {
   const input = document.createElement('input')
   input.type = 'file'
@@ -128,7 +156,8 @@ function handleImageUpload() {
       return
     }
     try {
-      const url = await uploadImage(file)
+      const resized = await resizeImage(file, MAX_IMAGE_WIDTH)
+      const url = await uploadImage(resized instanceof File ? resized : new File([resized], file.name, { type: file.type }))
       // Use relative path so the backend sanitizer accepts it.
       // RichTextViewer will rewrite to absolute at render time.
       editor.value?.chain().focus().setImage({ src: url }).run()
@@ -152,10 +181,13 @@ function handlePaste(_view: any, event: ClipboardEvent) {
         alert('Image must be under 2 MB')
         return true
       }
-      uploadImage(file).then(url => {
+      resizeImage(file, MAX_IMAGE_WIDTH).then(resized => {
+        const f = resized instanceof File ? resized : new File([resized], file.name, { type: file.type })
+        return uploadImage(f)
+      }).then(url => {
         // Use relative path so the backend sanitizer accepts it.
-      // RichTextViewer will rewrite to absolute at render time.
-      editor.value?.chain().focus().setImage({ src: url }).run()
+        // RichTextViewer will rewrite to absolute at render time.
+        editor.value?.chain().focus().setImage({ src: url }).run()
       }).catch(e => alert(e.message || 'Upload failed'))
       return true
     }
