@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
-import Image from '@tiptap/extension-image'
+import TipTapImage from '@tiptap/extension-image'
 import Underline from '@tiptap/extension-underline'
 import { Node } from '@tiptap/core'
 import katex from 'katex'
@@ -60,7 +60,7 @@ const editor = useEditor({
   extensions: [
     StarterKit,
     Underline,
-    Image.configure({
+    TipTapImage.configure({
       allowBase64: false,
       HTMLAttributes: { class: 'editor-image' },
     }),
