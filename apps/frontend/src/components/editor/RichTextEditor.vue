@@ -74,7 +74,7 @@ const editor = useEditor({
 // ─── Formula Dialog ─────────────────────────────────────────────────────────
 
 // Standard max rendered width for question images.
-const MAX_IMAGE_WIDTH = 800
+const MAX_IMAGE_WIDTH = 500
 
 const showFormulaDialog = ref(false)
 const formulaInput = ref('')
