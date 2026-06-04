@@ -332,13 +332,13 @@ func EnsureContributorActive(status domain.Status) error {
 
 var (
 	htmlPolicy     *bluemonday.Policy
-	uploadURLRegex = regexp.MustCompile(`/uploads/[a-f0-9-]+\.(png|jpe?g|gif|webp)`)
+	uploadURLRegex = regexp.MustCompile(`/uploads/(questions/)?[a-f0-9-]+\.(png|jpe?g|gif|webp)`)
 )
 
 func init() {
 	htmlPolicy = bluemonday.NewPolicy()
-	htmlPolicy.AllowElements("b", "i", "u", "p", "br", "ul", "ol", "li")
-	htmlPolicy.AllowAttrs("src").Matching(regexp.MustCompile(`^/uploads/[a-f0-9-]+\.(png|jpe?g|gif|webp)$`)).OnElements("img")
+	htmlPolicy.AllowElements("b", "i", "u", "p", "br", "ul", "ol", "li", "img")
+	htmlPolicy.AllowAttrs("src").Matching(regexp.MustCompile(`^/uploads/(questions/)?[a-f0-9-]+\.(png|jpe?g|gif|webp)$`)).OnElements("img")
 	htmlPolicy.AllowAttrs("data-formula").OnElements("span")
 	htmlPolicy.AllowAttrs("class").OnElements("span")
 	htmlPolicy.AllowNoAttrs().OnElements("sup", "sub")

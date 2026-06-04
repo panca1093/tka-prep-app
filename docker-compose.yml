@@ -53,12 +53,14 @@ services:
       LOG_LEVEL: debug
       FRONTEND_ORIGIN: http://localhost:5173
       UPLOAD_DIR: /app/uploads
-      STORAGE_BACKEND: local
-      # GCS_BUCKET: your-bucket-name   # uncomment for GCS storage
+      STORAGE_BACKEND: gcs
+      GCS_BUCKET: masuk_kelas
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/gcs_credentials
     ports:
       - "8080:8080"
     volumes:
       - uploads_data:/app/uploads
+      - ${HOME}/.config/gcloud/application_default_credentials.json:/run/secrets/gcs_credentials:ro
 
   frontend:
     build:
