@@ -45,20 +45,25 @@ func New(cfg *config.Config, handler *httphandler.APIServer) *Server {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
-	r.Use(middleware.Authenticate(cfg.JWTSecret))
-	r.Use(middleware.RateLimit)
 
 	// Bootstrap storage backend.
 	store := cfg.Storage()
 
-	// Upload endpoint (raw route — multipart doesn't fit strict handler pattern).
-	r.Post("/api/v1/upload", httphandler.UploadHandler(store))
-
-	// Static file serving for uploaded images.
+	// Static file serving for uploaded images — must be before auth middleware
+	// because <img> tags in question text don't send Authorization headers.
 	r.Handle("/uploads/*", &storageAdapter{store: store})
 
-	strict := api.NewStrictHandler(handler, nil)
-	r.Mount("/api/v1", api.HandlerFromMux(strict, chi.NewRouter()))
+	// Auth-protected API group.
+	r.Group(func(r chi.Router) {
+		r.Use(middleware.Authenticate(cfg.JWTSecret))
+		r.Use(middleware.RateLimit)
+
+		// Upload endpoint (raw route — multipart doesn't fit strict handler pattern).
+		r.Post("/api/v1/upload", httphandler.UploadHandler(store))
+
+		strict := api.NewStrictHandler(handler, nil)
+		r.Mount("/api/v1", api.HandlerFromMux(strict, chi.NewRouter()))
+	})
 
 	return &Server{router: r}
 }
