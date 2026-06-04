@@ -53,6 +53,8 @@ services:
       LOG_LEVEL: debug
       FRONTEND_ORIGIN: http://localhost:5173
       UPLOAD_DIR: /app/uploads
+      STORAGE_BACKEND: local
+      # GCS_BUCKET: your-bucket-name   # uncomment for GCS storage
     ports:
       - "8080:8080"
     volumes:

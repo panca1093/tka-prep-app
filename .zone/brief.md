@@ -1,44 +1,68 @@
-# Brief: TKAPrep — Scoring Overhaul + Contributor UX Improvements
+# Brief: TKAPrep — Image Storage GCS Migration + Per-Contributor Question Visibility
 
 ## Problem
 
-Current scoring uses a weighted points system (`correct_points`, `wrong_points`, `blank_points` per test config) which is opaque to students and inconsistently configured by contributors. There is no standardized baseline score, no statistical insight into question quality, and contributors can't preview how their questions render to students or easily fix miscategorized questions.
+Two improvements needed for the contributor experience and production readiness:
+
+1. **Image storage is local disk only.** Uploads go to `./uploads/` on the backend filesystem, served via `http.FileServer`. This doesn't scale — images are lost on redeploy, can't be shared across instances, and local I/O is not production-grade.
+
+2. **Contributors see all questions in the question bank.** The `GET /questions` endpoint returns every question in the system regardless of who created it. A contributor's question bank should only show their own questions. Admins retain full visibility.
 
 ## Idea
 
-**Four improvements in one branch:**
+### Scope 1: GCS Image Storage (Hybrid)
 
-1. **Standardized base scoring** — Replace the freeform weighted config with a simple percentage score: `score = (correct / total) × 100`. Each correct answer = 1 point; score is a percentage. Recalculate all existing `test_results` rows with this formula.
+Add a `STORAGE_BACKEND` env var (`local` | `gcs`). When `gcs`, the upload handler writes to GCS instead of local disk, and static file serving is replaced with a GCS proxy. When `local`, behavior is unchanged.
 
-2. **Optional IRT score display** — After a student submits a test, compute an IRT-estimated ability score (theta) alongside the base score, visible only to contributors on the result analytics panel. IRT parameters (difficulty `b`, discrimination `a`, guessing `c`) are auto-estimated from accumulated student answer data (item-level frequency stats). Start with 1PL/Rasch (difficulty only) since data is sparse early on; upgrade to 3PL when enough data exists.
+New env vars:
+- `STORAGE_BACKEND` — `local` (default) or `gcs`
+- `GCS_BUCKET` — bucket name
+- `GCS_CREDENTIALS_PATH` — path to service account JSON (optional, fall back to ADC)
 
-3. **Question preview modal** — On the contributor question detail/list page, a "Preview" button opens a modal that renders the question exactly as a student would see it during a test session: question text, answer options (with image/formula support), no correct answer revealed.
+Upload flow with GCS:
+1. Contributor POSTs multipart to `/api/v1/upload` (unchanged API)
+2. Backend validates MIME + size (2MB cap) as before
+3. Writes to GCS bucket under `questions/<uuid>.<ext>`
+4. Returns the GCS object path (frontend-agnostic — it just renders the URL)
 
-4. **Contributor category management** — Contributors can: (a) edit category metadata (name, description) for categories they own, and (b) reassign a question to a different category.
+Serving flow with GCS:
+- Replace `http.FileServer` with a handler that streams from GCS or generates signed URLs
+- Frontend doesn't change — it still receives and renders URLs
+
+Orphan image cleanup (`cleanupOrphanImages`) needs a GCS equivalent.
+
+### Scope 2: Per-Contributor Question Visibility
+
+Auto-filter `GET /questions` by `contributor_id = caller_id` when the caller is a contributor. Admins see all questions. Enforced at the SQL/repository layer.
+
+Same filter on `GET /questions/{id}` — contributor fetching a question they don't own gets 404. Admin bypasses.
 
 ## Users
 
-- **Students** — see a cleaner, standardized percentage score after submitting a test.
-- **Contributors** — see the IRT-estimated ability score on their test result analytics; can preview questions before publishing; can fix category mistakes.
-- **Super Admin** — no direct interaction, but benefits from better data quality.
+- **Contributors** — question bank only shows their own questions. They can still use any question in their tests (questions remain shared for test composition — no change to test builder behavior).
+- **Admins** — see all questions, no change.
 
 ## Success Criteria
 
-- Submitting a test returns `score` as a percentage (0–100), stored in `test_results.total_score`.
-- All existing `test_results` rows are backfilled with the new formula (migration).
-- `scoring_configs` table is either removed or its `correct_points/wrong_points/blank_points` columns are deprecated (kept for audit, ignored in calculation).
-- On the contributor result analytics page, an "IRT Score (θ)" column is visible showing the estimated theta for each student who took the test, computed from item-level response data.
-- Clicking "Preview" on any question in the contributor UI opens a modal showing the student-facing question view.
-- Contributor can edit a category's name/description from the category list/detail page.
-- Contributor can change a question's category from the question edit form.
+1. `STORAGE_BACKEND=gcs` — image uploads persist to GCS, served correctly, orphan cleanup works
+2. `STORAGE_BACKEND=local` — existing behavior fully preserved (default)
+3. Contributor A only sees own questions in `GET /questions`
+4. Admin sees all questions in `GET /questions`
+5. Contributor fetching another's question by ID → 404
+6. Admin fetching any question by ID → works
+7. Existing tests pass
 
 ## Constraints
 
-- Backend: Go 1.22 + chi + pgx; clean layer architecture (handler → service → repository → domain).
-- Frontend: Vue 3 + TypeScript + Vite + Pinia.
-- DB: PostgreSQL 16; all schema changes via golang-migrate numbered migrations.
-- IRT: Start simple — 1PL Rasch model (`theta = difficulty` estimate from % correct). Full 3PL is future work. The IRT score is computed server-side, never client-side.
-- Existing `test_results` must be recalculated — this is a data migration, not just a schema change.
-- `scoring_configs` fields are not deleted (audit trail) but ignored by the new formula.
-- Category editing: contributors can only edit categories they own (created by them or assigned to them).
-- No breaking changes to the student-facing test-taking flow UX — only the score display changes.
+- Go 1.22, chi, pgx, zerolog — clean layers
+- No breaking API changes
+- Frontend: no required changes (server-side filter)
+- Docker Compose local dev: keep `STORAGE_BACKEND=local` default
+- 2MB upload cap stays
+
+## Edge Cases
+
+- **GCS misconfigured**: fail fast on boot, clear error
+- **Orphan cleanup on GCS**: list + delete objects by prefix instead of `os.Remove`
+- **Contributor with 0 questions**: 200 OK, empty list
+- **Student calling GET /questions**: still 403 (unchanged)

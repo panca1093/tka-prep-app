@@ -21,7 +21,7 @@ func (s *APIServer) GetQuestions(ctx context.Context, req api.GetQuestionsReques
 	}
 
 	p := req.Params
-	f := question.ListFilter{Page: 1, Limit: 20, CallerID: claims.UserID}
+	f := question.ListFilter{Page: 1, Limit: 20, CallerID: claims.UserID, CallerRole: claims.Role}
 	if p.Page != nil {
 		f.Page = *p.Page
 	}
@@ -124,7 +124,7 @@ func (s *APIServer) GetQuestionsQuestionId(ctx context.Context, req api.GetQuest
 		return api.GetQuestionsQuestionId403JSONResponse(errBody("FORBIDDEN", "contributor or admin only")), nil
 	}
 
-	q, err := s.questionSvc.Get(ctx, req.QuestionId)
+	q, err := s.questionSvc.Get(ctx, req.QuestionId, claims.UserID, claims.Role)
 	if err != nil {
 		if errors.Is(err, apierr.ErrNotFound) {
 			return api.GetQuestionsQuestionId404JSONResponse(errBody("NOT_FOUND", "question not found")), nil

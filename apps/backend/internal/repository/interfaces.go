@@ -56,7 +56,8 @@ type QuestionFilter struct {
 	Difficulty     *domain.Difficulty
 	QuestionType   *domain.QuestionType
 	EducationLevel *string
-	CallerID       uuid.UUID // if set, usage stats populated when CallerID == question.contributor_id
+	CallerID       uuid.UUID   // if set, usage stats populated when CallerID == question.contributor_id
+	CallerRole     domain.Role // if not admin, filter list to CallerID's questions only
 	Page           int
 	Limit          int
 }

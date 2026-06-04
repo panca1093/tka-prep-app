@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -15,16 +13,17 @@ import (
 
 	"github.com/yourorg/tkaprep/apps/backend/internal/domain"
 	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/apierr"
+	"github.com/yourorg/tkaprep/apps/backend/internal/pkg/storage"
 	"github.com/yourorg/tkaprep/apps/backend/internal/repository"
 )
 
 type Service struct {
 	questions repository.QuestionRepository
-	uploadDir string
+	store     storage.FileStorage
 }
 
-func NewService(questions repository.QuestionRepository, uploadDir string) *Service {
-	return &Service{questions: questions, uploadDir: uploadDir}
+func NewService(questions repository.QuestionRepository, store storage.FileStorage) *Service {
+	return &Service{questions: questions, store: store}
 }
 
 type OptionInput struct {
@@ -72,6 +71,7 @@ type ListFilter struct {
 	QuestionType   *domain.QuestionType
 	EducationLevel *string
 	CallerID       uuid.UUID
+	CallerRole     domain.Role
 	Page           int
 	Limit          int
 }
@@ -84,6 +84,7 @@ func (s *Service) List(ctx context.Context, f ListFilter) ([]*domain.Question, i
 		QuestionType:   f.QuestionType,
 		EducationLevel: f.EducationLevel,
 		CallerID:       f.CallerID,
+		CallerRole:     f.CallerRole,
 		Page:           f.Page,
 		Limit:          f.Limit,
 	})
@@ -145,8 +146,16 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domain.Question,
 	return q, nil
 }
 
-func (s *Service) Get(ctx context.Context, id uuid.UUID) (*domain.Question, error) {
-	return s.questions.FindByID(ctx, id)
+func (s *Service) Get(ctx context.Context, id uuid.UUID, callerID uuid.UUID, callerRole domain.Role) (*domain.Question, error) {
+	q, err := s.questions.FindByID(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	// Contributors can only view their own questions. Admins and students (test-taking) bypass.
+	if callerRole == domain.RoleContributor && q.ContributorID != callerID {
+		return nil, apierr.ErrNotFound
+	}
+	return q, nil
 }
 
 func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, callerRole domain.Role, in UpdateInput) (*domain.Question, error) {
@@ -223,7 +232,7 @@ func (s *Service) Update(ctx context.Context, id uuid.UUID, callerID uuid.UUID, 
 	}
 
 	// Clean up orphan images from editing.
-	cleanupOrphanImages(s.uploadDir, oldContent, collectAllText(q))
+	s.cleanupOrphanImages(oldContent, collectAllText(q))
 	return q, nil
 }
 
@@ -387,18 +396,14 @@ func collectAllText(q *domain.Question) string {
 }
 
 // cleanupOrphanImages deletes image files that are in the old set but not the new set.
-func cleanupOrphanImages(uploadDir string, oldHTML, newHTML string) {
-	if uploadDir == "" {
-		return
-	}
+func (s *Service) cleanupOrphanImages(oldHTML, newHTML string) {
 	oldURLs := makeSet(extractUploadURLs(oldHTML))
 	newURLs := makeSet(extractUploadURLs(newHTML))
 	for url := range oldURLs {
 		if newURLs[url] {
 			continue
 		}
-		filename := filepath.Base(url)
-		_ = os.Remove(filepath.Join(uploadDir, filename))
+		_ = s.store.Delete(context.Background(), url)
 	}
 }
 
