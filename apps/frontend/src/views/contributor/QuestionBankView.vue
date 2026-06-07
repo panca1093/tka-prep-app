@@ -8,6 +8,7 @@ const auth = useAuthStore()
 import RichTextEditor from '@/components/editor/RichTextEditor.vue'
 import RichTextViewer from '@/components/editor/RichTextViewer.vue'
 import QuestionPreviewModal from '@/components/QuestionPreviewModal.vue'
+import TopicSelector from '@/components/question/TopicSelector.vue'
 
 type Question = components['schemas']['QuestionDetailResponse']
 type Topic = components['schemas']['TopicResponse']
@@ -644,10 +645,7 @@ const typeColor: Record<string, string> = {
             <div class="form-row">
               <div class="field">
                 <label class="field-label">Topik</label>
-                <select v-model="form.topic_id" class="modal-select">
-                  <option value="">Pilih topik…</option>
-                  <option v-for="t in topics" :key="t.id" :value="t.id">{{ t.name }}</option>
-                </select>
+                <TopicSelector v-model="form.topic_id" />
               </div>
 
               <div class="field">

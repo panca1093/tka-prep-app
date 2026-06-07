@@ -32,23 +32,23 @@ func UploadHandler(store storage.FileStorage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		claims, ok := pkgjwt.FromContext(r.Context())
 		if !ok {
-			writeJSON(w, http.StatusUnauthorized, map[string]string{"error": "not authenticated"})
+			writeJSON(w, http.StatusUnauthorized, errBody("UNAUTHORIZED", "not authenticated"))
 			return
 		}
 		if claims.Role != domain.RoleContributor && claims.Role != domain.RoleAdmin {
-			writeJSON(w, http.StatusForbidden, map[string]string{"error": "contributor role required"})
+			writeJSON(w, http.StatusForbidden, errBody("FORBIDDEN", "contributor or admin role required"))
 			return
 		}
 
 		r.Body = http.MaxBytesReader(w, r.Body, maxUploadSize)
 		if err := r.ParseMultipartForm(maxUploadSize); err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "file too large (max 2 MB)"})
+			writeJSON(w, http.StatusBadRequest, errBody("VALIDATION_ERROR", "file too large (max 2 MB)"))
 			return
 		}
 
 		file, header, err := r.FormFile("file")
 		if err != nil {
-			writeJSON(w, http.StatusBadRequest, map[string]string{"error": "missing file field"})
+			writeJSON(w, http.StatusBadRequest, errBody("VALIDATION_ERROR", "missing file field"))
 			return
 		}
 		defer file.Close()
@@ -62,7 +62,7 @@ func UploadHandler(store storage.FileStorage) http.HandlerFunc {
 			// Fall back to extension check for some formats DetectContentType misses.
 			ext = strings.ToLower(filepath.Ext(header.Filename))
 			if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".gif" && ext != ".webp" {
-				writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unsupported file type"})
+				writeJSON(w, http.StatusBadRequest, errBody("VALIDATION_ERROR", "unsupported file type"))
 				return
 			}
 			if ext == ".jpeg" {
@@ -72,14 +72,14 @@ func UploadHandler(store storage.FileStorage) http.HandlerFunc {
 
 		// Reset reader to start.
 		if _, err := file.Seek(0, io.SeekStart); err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "internal error"})
+			writeJSON(w, http.StatusInternalServerError, errBody("INTERNAL_ERROR", "internal error"))
 			return
 		}
 
 		filename := uuid.New().String() + ext
 		urlPath, err := store.Save(r.Context(), filename, file, mime)
 		if err != nil {
-			writeJSON(w, http.StatusInternalServerError, map[string]string{"error": "could not save file"})
+			writeJSON(w, http.StatusInternalServerError, errBody("INTERNAL_ERROR", "could not save file"))
 			return
 		}
 

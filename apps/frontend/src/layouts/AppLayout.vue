@@ -33,6 +33,7 @@ const nav = computed((): NavItem[] => {
       { label: 'Dashboard', to: '/admin/dashboard', icon: 'home' },
       { label: 'Pengguna', to: '/admin/users', icon: 'users' },
       { label: 'Ujian', to: '/admin/tests', icon: 'doc' },
+      { label: 'Kategori', to: '/admin/categories', icon: 'tag' },
     ]
   }
   return []

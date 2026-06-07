@@ -32,6 +32,7 @@ const router = createRouter({
         { path: 'sessions/:sessionId', name: 'test-session', component: () => import('@/views/student/TestSessionView.vue'), meta: { role: 'student', fullScreen: true } },
         { path: 'results/:resultId', name: 'result', component: () => import('@/views/student/ResultView.vue'), meta: { role: 'student' } },
         { path: 'results/:resultId/review', name: 'review', component: () => import('@/views/student/ReviewView.vue'), meta: { role: 'student' } },
+        { path: 'results', name: 'score-history', component: () => import('@/views/student/ScoreHistoryView.vue'), meta: { role: 'student' } },
         { path: 'leaderboard', name: 'leaderboard', component: () => import('@/views/student/LeaderboardView.vue'), meta: { role: 'student' } },
         { path: 'profile', name: 'student-profile', component: () => import('@/views/student/ProfileView.vue'), meta: { role: 'student' } },
 
@@ -48,7 +49,8 @@ const router = createRouter({
         { path: 'admin/dashboard', name: 'admin-dashboard', component: () => import('@/views/admin/DashboardView.vue'), meta: { role: 'admin' } },
         { path: 'admin/users', name: 'admin-users', component: () => import('@/views/admin/UsersView.vue'), meta: { role: 'admin' } },
         { path: 'admin/tests', name: 'admin-tests', component: () => import('@/views/admin/AdminTestsView.vue'), meta: { role: 'admin' } },
-        
+        { path: 'admin/categories', name: 'admin-categories', component: () => import('@/views/admin/CategoriesView.vue'), meta: { role: 'admin' } },
+
       ],
     },
 
